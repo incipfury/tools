@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Side-by-Side Diff Checker</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+    background: #fafafa;
+    color: #1a1a1a;
+    font-size: 14px;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+  header {
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #e1e4e8;
+  }
+  h1 { margin: 0 0 4px 0; font-size: 18px; font-weight: 600; }
+  .subtitle { color: #586069; font-size: 13px; }
+  .row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .pane {
+    background: white;
+    border: 1px solid #e1e4e8;
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+  .pane-header {
+    background: #f6f8fa;
+    padding: 8px 12px;
+    border-bottom: 1px solid #e1e4e8;
+    font-size: 12px;
+    font-weight: 600;
+    color: #24292e;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .pane-header .label { text-transform: uppercase; letter-spacing: 0.5px; }
+  .pane-header .meta { color: #586069; font-weight: 400; font-size: 11px; }
+  textarea {
+    width: 100%;
+    min-height: 220px;
+    border: none;
+    padding: 12px;
+    font-family: "SF Mono", Monaco, Consolas, "Liberation Mono", monospace;
+    font-size: 13px;
+    line-height: 1.5;
+    resize: vertical;
+    outline: none;
+    color: #1a1a1a;
+    background: white;
+    display: block;
+  }
+  textarea:focus { background: #fffef7; }
+  .diff-content {
+    padding: 12px;
+    font-family: "SF Mono", Monaco, Consolas, "Liberation Mono", monospace;
+    font-size: 13px;
+    line-height: 1.65;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    max-height: 500px;
+    min-height: 120px;
+    overflow-y: auto;
+    background: white;
+  }
+  .diff-add {
+    background: #e6ffed;
+    color: #1a7a3c;
+    padding: 1px 2px;
+    border-radius: 2px;
+    border-bottom: 1px solid #a3d9b4;
+  }
+  .diff-del {
+    background: #ffeef0;
+    color: #b31d28;
+    text-decoration: line-through;
+    padding: 1px 2px;
+    border-radius: 2px;
+    border-bottom: 1px solid #f5b7bf;
+  }
+  .controls {
+    padding: 8px 12px;
+    background: #f6f8fa;
+    border-top: 1px solid #e1e4e8;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  button {
+    background: white;
+    border: 1px solid #d1d5da;
+    border-radius: 4px;
+    padding: 5px 12px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    color: #24292e;
+    font-family: inherit;
+  }
+  button:hover { background: #f3f4f6; border-color: #c6cbd1; }
+  button:active { background: #e9ecef; }
+  button.primary {
+    background: #0366d6;
+    color: white;
+    border-color: #0366d6;
+  }
+  button.primary:hover { background: #0256b3; border-color: #0256b3; }
+  .toggle-label {
+    font-size: 12px;
+    color: #586069;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .toggle-label input { margin: 0; }
+  .stats {
+    font-size: 12px;
+    color: #586069;
+  }
+  .stats .add-count { color: #1a7a3c; font-weight: 600; }
+  .stats .del-count { color: #b31d28; font-weight: 600; }
+  .legend {
+    display: inline-flex;
+    gap: 12px;
+    font-size: 11px;
+    color: #586069;
+    font-weight: 400;
+  }
+  .legend-item { display: flex; align-items: center; gap: 4px; }
+  .legend-swatch {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+  }
+  .spacer { flex: 1; }
+  .status-msg { font-size: 12px; color: #1a7a3c; font-weight: 500; }
+  .hint {
+    color: #959da5;
+    font-style: italic;
+    padding: 20px 0;
+    text-align: center;
+  }
+  .ellipsis {
+    color: #959da5;
+    display: block;
+    text-align: center;
+    padding: 6px 0;
+    margin: 4px 0;
+    border-top: 1px dashed #e1e4e8;
+    border-bottom: 1px dashed #e1e4e8;
+    user-select: none;
+  }
+  @media (max-width: 768px) {
+    .row { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Side-by-Side Diff Checker</h1>
+  <div class="subtitle">Paste the edited (new) text on the left and the original (old) text on the right. The working draft auto-populates from the new text — edit it freely and copy when ready.</div>
+</header>
+
+<div class="row">
+  <div class="pane" style="margin-bottom:0">
+    <div class="pane-header">
+      <span class="label">New Version (Left)</span>
+      <span class="meta" id="new-meta">0 words</span>
+    </div>
+    <textarea id="new-text" placeholder="Paste the NEW / edited text here..." spellcheck="false"></textarea>
+  </div>
+  <div class="pane" style="margin-bottom:0">
+    <div class="pane-header">
+      <span class="label">Old Version (Right)</span>
+      <span class="meta" id="old-meta">0 words</span>
+    </div>
+    <textarea id="old-text" placeholder="Paste the OLD / original text here..." spellcheck="false"></textarea>
+  </div>
+</div>
+
+<div class="pane">
+  <div class="pane-header">
+    <span class="label">Diff (Old → New)</span>
+    <span class="legend">
+      <span class="legend-item"><span class="legend-swatch" style="background:#e6ffed;border:1px solid #1a7a3c"></span>Added in New</span>
+      <span class="legend-item"><span class="legend-swatch" style="background:#ffeef0;border:1px solid #b31d28"></span>Removed from Old</span>
+    </span>
+  </div>
+  <div class="diff-content" id="diff-view">
+    <div class="hint">Paste text on both sides to see the diff.</div>
+  </div>
+  <div class="controls">
+    <span class="stats" id="stats">—</span>
+    <div class="spacer"></div>
+    <label class="toggle-label">
+      <input type="checkbox" id="compact-toggle">
+      Compact view (changes + context only)
+    </label>
+    <button id="swap-btn" title="Swap the left and right inputs">Swap L ↔ R</button>
+  </div>
+</div>
+
+<div class="pane">
+  <div class="pane-header">
+    <span class="label">Working Draft (editable)</span>
+    <span class="meta" id="draft-meta">0 words</span>
+  </div>
+  <textarea id="draft-text" placeholder="Working draft — starts as the NEW version, edit as needed..." spellcheck="false" style="min-height:260px"></textarea>
+  <div class="controls">
+    <button id="copy-draft" class="primary">Copy to Clipboard</button>
+    <button id="reset-new" title="Replace draft contents with the New text">Reset to New</button>
+    <button id="reset-old" title="Replace draft contents with the Old text">Reset to Old</button>
+    <button id="clear-draft">Clear</button>
+    <div class="spacer"></div>
+    <span class="status-msg" id="copy-status"></span>
+  </div>
+</div>
+
+<script>
+(function(){
+  const newEl = document.getElementById('new-text');
+  const oldEl = document.getElementById('old-text');
+  const draftEl = document.getElementById('draft-text');
+  const diffEl = document.getElementById('diff-view');
+  const statsEl = document.getElementById('stats');
+  const compactToggle = document.getElementById('compact-toggle');
+
+  let draftTouched = false;
+
+  // Tokenize into words, whitespace runs, and punctuation runs — each as separate tokens.
+  function tokenize(text) {
+    return text.match(/(\s+|[^\s\w]+|[\w]+)/g) || [];
+  }
+
+  function wordCount(text) {
+    const m = text.match(/\S+/g);
+    return m ? m.length : 0;
+  }
+
+  // Word-level diff via LCS backtrace. For typical document-sized edits (a few
+  // thousand tokens per side) this runs in well under a second. A safety cap
+  // prevents the browser from locking up on pathological inputs.
+  function computeDiff(oldTokens, newTokens) {
+    const m = oldTokens.length, n = newTokens.length;
+    if (m === 0 && n === 0) return [];
+    if (m === 0) return newTokens.map(v => ({type:'add', value:v}));
+    if (n === 0) return oldTokens.map(v => ({type:'del', value:v}));
+
+    // Memory cap: (m+1)*(n+1) Int32s. 10M cells ≈ 40 MB.
+    if ((m + 1) * (n + 1) > 10000000) {
+      return [{type:'error', value:'Input too large for word-level diff (~' + m + ' vs ' + n + ' tokens). Try comparing one section at a time.'}];
+    }
+
+    const dp = new Array(m + 1);
+    for (let i = 0; i <= m; i++) dp[i] = new Int32Array(n + 1);
+
+    for (let i = 1; i <= m; i++) {
+      const oi = oldTokens[i-1];
+      const row = dp[i], prev = dp[i-1];
+      for (let j = 1; j <= n; j++) {
+        if (oi === newTokens[j-1]) row[j] = prev[j-1] + 1;
+        else row[j] = prev[j] > row[j-1] ? prev[j] : row[j-1];
+      }
+    }
+
+    const result = [];
+    let i = m, j = n;
+    while (i > 0 || j > 0) {
+      if (i > 0 && j > 0 && oldTokens[i-1] === newTokens[j-1]) {
+        result.push({type:'same', value:oldTokens[i-1]});
+        i--; j--;
+      } else if (j > 0 && (i === 0 || dp[i][j-1] >= dp[i-1][j])) {
+        result.push({type:'add', value:newTokens[j-1]});
+        j--;
+      } else {
+        result.push({type:'del', value:oldTokens[i-1]});
+        i--;
+      }
+    }
+    result.reverse();
+
+    // Merge adjacent tokens of same type into one span for cleaner rendering.
+    const merged = [];
+    for (const item of result) {
+      if (merged.length && merged[merged.length-1].type === item.type) {
+        merged[merged.length-1].value += item.value;
+      } else {
+        merged.push({type:item.type, value:item.value});
+      }
+    }
+    return merged;
+  }
+
+  function escapeHtml(s) {
+    return s.replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+  }
+
+  function renderSpan(item) {
+    if (item.type === 'add') return '<span class="diff-add">' + escapeHtml(item.value) + '</span>';
+    if (item.type === 'del') return '<span class="diff-del">' + escapeHtml(item.value) + '</span>';
+    return escapeHtml(item.value);
+  }
+
+  // Compact view: keep changes and ~8 tokens of context on each side; elide the rest.
+  function renderCompact(diff) {
+    const CONTEXT_CHARS = 120;
+    let html = '';
+    let i = 0;
+    while (i < diff.length) {
+      const item = diff[i];
+      if (item.type !== 'same') {
+        html += renderSpan(item);
+        i++;
+        continue;
+      }
+      // 'same' section: trim middle if long
+      const text = item.value;
+      if (text.length <= CONTEXT_CHARS * 2) {
+        html += escapeHtml(text);
+      } else {
+        // Prefix context goes to the end of previous change; suffix to start of next
+        const hasPrev = i > 0;
+        const hasNext = i < diff.length - 1;
+        if (hasPrev && hasNext) {
+          html += escapeHtml(text.slice(0, CONTEXT_CHARS));
+          html += '<span class="ellipsis">· · ·</span>';
+          html += escapeHtml(text.slice(-CONTEXT_CHARS));
+        } else if (hasPrev) {
+          html += escapeHtml(text.slice(0, CONTEXT_CHARS));
+          html += '<span class="ellipsis">· · · (' + (text.length - CONTEXT_CHARS) + ' unchanged chars) · · ·</span>';
+        } else if (hasNext) {
+          html += '<span class="ellipsis">· · · (' + (text.length - CONTEXT_CHARS) + ' unchanged chars) · · ·</span>';
+          html += escapeHtml(text.slice(-CONTEXT_CHARS));
+        } else {
+          html += escapeHtml(text);
+        }
+      }
+      i++;
+    }
+    return html;
+  }
+
+  function render() {
+    const oldText = oldEl.value;
+    const newText = newEl.value;
+
+    document.getElementById('new-meta').textContent = wordCount(newText) + ' words';
+    document.getElementById('old-meta').textContent = wordCount(oldText) + ' words';
+
+    if (!oldText && !newText) {
+      diffEl.innerHTML = '<div class="hint">Paste text on both sides to see the diff.</div>';
+      statsEl.textContent = '—';
+      return;
+    }
+
+    const oldTokens = tokenize(oldText);
+    const newTokens = tokenize(newText);
+    const diff = computeDiff(oldTokens, newTokens);
+
+    if (diff.length === 1 && diff[0].type === 'error') {
+      diffEl.innerHTML = '<div class="hint" style="color:#b31d28;font-style:normal">' + escapeHtml(diff[0].value) + '</div>';
+      statsEl.textContent = '—';
+      return;
+    }
+
+    let addWords = 0, delWords = 0;
+    for (const item of diff) {
+      if (item.type === 'add') addWords += wordCount(item.value);
+      else if (item.type === 'del') delWords += wordCount(item.value);
+    }
+
+    const html = compactToggle.checked ? renderCompact(diff) : diff.map(renderSpan).join('');
+    diffEl.innerHTML = html || '<div class="hint">No content.</div>';
+
+    if (addWords === 0 && delWords === 0) {
+      statsEl.innerHTML = '<span style="color:#1a7a3c">Texts are identical.</span>';
+    } else {
+      statsEl.innerHTML = '<span class="add-count">+' + addWords + '</span> words added &middot; <span class="del-count">&minus;' + delWords + '</span> words removed';
+    }
+
+    // Auto-populate draft the first time (or after an explicit clear)
+    if (!draftTouched && newText) {
+      draftEl.value = newText;
+      updateDraftMeta();
+    }
+  }
+
+  function updateDraftMeta() {
+    document.getElementById('draft-meta').textContent = wordCount(draftEl.value) + ' words';
+  }
+
+  let debounce;
+  function schedule() {
+    clearTimeout(debounce);
+    debounce = setTimeout(render, 150);
+  }
+
+  newEl.addEventListener('input', schedule);
+  oldEl.addEventListener('input', schedule);
+  compactToggle.addEventListener('change', render);
+
+  draftEl.addEventListener('input', () => {
+    draftTouched = true;
+    updateDraftMeta();
+  });
+
+  document.getElementById('reset-new').addEventListener('click', () => {
+    draftEl.value = newEl.value;
+    draftTouched = false;
+    updateDraftMeta();
+  });
+
+  document.getElementById('reset-old').addEventListener('click', () => {
+    draftEl.value = oldEl.value;
+    draftTouched = true; // prevent auto-overwrite on next diff render
+    updateDraftMeta();
+  });
+
+  document.getElementById('clear-draft').addEventListener('click', () => {
+    draftEl.value = '';
+    draftTouched = false;
+    updateDraftMeta();
+  });
+
+  document.getElementById('swap-btn').addEventListener('click', () => {
+    const tmp = newEl.value;
+    newEl.value = oldEl.value;
+    oldEl.value = tmp;
+    render();
+  });
+
+  document.getElementById('copy-draft').addEventListener('click', async () => {
+    const status = document.getElementById('copy-status');
+    try {
+      await navigator.clipboard.writeText(draftEl.value);
+      status.textContent = '✓ Copied to clipboard';
+      setTimeout(() => { status.textContent = ''; }, 2000);
+    } catch (e) {
+      // Fallback for older browsers / file:// restrictions
+      draftEl.select();
+      try {
+        document.execCommand('copy');
+        status.textContent = '✓ Copied (fallback)';
+      } catch (e2) {
+        status.textContent = 'Copy failed — select and press Ctrl+C';
+        status.style.color = '#b31d28';
+      }
+      setTimeout(() => { status.textContent = ''; status.style.color = ''; }, 2500);
+    }
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
