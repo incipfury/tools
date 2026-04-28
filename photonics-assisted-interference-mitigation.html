@@ -493,6 +493,107 @@ body {
   line-height: 0;
   color: var(--accent);
 }
+/* ── Paper tab toolbar ── */
+.paper-toolbar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+}
+.paper-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.paper-btn:hover {
+  background: var(--surface-alt);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.paper-btn:active { transform: scale(0.98); }
+.paper-btn svg {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+}
+.paper-btn.primary {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+.paper-btn.primary:hover {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+  color: #fff;
+}
+/* ── Print styles for Paper tab → PDF ── */
+@media print {
+  html, body {
+    height: auto !important;
+    overflow: visible !important;
+    background: #fff !important;
+    color: #000 !important;
+  }
+  .sidebar, .tab-bar, .status-bar { display: none !important; }
+  .tab-panel { display: none !important; }
+  .tab-panel.paper-panel.active {
+    display: block !important;
+    position: static !important;
+    overflow: visible !important;
+    padding: 0 !important;
+  }
+  .app-layout, .main-area, .tab-panels {
+    display: block !important;
+    position: static !important;
+    overflow: visible !important;
+    height: auto !important;
+    min-height: 0 !important;
+    flex: none !important;
+  }
+  .paper-toolbar { display: none !important; }
+  .paper-doc {
+    max-width: none !important;
+    padding: 0 !important;
+    color: #000 !important;
+    font-size: 11pt !important;
+    line-height: 1.45 !important;
+  }
+  .paper-doc .paper-eyebrow,
+  .paper-doc h2.paper-section {
+    color: #000 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .paper-doc .paper-citation {
+    background: #f5f5f5 !important;
+    border-left-color: #888 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .paper-doc .paper-equation {
+    background: #f5f5f5 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    page-break-inside: avoid;
+  }
+  .paper-doc table.param-map { page-break-inside: avoid; }
+  .paper-doc h2.paper-section { page-break-after: avoid; }
+  .paper-doc a { color: #000 !important; text-decoration: underline; }
+  .ref-num { color: #000 !important; }
+  @page { margin: 0.6in; }
+}
 </style>
 </head>
 <body>
@@ -584,6 +685,21 @@ body {
       <!-- ── Tab 7: Academic Paper Summary ── -->
       <div class="tab-panel paper-panel" data-panel="7">
         <article class="paper-doc">
+          <div class="paper-toolbar">
+            <button class="paper-btn primary" onclick="printPaper()" title="Open the browser print dialog &mdash; choose 'Save as PDF' as the destination">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+              Print / Save as PDF
+            </button>
+            <button class="paper-btn" onclick="copyCitation('plain')" title="Copy IEEE-style plain text citation to clipboard">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              Copy Citation
+            </button>
+            <button class="paper-btn" onclick="copyCitation('bibtex')" title="Copy BibTeX entry to clipboard">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+              Copy BibTeX
+            </button>
+          </div>
+
           <div class="paper-eyebrow">Source Reference &middot; Invited Paper</div>
           <h1 class="paper-title">Photonic Assisted Radio-Frequency Interference Mitigation</h1>
           <div class="paper-authors">Vincent J. Urick, Modesto E. Godinez, and Dennis C. Mikeska</div>
@@ -957,7 +1073,57 @@ function toGHz(freqs) {
   return out;
 }
 
-const plotConfig = { responsive: true, displayModeBar: true, modeBarButtonsToRemove: ['select2d', 'lasso2d'] };
+// ── Tab labels for download filenames ──
+const TAB_FILENAMES = [
+  'combined_isolation', 'mzm_response', 'link_performance',
+  'fir_canceller', 'sinr_analysis', 'layered_budget', 'parameter_sweep'
+];
+let currentTabIdx = 0;
+
+function getPlotFilename() {
+  return 'photonic_mitigation_' + (TAB_FILENAMES[currentTabIdx] || 'plot');
+}
+
+// Custom modebar buttons replace the default toImage with explicit PNG and SVG.
+// Filenames are computed at click time so they reflect the active tab.
+const plotConfig = {
+  responsive: true,
+  displayModeBar: true,
+  modeBarButtonsToRemove: ['select2d', 'lasso2d', 'toImage'],
+  modeBarButtonsToAdd: [
+    {
+      name: 'downloadPng',
+      title: 'Download as PNG',
+      icon: Plotly.Icons.camera,
+      click: function(gd) {
+        const fname = getPlotFilename();
+        Plotly.downloadImage(gd, {
+          format: 'png',
+          filename: fname,
+          width: gd.clientWidth || 1200,
+          height: gd.clientHeight || 700,
+          scale: 2
+        });
+        setStatus('Saved ' + fname + '.png');
+      }
+    },
+    {
+      name: 'downloadSvg',
+      title: 'Download as SVG (vector)',
+      icon: Plotly.Icons.disk,
+      click: function(gd) {
+        const fname = getPlotFilename();
+        Plotly.downloadImage(gd, {
+          format: 'svg',
+          filename: fname,
+          width: gd.clientWidth || 1200,
+          height: gd.clientHeight || 700
+        });
+        setStatus('Saved ' + fname + '.svg');
+      }
+    }
+  ]
+};
 
 // ══════════════════════════════════════════════════════════════
 //  PLOTTING
@@ -1184,6 +1350,63 @@ function runSweep() {
 
 function setStatus(msg) { document.getElementById('statusBar').textContent = msg; }
 
+// ── Paper tab: print and citation export ──
+function printPaper() {
+  // Make sure the Paper tab is the active one before printing.
+  const paperBtn = document.querySelector('.tab-btn[data-tab="7"]');
+  if (paperBtn && !paperBtn.classList.contains('active')) paperBtn.click();
+  setStatus('Opening print dialog... select "Save as PDF" as the destination.');
+  setTimeout(function() { window.print(); }, 100);
+}
+
+function copyCitation(format) {
+  let text;
+  if (format === 'bibtex') {
+    text =
+'@article{urick2020photonic,\n' +
+'  author    = {Urick, Vincent J. and Godinez, Modesto E. and Mikeska, Dennis C.},\n' +
+'  title     = {Photonic Assisted Radio-Frequency Interference Mitigation},\n' +
+'  journal   = {Journal of Lightwave Technology},\n' +
+'  volume    = {38},\n' +
+'  number    = {6},\n' +
+'  pages     = {1268--1274},\n' +
+'  year      = {2020},\n' +
+'  month     = mar,\n' +
+'  publisher = {IEEE},\n' +
+'  doi       = {10.1109/JLT.2019.2955921}\n' +
+'}';
+  } else {
+    text = 'V. J. Urick, M. E. Godinez, and D. C. Mikeska, "Photonic Assisted ' +
+           'Radio-Frequency Interference Mitigation," Journal of Lightwave Technology, ' +
+           'vol. 38, no. 6, pp. 1268-1274, Mar. 2020. doi: 10.1109/JLT.2019.2955921';
+  }
+  function fallbackCopy() {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    let ok = false;
+    try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+    document.body.removeChild(ta);
+    return ok;
+  }
+  const label = format === 'bibtex' ? 'BibTeX entry' : 'citation';
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(
+      function() { setStatus(label.charAt(0).toUpperCase() + label.slice(1) + ' copied to clipboard.'); },
+      function() {
+        if (fallbackCopy()) setStatus(label.charAt(0).toUpperCase() + label.slice(1) + ' copied to clipboard.');
+        else setStatus('Copy failed. Please select and copy manually from the page.');
+      }
+    );
+  } else {
+    if (fallbackCopy()) setStatus(label.charAt(0).toUpperCase() + label.slice(1) + ' copied to clipboard.');
+    else setStatus('Copy failed. Please select and copy manually.');
+  }
+}
+
 function runSimulation() {
   setStatus('Running simulation...');
   setTimeout(function() {
@@ -1209,13 +1432,14 @@ document.getElementById('tabBar').addEventListener('click', function(e) {
   const btn = e.target.closest('.tab-btn');
   if (!btn) return;
   const idx = btn.getAttribute('data-tab');
+  currentTabIdx = parseInt(idx, 10);
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
   document.querySelector('.tab-panel[data-panel="' + idx + '"]').classList.add('active');
   // Resize Plotly plots in the newly visible tab
   const plotId = ['plot-combined','plot-mzm','plot-link','plot-fir','plot-sinr','plot-budget','plot-sweep'][idx];
-  const el = document.getElementById(plotId);
+  const el = plotId ? document.getElementById(plotId) : null;
   if (el && el.data) Plotly.Plots.resize(el);
 });
 
