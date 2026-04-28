@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PCSEL 2nd-Order Grating — Coherent Summation</title>
+<style>
+  :root {
+    --bg: #0b0f14;
+    --panel: #141a22;
+    --border: #222b38;
+    --text: #d8dee9;
+    --text-dim: #7b8794;
+    --accent: #88c0d0;
+    --yellow: #ebcb8b;
+    --green: #a3be8c;
+    --red: #bf616a;
+    --purple: #b48ead;
+    --slab-top: #2b4d6b;
+    --slab-bot: #1a3348;
+    --tooth: #4a7ba3;
+    --grid: #1f2a36;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, sans-serif;
+    padding: 18px;
+    line-height: 1.5;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  h1 { font-size: 20px; margin: 0 0 4px; font-weight: 600; }
+  h2 {
+    font-size: 11px; margin: 0 0 10px; color: var(--text-dim);
+    font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em;
+  }
+  .subtitle { color: var(--text-dim); margin: 0 0 18px; font-size: 13px; }
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px;
+    margin-bottom: 14px;
+  }
+  .controls-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 14px;
+  }
+  .control { display: flex; flex-direction: column; gap: 6px; font-size: 12px; }
+  .control label {
+    display: flex; justify-content: space-between; align-items: baseline;
+    color: var(--text-dim);
+  }
+  .control .val {
+    color: var(--accent); font-family: ui-monospace, Menlo, monospace; font-size: 12px;
+  }
+  .control input[type=range] { width: 100%; accent-color: var(--accent); }
+  .status-row {
+    display: flex; gap: 18px; flex-wrap: wrap;
+    font-family: ui-monospace, Menlo, monospace; font-size: 13px;
+    padding: 10px 14px;
+    background: var(--panel); border: 1px solid var(--border); border-radius: 8px;
+    margin-bottom: 14px;
+  }
+  .status-item .label { color: var(--text-dim); margin-right: 6px; font-family: inherit; }
+  .status-item .v { color: var(--yellow); }
+  .status-item .v.bragg { color: var(--green); }
+  .status-item .v.off { color: var(--red); }
+  .toggle {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 12px; color: var(--text-dim); cursor: pointer;
+    font-family: inherit;
+  }
+  .toggle input { cursor: pointer; }
+  .row { display: flex; gap: 14px; }
+  .row > .panel { flex: 1; min-width: 0; }
+  canvas { display: block; width: 100%; height: auto; }
+  .legend { font-size: 11px; color: var(--text-dim); margin-top: 8px; }
+  .kv { color: var(--accent); }
+  .eq { font-family: ui-monospace, Menlo, monospace; color: var(--text); }
+  @media (max-width: 780px) {
+    .row { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+
+<h1>PCSEL 2nd-Order Grating — Coherent Summation</h1>
+<p class="subtitle">
+  The same field-summation trick as a Fabry–Perot, only now each "reflection" is a partial wave radiated
+  <em>upward</em> by one unit cell of an in-plane grating. At Bragg (<span class="eq">k<sub>g</sub>·a = 2π</span>)
+  every partial wave arrives in phase along the normal and they add coherently. Detune and they walk off.
+</p>
+
+<div class="panel">
+  <div class="controls-grid">
+    <div class="control">
+      <label>Period <span class="eq">a</span> <span class="val"><span id="aVal">456</span> nm</span></label>
+      <input type="range" id="aSlider" min="250" max="800" step="1" value="456">
+    </div>
+    <div class="control">
+      <label>Effective index <span class="eq">n<sub>eff</sub></span> <span class="val" id="nEffVal">3.40</span></label>
+      <input type="range" id="nEffSlider" min="1.8" max="4.0" step="0.01" value="3.40">
+    </div>
+    <div class="control">
+      <label>Free-space <span class="eq">λ₀</span> <span class="val"><span id="lambdaVal">1550</span> nm</span></label>
+      <input type="range" id="lambdaSlider" min="800" max="1600" step="5" value="1550">
+    </div>
+    <div class="control">
+      <label>Cells <span class="eq">N</span> <span class="val" id="NVal">40</span></label>
+      <input type="range" id="NSlider" min="5" max="120" step="1" value="40">
+    </div>
+  </div>
+</div>
+
+<div class="status-row">
+  <div class="status-item"><span class="label">k<sub>g</sub>·a / 2π =</span><span class="v" id="braggRatio">1.000</span></div>
+  <div class="status-item"><span class="label">Bragg a =</span><span class="v" id="aBraggVal">—</span></div>
+  <div class="status-item"><span class="label">per-cell walk-off Δφ =</span><span class="v" id="walkoff">0.00 π</span></div>
+  <div class="status-item"><span class="label">radiation @ θ =</span><span class="v" id="thetaPeak">0.0°</span></div>
+  <div class="status-item">
+    <label class="toggle"><input type="checkbox" id="showCP" checked> show counter-propagating wave</label>
+  </div>
+  <div class="status-item">
+    <label class="toggle"><input type="checkbox" id="animate" checked> animate</label>
+  </div>
+  <div class="status-item">
+    <button id="snapBragg" style="background:var(--slab-top);color:var(--text);border:1px solid var(--border);border-radius:4px;padding:4px 10px;cursor:pointer;font-family:inherit;font-size:12px;">snap a → Bragg</button>
+  </div>
+</div>
+
+<div class="panel">
+  <h2>Slab + Grating + Partial-Wave Radiation</h2>
+  <canvas id="sideView" width="1160" height="240"></canvas>
+  <div class="legend">
+    Guided mode (cyan) travels in-plane. Each grating cell scatters a small partial wave upward.
+    Arrow color encodes the phase of that partial wave's source (cycles as the wave propagates).
+    On-Bragg: all arrows share the same color at any instant → in phase.
+    Off-Bragg: color walks cell-to-cell → phase mismatch.
+  </div>
+</div>
+
+<div class="row">
+  <div class="panel">
+    <h2>Phasor Sum (complex plane)</h2>
+    <canvas id="phasorView" width="520" height="420"></canvas>
+    <div class="legend">
+      Each cell's partial-wave phasor drawn tip-to-tail. <span style="color:var(--yellow)">Yellow</span> = resultant.
+      Straight line (all aligned) ⇔ Bragg. Curling back on itself ⇔ detuned, |resultant| → 0.
+      This is exactly your FP multi-layer summation — just with a different phase-per-step.
+    </div>
+  </div>
+  <div class="panel">
+    <h2>Far-field Intensity vs Angle</h2>
+    <canvas id="farField" width="520" height="420"></canvas>
+    <div class="legend">
+      <span style="color:var(--red)">Red</span> = forward guided wave, <span style="color:var(--purple)">purple</span> = counter-prop wave (if enabled).
+      On-Bragg: both peak at θ = 0 (single normal beam). Detuned: they split symmetrically.
+      Above the light line (|sin θ| > 1) the partial wave is evanescent — no real-angle emission.
+    </div>
+  </div>
+</div>
+
+<div class="panel">
+  <h2>Dispersion &amp; Space Harmonics (Leaky-Wave View)</h2>
+  <canvas id="dispersion" width="1160" height="360"></canvas>
+  <div class="legend">
+    Normalized Floquet–Brillouin diagram: X = β·a/(2π), Y = a/λ₀. Light cone <span style="color:#ebcb8b">shaded</span> (fast-wave region, |β| &lt; k₀).
+    <span style="color:#88c0d0">Cyan</span> = forward guided-wave harmonics β_m = +n<sub>eff</sub>k₀ + mG;
+    <span style="color:#b48ead">purple</span> = backward harmonics. Solid = fundamental (m=0, always bound); dashed = folded (m=±1).
+    A harmonic radiates whenever its line enters the cone. The emission angle is sin θ = β_m/k₀ = X/Y at the intersection.
+    <span style="color:#a3be8c">Green horizontal line</span>: 2nd-order Bragg frequency (a/λ₀ = 1/n<sub>eff</sub>) — the m=−1 forward branch and m=+1 backward branch meet at X=0, which is the open-stopband / PCSEL operating point.
+    <span style="color:#ebcb8b">Yellow line</span>: current operating frequency.
+  </div>
+</div>
+
+<div class="panel">
+  <h2>Tuning Curve: Normal-Direction Intensity vs Period a</h2>
+  <canvas id="tuningCurve" width="1160" height="220"></canvas>
+  <div class="legend">
+    Sweep <span class="eq">a</span> with <span class="eq">n<sub>eff</sub>, λ₀, N</span> fixed. Peak (array factor N²) at Bragg.
+    Width ∝ 1/N — more cells, sharper tuning (higher cavity Q). Side lobes are the familiar sinc-squared fringes.
+  </div>
+</div>
+
+<script>
+'use strict';
+
+const TWO_PI = 2 * Math.PI;
+
+const state = {
+  a: 456, n_eff: 3.4, lambda0: 1550, N: 40,
+  showCP: true, animate: true,
+  t: 0,
+};
+
+// ---------- Physics ----------
+function derived() {
+  const k0 = TWO_PI / state.lambda0;
+  const k_g = state.n_eff * k0;
+  const G = TWO_PI / state.a;
+  const braggRatio = (k_g * state.a) / TWO_PI;   // = 1 at 2nd-order Bragg
+  const aBragg = TWO_PI / k_g;                    // 2nd-order Bragg period (= λ₀/n_eff)
+  const walkoff_per_cell = k_g * state.a - TWO_PI;  // 0 at Bragg
+  // Radiation angle of forward wave: sin θ = (k_g - G)/k0 = n_eff - λ₀/a
+  const sinThetaFwd = (k_g - G) / k0;
+  return { k0, k_g, G, braggRatio, aBragg, walkoff_per_cell, sinThetaFwd };
+}
+
+// Array factor E(θ) = Σ_{n=0}^{N-1} exp(i (k_par - k0 sinθ) n a)
+// Returns complex value. Intensity = |E|².
+function arrayFactor(k_par, theta, N, a, k0) {
+  const D = (k_par - k0 * Math.sin(theta)) * a;  // phase per cell
+  const halfD = D / 2;
+  const sH = Math.sin(halfD);
+  if (Math.abs(sH) < 1e-13) {
+    // limit: all phasors aligned
+    return { re: N, im: 0, absq: N * N };
+  }
+  const amp = Math.sin(N * halfD) / sH;
+  const arg = (N - 1) * halfD;
+  return { re: amp * Math.cos(arg), im: amp * Math.sin(arg), absq: amp * amp };
+}
+
+// ---------- Canvas setup (high-DPI) ----------
+function setupCanvas(id) {
+  const c = document.getElementById(id);
+  const rect = c.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  c.width = Math.round(rect.width * dpr);
+  c.height = Math.round(rect.height * dpr);
+  const ctx = c.getContext('2d');
+  ctx.scale(dpr, dpr);
+  return { ctx, w: rect.width, h: rect.height };
+}
+
+// ---------- Drawing ----------
+function drawSideView() {
+  const { ctx, w, h } = setupCanvas('sideView');
+  ctx.clearRect(0, 0, w, h);
+
+  const { N } = state;
+  const { k_g } = derived();
+
+  const padL = 30, padR = 30;
+  const slabY = h - 80;
+  const slabH = 36;
+  const trackW = w - padL - padR;
+  const cellW = trackW / N;
+
+  // Air region
+  ctx.fillStyle = 'rgba(255,255,255,0.02)';
+  ctx.fillRect(0, 0, w, slabY);
+
+  // Slab body (gradient)
+  const g = ctx.createLinearGradient(0, slabY, 0, slabY + slabH);
+  g.addColorStop(0, '#2b4d6b');
+  g.addColorStop(1, '#1a3348');
+  ctx.fillStyle = g;
+  ctx.fillRect(padL, slabY, trackW, slabH);
+
+  // Substrate
+  ctx.fillStyle = '#0e151c';
+  ctx.fillRect(padL, slabY + slabH, trackW, h - (slabY + slabH));
+
+  // Grating teeth (on top of slab)
+  ctx.fillStyle = '#4a7ba3';
+  for (let n = 0; n < N; n++) {
+    const x = padL + n * cellW;
+    ctx.fillRect(x + cellW * 0.12, slabY - 5, cellW * 0.5, 5);
+  }
+
+  // Guided wave (cosine, traveling with time)
+  ctx.strokeStyle = '#88c0d0';
+  ctx.lineWidth = 1.5;
+  ctx.globalAlpha = 0.9;
+  ctx.beginPath();
+  const midY = slabY + slabH / 2;
+  const nSamp = 600;
+  for (let i = 0; i <= nSamp; i++) {
+    const x = padL + trackW * i / nSamp;
+    const x_nm = (x - padL) / cellW * state.a;
+    const phase = k_g * x_nm - state.t;
+    const y = midY - 9 * Math.cos(phase);
+    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+  ctx.globalAlpha = 1.0;
+
+  // Direction arrow
+  ctx.strokeStyle = '#88c0d0';
+  ctx.fillStyle = '#88c0d0';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(padL + trackW - 20, midY + 18);
+  ctx.lineTo(padL + trackW - 6, midY + 18);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(padL + trackW - 6, midY + 18);
+  ctx.lineTo(padL + trackW - 12, midY + 15);
+  ctx.lineTo(padL + trackW - 12, midY + 21);
+  ctx.closePath();
+  ctx.fill();
+  ctx.font = '11px sans-serif';
+  ctx.fillStyle = '#88c0d0';
+  ctx.fillText('guided wave k_g', padL + trackW - 110, midY + 32);
+
+  // Partial-wave arrows at each cell
+  const arrowTop = Math.max(20, slabY - 80);
+  for (let n = 0; n < N; n++) {
+    const xC = padL + (n + 0.5) * cellW;
+    const phase = k_g * (n * state.a) - state.t;
+    const hue = ((phase % TWO_PI + TWO_PI) % TWO_PI) / TWO_PI * 360;
+
+    // Shaft
+    ctx.strokeStyle = `hsla(${hue}, 78%, 62%, 0.85)`;
+    ctx.lineWidth = 1.3;
+    ctx.beginPath();
+    ctx.moveTo(xC, slabY - 6);
+    ctx.lineTo(xC, arrowTop);
+    ctx.stroke();
+
+    // Head
+    ctx.fillStyle = `hsla(${hue}, 78%, 62%, 0.95)`;
+    ctx.beginPath();
+    ctx.moveTo(xC - 3.5, arrowTop + 5);
+    ctx.lineTo(xC + 3.5, arrowTop + 5);
+    ctx.lineTo(xC, arrowTop - 1);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  // Labels
+  ctx.fillStyle = '#d8dee9';
+  ctx.font = '12px sans-serif';
+  ctx.fillText('partial-wave radiation (color = phase)', padL, 16);
+
+  ctx.fillStyle = '#7b8794';
+  ctx.font = '11px sans-serif';
+  ctx.fillText('slab (n_eff)', padL + 6, slabY + slabH / 2 + 4);
+  ctx.fillText('substrate', padL + 6, slabY + slabH + 14);
+  ctx.fillText(`${N} cells × ${state.a.toFixed(0)} nm`, padL, h - 6);
+}
+
+function drawPhasors() {
+  const { ctx, w, h } = setupCanvas('phasorView');
+  ctx.clearRect(0, 0, w, h);
+
+  const { N } = state;
+  const { k_g } = derived();
+  const dPhi = k_g * state.a;  // phase per cell at normal
+
+  // Determine scale: each phasor unit length, chain length up to N.
+  // Pick scale so chain fits in ~0.78 * min(w,h)
+  const unit = 0.78 * Math.min(w, h) * 0.5 / N;
+
+  // Compute cumulative path to find bounds
+  let x = 0, y = 0;
+  let xmin = 0, xmax = 0, ymin = 0, ymax = 0;
+  const pts = [{ x: 0, y: 0 }];
+  for (let n = 0; n < N; n++) {
+    const ph = dPhi * n - state.t;
+    x += unit * Math.cos(ph);
+    y += -unit * Math.sin(ph);
+    pts.push({ x, y });
+    if (x < xmin) xmin = x; if (x > xmax) xmax = x;
+    if (y < ymin) ymin = y; if (y > ymax) ymax = y;
+  }
+  // Centering offset
+  const ox = (w - (xmin + xmax)) / 2;
+  const oy = (h - (ymin + ymax)) / 2;
+
+  // Axes
+  ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(0, oy); ctx.lineTo(w, oy);
+  ctx.moveTo(ox, 0); ctx.lineTo(ox, h);
+  ctx.stroke();
+
+  // Phasors
+  for (let n = 0; n < N; n++) {
+    const p0 = pts[n], p1 = pts[n + 1];
+    const ph = dPhi * n - state.t;
+    const hue = ((ph % TWO_PI + TWO_PI) % TWO_PI) / TWO_PI * 360;
+    ctx.strokeStyle = `hsla(${hue}, 75%, 60%, 0.85)`;
+    ctx.lineWidth = 1.4;
+    ctx.beginPath();
+    ctx.moveTo(ox + p0.x, oy + p0.y);
+    ctx.lineTo(ox + p1.x, oy + p1.y);
+    ctx.stroke();
+  }
+
+  // Resultant
+  const rx = pts[N].x, ry = pts[N].y;
+  const rlen = Math.hypot(rx, ry);
+  ctx.strokeStyle = '#ebcb8b';
+  ctx.lineWidth = 2.8;
+  ctx.beginPath();
+  ctx.moveTo(ox, oy);
+  ctx.lineTo(ox + rx, oy + ry);
+  ctx.stroke();
+  // Arrowhead on resultant
+  if (rlen > 6) {
+    const ang = Math.atan2(ry, rx);
+    const ah = 9;
+    ctx.fillStyle = '#ebcb8b';
+    ctx.beginPath();
+    ctx.moveTo(ox + rx, oy + ry);
+    ctx.lineTo(ox + rx - ah * Math.cos(ang - 0.35), oy + ry - ah * Math.sin(ang - 0.35));
+    ctx.lineTo(ox + rx - ah * Math.cos(ang + 0.35), oy + ry - ah * Math.sin(ang + 0.35));
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  // Readout
+  const mag = rlen / unit;
+  const coherence = mag / N;
+  ctx.fillStyle = '#ebcb8b';
+  ctx.font = '13px ui-monospace, Menlo, monospace';
+  ctx.textAlign = 'left';
+  ctx.fillText(`|Σ| = ${mag.toFixed(2)}   |Σ|/N = ${coherence.toFixed(3)}`, 10, 18);
+  ctx.fillStyle = '#7b8794';
+  ctx.font = '11px ui-monospace, Menlo, monospace';
+  ctx.fillText(`phase/cell = ${(dPhi / Math.PI).toFixed(3)} π`, 10, 34);
+  ctx.fillText(`Bragg when phase/cell = 2.000 π`, 10, 48);
+}
+
+function drawFarField() {
+  const { ctx, w, h } = setupCanvas('farField');
+  ctx.clearRect(0, 0, w, h);
+
+  const { N, a } = state;
+  const { k_g, k0 } = derived();
+
+  const padL = 42, padR = 14, padT = 20, padB = 36;
+  const pw = w - padL - padR;
+  const ph = h - padT - padB;
+
+  // Sweep theta
+  const nPts = 520;
+  const Ifwd = new Float32Array(nPts);
+  const Icp = new Float32Array(nPts);
+  const norm = N * N;
+  let maxI = 0;
+  for (let i = 0; i < nPts; i++) {
+    const theta = -Math.PI / 2 + Math.PI * i / (nPts - 1);
+    const f = arrayFactor(k_g, theta, N, a, k0);
+    Ifwd[i] = f.absq / norm;
+    if (state.showCP) {
+      const b = arrayFactor(-k_g, theta, N, a, k0);
+      Icp[i] = b.absq / norm;
+    }
+    maxI = Math.max(maxI, Ifwd[i], Icp[i]);
+  }
+  // Always normalize to 1 so axis is stable
+  const yMax = 1.0;
+
+  // Frame
+  ctx.strokeStyle = '#2a3442';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(padL, padT, pw, ph);
+
+  // Gridlines
+  ctx.strokeStyle = '#1f2a36';
+  ctx.setLineDash([2, 3]);
+  for (let f = 0.25; f < 1.0; f += 0.25) {
+    const y = padT + ph - ph * f;
+    ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(padL + pw, y); ctx.stroke();
+  }
+  // Vertical for angles
+  for (const deg of [-60, -30, 30, 60]) {
+    const x = padL + pw * (deg + 90) / 180;
+    ctx.beginPath(); ctx.moveTo(x, padT); ctx.lineTo(x, padT + ph); ctx.stroke();
+  }
+  ctx.setLineDash([]);
+
+  // Normal marker
+  const xNorm = padL + pw / 2;
+  ctx.strokeStyle = '#3b4856';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([4, 3]);
+  ctx.beginPath(); ctx.moveTo(xNorm, padT); ctx.lineTo(xNorm, padT + ph); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Plot forward (red)
+  ctx.strokeStyle = '#bf616a';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  for (let i = 0; i < nPts; i++) {
+    const x = padL + pw * i / (nPts - 1);
+    const y = padT + ph - ph * Math.min(1, Ifwd[i] / yMax);
+    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+  // Fill under forward
+  ctx.fillStyle = 'rgba(191, 97, 106, 0.15)';
+  ctx.beginPath();
+  ctx.moveTo(padL, padT + ph);
+  for (let i = 0; i < nPts; i++) {
+    const x = padL + pw * i / (nPts - 1);
+    const y = padT + ph - ph * Math.min(1, Ifwd[i] / yMax);
+    ctx.lineTo(x, y);
+  }
+  ctx.lineTo(padL + pw, padT + ph);
+  ctx.closePath();
+  ctx.fill();
+
+  // Plot counter-propagating (purple)
+  if (state.showCP) {
+    ctx.strokeStyle = '#b48ead';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    for (let i = 0; i < nPts; i++) {
+      const x = padL + pw * i / (nPts - 1);
+      const y = padT + ph - ph * Math.min(1, Icp[i] / yMax);
+      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+    ctx.fillStyle = 'rgba(180, 142, 173, 0.12)';
+    ctx.beginPath();
+    ctx.moveTo(padL, padT + ph);
+    for (let i = 0; i < nPts; i++) {
+      const x = padL + pw * i / (nPts - 1);
+      const y = padT + ph - ph * Math.min(1, Icp[i] / yMax);
+      ctx.lineTo(x, y);
+    }
+    ctx.lineTo(padL + pw, padT + ph);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  // Axis labels
+  ctx.fillStyle = '#7b8794';
+  ctx.font = '11px ui-monospace, Menlo, monospace';
+  ctx.textAlign = 'center';
+  for (const deg of [-90, -60, -30, 0, 30, 60, 90]) {
+    const x = padL + pw * (deg + 90) / 180;
+    ctx.fillText(`${deg}°`, x, padT + ph + 14);
+  }
+  ctx.fillText('θ  (angle from normal)', padL + pw / 2, padT + ph + 30);
+
+  ctx.textAlign = 'right';
+  ctx.fillText('1.0', padL - 6, padT + 4);
+  ctx.fillText('0.5', padL - 6, padT + ph / 2 + 4);
+  ctx.fillText('0.0', padL - 6, padT + ph + 4);
+
+  ctx.textAlign = 'left';
+  ctx.fillStyle = '#d8dee9';
+  ctx.font = '11px ui-monospace, Menlo, monospace';
+  ctx.fillText('|E(θ)|² / N²', padL + 4, padT - 6);
+}
+
+function drawTuningCurve() {
+  const { ctx, w, h } = setupCanvas('tuningCurve');
+  ctx.clearRect(0, 0, w, h);
+
+  const { N, n_eff, lambda0 } = state;
+  const k0 = TWO_PI / lambda0;
+  const k_g = n_eff * k0;
+  const aBragg = TWO_PI / k_g;
+
+  // Window around Bragg
+  const aMin = Math.max(100, aBragg * 0.55);
+  const aMax = aBragg * 1.65;
+
+  const padL = 46, padR = 14, padT = 18, padB = 30;
+  const pw = w - padL - padR;
+  const ph = h - padT - padB;
+
+  const nPts = 900;
+  const pts = new Float32Array(nPts);
+  for (let i = 0; i < nPts; i++) {
+    const a = aMin + (aMax - aMin) * i / (nPts - 1);
+    const D = k_g * a;
+    const halfD = D / 2;
+    const sH = Math.sin(halfD);
+    let I;
+    if (Math.abs(sH) < 1e-13) { I = 1.0; }
+    else {
+      const amp = Math.sin(N * halfD) / sH;
+      I = (amp * amp) / (N * N);
+    }
+    pts[i] = I;
+  }
+
+  // Frame + grid
+  ctx.strokeStyle = '#2a3442';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(padL, padT, pw, ph);
+  ctx.strokeStyle = '#1f2a36';
+  ctx.setLineDash([2, 3]);
+  for (let f = 0.25; f < 1.0; f += 0.25) {
+    const y = padT + ph - ph * f;
+    ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(padL + pw, y); ctx.stroke();
+  }
+  ctx.setLineDash([]);
+
+  // Bragg vertical
+  const xB = padL + pw * (aBragg - aMin) / (aMax - aMin);
+  if (xB >= padL && xB <= padL + pw) {
+    ctx.strokeStyle = '#a3be8c';
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath(); ctx.moveTo(xB, padT); ctx.lineTo(xB, padT + ph); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#a3be8c';
+    ctx.font = '11px ui-monospace, Menlo, monospace';
+    ctx.textAlign = 'left';
+    ctx.fillText(`Bragg a = ${aBragg.toFixed(1)} nm`, xB + 5, padT + 12);
+  }
+
+  // Plot curve (green, filled)
+  ctx.fillStyle = 'rgba(163, 190, 140, 0.15)';
+  ctx.beginPath();
+  ctx.moveTo(padL, padT + ph);
+  for (let i = 0; i < nPts; i++) {
+    const x = padL + pw * i / (nPts - 1);
+    const y = padT + ph - ph * pts[i];
+    ctx.lineTo(x, y);
+  }
+  ctx.lineTo(padL + pw, padT + ph);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.strokeStyle = '#a3be8c';
+  ctx.lineWidth = 1.8;
+  ctx.beginPath();
+  for (let i = 0; i < nPts; i++) {
+    const x = padL + pw * i / (nPts - 1);
+    const y = padT + ph - ph * pts[i];
+    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+
+  // Current a marker
+  const xCur = padL + pw * (state.a - aMin) / (aMax - aMin);
+  if (xCur >= padL && xCur <= padL + pw) {
+    ctx.strokeStyle = '#ebcb8b';
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(xCur, padT); ctx.lineTo(xCur, padT + ph); ctx.stroke();
+    // Compute current I
+    const D = k_g * state.a;
+    const halfD = D / 2;
+    const sH = Math.sin(halfD);
+    let I;
+    if (Math.abs(sH) < 1e-13) I = 1.0;
+    else {
+      const amp = Math.sin(N * halfD) / sH;
+      I = (amp * amp) / (N * N);
+    }
+    const yCur = padT + ph - ph * I;
+    ctx.fillStyle = '#ebcb8b';
+    ctx.beginPath(); ctx.arc(xCur, yCur, 4, 0, TWO_PI); ctx.fill();
+    ctx.font = '11px ui-monospace, Menlo, monospace';
+    ctx.textAlign = 'left';
+    ctx.fillText(`a = ${state.a.toFixed(1)} nm  |  I/N² = ${I.toFixed(3)}`, xCur + 7, Math.max(padT + 12, yCur - 6));
+  }
+
+  // Axis labels
+  ctx.fillStyle = '#7b8794';
+  ctx.font = '11px ui-monospace, Menlo, monospace';
+  ctx.textAlign = 'center';
+  const nTicks = 6;
+  for (let i = 0; i <= nTicks; i++) {
+    const a = aMin + (aMax - aMin) * i / nTicks;
+    const x = padL + pw * i / nTicks;
+    ctx.fillText(`${a.toFixed(0)}`, x, padT + ph + 14);
+  }
+  ctx.fillText('period a (nm)', padL + pw / 2, padT + ph + 28);
+
+  ctx.textAlign = 'right';
+  ctx.fillText('1.0', padL - 6, padT + 4);
+  ctx.fillText('0.5', padL - 6, padT + ph / 2 + 4);
+  ctx.fillText('0.0', padL - 6, padT + ph + 4);
+  ctx.textAlign = 'left';
+  ctx.fillStyle = '#d8dee9';
+  ctx.fillText('I(θ=0) / N²', padL + 4, padT - 4);
+}
+
+function drawDispersion() {
+  const { ctx, w, h } = setupCanvas('dispersion');
+  ctx.clearRect(0, 0, w, h);
+
+  const { n_eff, a, lambda0 } = state;
+
+  const X_MIN = -2.5, X_MAX = 2.5;
+  const Y_MAX = Math.max(0.9, 1.25 / n_eff);
+  const Y_MIN = 0;
+
+  const padL = 58, padR = 18, padT = 22, padB = 40;
+  const pw = w - padL - padR;
+  const ph = h - padT - padB;
+
+  const xPx = x => padL + pw * (x - X_MIN) / (X_MAX - X_MIN);
+  const yPx = y => padT + ph - ph * (y - Y_MIN) / (Y_MAX - Y_MIN);
+
+  // Frame
+  ctx.strokeStyle = '#2a3442';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(padL, padT, pw, ph);
+
+  // Light cone (fast-wave region): |X| < Y
+  ctx.fillStyle = 'rgba(235, 203, 139, 0.07)';
+  ctx.beginPath();
+  ctx.moveTo(xPx(0), yPx(0));
+  // Upper-right boundary: follow line X=Y up to (Y_MAX, Y_MAX), clipped to X_MAX
+  const yAtXmax = Math.min(Y_MAX, X_MAX);
+  const yAtXmin = Math.min(Y_MAX, -X_MIN);
+  ctx.lineTo(xPx(yAtXmax), yPx(yAtXmax));
+  if (yAtXmax < Y_MAX) ctx.lineTo(xPx(X_MAX), yPx(Y_MAX));
+  ctx.lineTo(xPx(-yAtXmin), yPx(yAtXmin));
+  if (yAtXmin < Y_MAX) ctx.lineTo(xPx(X_MIN), yPx(Y_MAX));
+  ctx.closePath();
+  ctx.fill();
+
+  // Light-line boundaries
+  ctx.strokeStyle = 'rgba(235, 203, 139, 0.55)';
+  ctx.lineWidth = 1.2;
+  ctx.setLineDash([5, 4]);
+  ctx.beginPath();
+  ctx.moveTo(xPx(0), yPx(0)); ctx.lineTo(xPx(yAtXmax), yPx(yAtXmax));
+  ctx.moveTo(xPx(0), yPx(0)); ctx.lineTo(xPx(-yAtXmin), yPx(yAtXmin));
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Axis grid through 0
+  ctx.strokeStyle = '#1f2a36';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(xPx(0), padT); ctx.lineTo(xPx(0), padT + ph);
+  for (const x of [-2, -1, 1, 2]) {
+    ctx.moveTo(xPx(x), padT + ph); ctx.lineTo(xPx(x), padT + ph + 4);
+  }
+  ctx.stroke();
+
+  // Forward harmonics (cyan): β = n_eff k₀ + mG → X = n_eff Y + m → Y = (X - m)/n_eff
+  // So line is Y=0 at X=m, Y=Y_MAX at X=m+n_eff*Y_MAX.
+  const drawLine = (x1, y1, x2, y2, color, lw, dash) => {
+    // Clip to plot area in X
+    const clip = (xa, ya, xb, yb) => {
+      // simple vertical clip by X_MIN and X_MAX
+      const slope = (yb - ya) / (xb - xa);
+      let X1 = xa, Y1 = ya, X2 = xb, Y2 = yb;
+      if (X1 < X_MIN) { Y1 = ya + slope * (X_MIN - xa); X1 = X_MIN; }
+      if (X2 > X_MAX) { Y2 = ya + slope * (X_MAX - xa); X2 = X_MAX; }
+      if (X1 > X_MAX || X2 < X_MIN) return null;
+      // Y clip
+      if (Y1 < Y_MIN && slope !== 0) { X1 = xa + (Y_MIN - ya)/slope; Y1 = Y_MIN; }
+      if (Y2 > Y_MAX && slope !== 0) { X2 = xa + (Y_MAX - ya)/slope; Y2 = Y_MAX; }
+      return { X1, Y1, X2, Y2 };
+    };
+    const c = clip(x1, y1, x2, y2);
+    if (!c) return;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = lw;
+    if (dash) ctx.setLineDash(dash); else ctx.setLineDash([]);
+    ctx.beginPath();
+    ctx.moveTo(xPx(c.X1), yPx(c.Y1));
+    ctx.lineTo(xPx(c.X2), yPx(c.Y2));
+    ctx.stroke();
+    ctx.setLineDash([]);
+  };
+
+  for (const m of [-1, 0, 1]) {
+    const xAtY0 = m, xAtYmax = m + n_eff * Y_MAX;
+    drawLine(xAtY0, 0, xAtYmax, Y_MAX, '#88c0d0', m === 0 ? 2.2 : 1.3, m === 0 ? null : [6, 3]);
+  }
+  for (const m of [-1, 0, 1]) {
+    const xAtY0 = m, xAtYmax = m - n_eff * Y_MAX;
+    drawLine(xAtY0, 0, xAtYmax, Y_MAX, '#b48ead', m === 0 ? 2.2 : 1.3, m === 0 ? null : [6, 3]);
+  }
+
+  // 2nd-order Bragg line (horizontal at Y = 1/n_eff)
+  const yBragg = 1 / n_eff;
+  if (yBragg <= Y_MAX) {
+    ctx.strokeStyle = '#a3be8c';
+    ctx.lineWidth = 1.2;
+    ctx.setLineDash([6, 5]);
+    ctx.beginPath();
+    ctx.moveTo(xPx(X_MIN), yPx(yBragg));
+    ctx.lineTo(xPx(X_MAX), yPx(yBragg));
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#a3be8c';
+    ctx.font = '10px ui-monospace, Menlo, monospace';
+    ctx.textAlign = 'right';
+    ctx.fillText('Bragg  a/λ₀ = 1/n_eff', xPx(X_MAX) - 4, yPx(yBragg) - 4);
+  }
+
+  // Open-stopband dot at (0, 1/n_eff): degeneracy of fwd m=-1 and bwd m=+1
+  if (yBragg <= Y_MAX) {
+    ctx.fillStyle = '#a3be8c';
+    ctx.beginPath();
+    ctx.arc(xPx(0), yPx(yBragg), 5.5, 0, TWO_PI);
+    ctx.fill();
+    ctx.strokeStyle = '#0b0f14';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  }
+
+  // Current operating frequency line
+  const yCur = a / lambda0;
+  if (yCur >= Y_MIN && yCur <= Y_MAX) {
+    ctx.strokeStyle = '#ebcb8b';
+    ctx.lineWidth = 1.8;
+    ctx.beginPath();
+    ctx.moveTo(xPx(X_MIN), yPx(yCur));
+    ctx.lineTo(xPx(X_MAX), yPx(yCur));
+    ctx.stroke();
+    ctx.fillStyle = '#ebcb8b';
+    ctx.font = '11px ui-monospace, Menlo, monospace';
+    ctx.textAlign = 'left';
+    ctx.fillText(`current:  a/λ₀ = ${yCur.toFixed(3)}`, xPx(X_MIN) + 6, yPx(yCur) - 5);
+  }
+
+  // Radiating-harmonic dots + angle readouts
+  const radiating = [];
+  for (const m of [-1, 0, 1]) {
+    const Xf = m + n_eff * yCur;
+    if (Math.abs(Xf) < yCur && yCur > 0 && Xf >= X_MIN && Xf <= X_MAX) {
+      radiating.push({ x: Xf, y: yCur, color: '#88c0d0', side: 'fwd', m });
+    }
+    const Xb = m - n_eff * yCur;
+    if (Math.abs(Xb) < yCur && yCur > 0 && Xb >= X_MIN && Xb <= X_MAX) {
+      radiating.push({ x: Xb, y: yCur, color: '#b48ead', side: 'bwd', m });
+    }
+  }
+  for (const d of radiating) {
+    ctx.fillStyle = d.color;
+    ctx.beginPath();
+    ctx.arc(xPx(d.x), yPx(d.y), 4.5, 0, TWO_PI);
+    ctx.fill();
+    ctx.strokeStyle = '#0b0f14';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    const sinT = d.x / d.y;
+    const deg = Math.asin(Math.max(-1, Math.min(1, sinT))) * 180 / Math.PI;
+    ctx.fillStyle = d.color;
+    ctx.font = '10px ui-monospace, Menlo, monospace';
+    ctx.textAlign = d.x > 0 ? 'left' : 'right';
+    const off = d.x > 0 ? 8 : -8;
+    ctx.fillText(`${d.side} m=${d.m}: θ=${deg.toFixed(1)}°`, xPx(d.x) + off, yPx(d.y) + (d.side === 'fwd' ? 14 : -8));
+  }
+
+  // Axis ticks and labels
+  ctx.fillStyle = '#7b8794';
+  ctx.font = '11px ui-monospace, Menlo, monospace';
+  ctx.textAlign = 'center';
+  for (const x of [-2, -1, 0, 1, 2]) {
+    ctx.fillText(`${x}`, xPx(x), padT + ph + 16);
+  }
+  ctx.fillText('β / G   =   β · a / (2π)', padL + pw / 2, padT + ph + 32);
+
+  ctx.textAlign = 'right';
+  const yTicks = [];
+  for (let v = 0; v <= Y_MAX + 1e-9; v += 0.1) yTicks.push(+v.toFixed(2));
+  for (const y of yTicks) {
+    if (y >= 0 && y <= Y_MAX) ctx.fillText(y.toFixed(2), padL - 6, yPx(y) + 4);
+  }
+  ctx.save();
+  ctx.translate(padL - 40, padT + ph / 2);
+  ctx.rotate(-Math.PI / 2);
+  ctx.textAlign = 'center';
+  ctx.fillText('k₀ / G   =   a / λ₀', 0, 0);
+  ctx.restore();
+
+  // Mini legend in the upper corner
+  ctx.textAlign = 'left';
+  ctx.font = '11px ui-monospace, Menlo, monospace';
+  ctx.fillStyle = '#88c0d0'; ctx.fillText('— forward β_m', padL + 8, padT + 14);
+  ctx.fillStyle = '#b48ead'; ctx.fillText('— backward β_m', padL + 8, padT + 28);
+  ctx.fillStyle = '#7b8794'; ctx.fillText('shaded = fast-wave cone', padL + 8, padT + 42);
+}
+
+// ---------- Status readout ----------
+function updateStatus() {
+  const { braggRatio, aBragg, walkoff_per_cell, sinThetaFwd } = derived();
+  const br = document.getElementById('braggRatio');
+  br.textContent = braggRatio.toFixed(3);
+  br.className = 'v ' + (Math.abs(braggRatio - 1) < 0.005 ? 'bragg' : 'off');
+
+  document.getElementById('aBraggVal').textContent = aBragg.toFixed(1) + ' nm';
+  document.getElementById('walkoff').textContent =
+    (walkoff_per_cell / Math.PI).toFixed(3) + ' π';
+
+  let thetaText;
+  if (Math.abs(sinThetaFwd) <= 1) {
+    const deg = Math.asin(sinThetaFwd) * 180 / Math.PI;
+    thetaText = `±${Math.abs(deg).toFixed(1)}°`;
+  } else {
+    thetaText = 'evanescent (|sinθ|>1)';
+  }
+  document.getElementById('thetaPeak').textContent = thetaText;
+}
+
+// ---------- Main redraw ----------
+function redraw() {
+  updateStatus();
+  drawSideView();
+  drawPhasors();
+  drawFarField();
+  drawDispersion();
+  drawTuningCurve();
+}
+
+// ---------- Animation ----------
+let lastT = 0;
+function tick(now) {
+  const dt = (now - lastT) / 1000 || 0;
+  lastT = now;
+  if (state.animate) {
+    state.t = (state.t + dt * 4) % TWO_PI;
+    drawSideView();
+    drawPhasors();
+  }
+  requestAnimationFrame(tick);
+}
+
+// ---------- Wire up controls ----------
+function bind() {
+  const bindSlider = (id, stateKey, fmt) => {
+    const el = document.getElementById(id);
+    const valEl = document.getElementById(id.replace('Slider', 'Val'));
+    el.addEventListener('input', () => {
+      state[stateKey] = +el.value;
+      if (valEl) valEl.textContent = fmt ? fmt(state[stateKey]) : state[stateKey];
+      redraw();
+    });
+  };
+  bindSlider('aSlider', 'a', v => v.toFixed(0));
+  bindSlider('nEffSlider', 'n_eff', v => v.toFixed(2));
+  bindSlider('lambdaSlider', 'lambda0', v => v.toFixed(0));
+  bindSlider('NSlider', 'N', v => v.toFixed(0));
+
+  document.getElementById('showCP').addEventListener('change', e => {
+    state.showCP = e.target.checked; redraw();
+  });
+  document.getElementById('animate').addEventListener('change', e => {
+    state.animate = e.target.checked;
+  });
+  document.getElementById('snapBragg').addEventListener('click', () => {
+    const { aBragg } = derived();
+    const slider = document.getElementById('aSlider');
+    const snapped = Math.round(Math.max(+slider.min, Math.min(+slider.max, aBragg)));
+    slider.value = snapped;
+    state.a = snapped;
+    document.getElementById('aVal').textContent = snapped;
+    redraw();
+  });
+
+  window.addEventListener('resize', redraw);
+}
+
+bind();
+redraw();
+requestAnimationFrame(tick);
+</script>
+</body>
+</html>
