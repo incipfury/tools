@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Altitude vs. Transmit Power (Presentation Ready)</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            /* Dark Mode Defaults */
+            --bg: #0f172a;
+            --card-bg: #1e293b;
+            --text: #f8fafc;
+            --border: #334155;
+            --chart-grid: #334155;
+            --chart-text: #94a3b8;
+            --caliper-bg: rgba(15, 23, 42, 0.9);
+            --caliper-dash: rgba(255, 255, 255, 0.2);
+            --orange: rgb(251, 146, 60);
+            --input-bg: #0f172a;
+        }
+
+        body.light-mode {
+            /* Light Mode Overrides */
+            --bg: #f1f5f9;
+            --card-bg: #ffffff;
+            --text: #0f172a;
+            --border: #cbd5e1;
+            --chart-grid: #e2e8f0;
+            --chart-text: #475569;
+            --caliper-bg: rgba(255, 255, 255, 0.95);
+            --caliper-dash: rgba(0, 0, 0, 0.3);
+            --input-bg: #ffffff;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            padding: 2rem;
+            margin: 0;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .container {
+            background-color: var(--card-bg);
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 1050px;
+            position: relative;
+            transition: background-color 0.3s;
+        }
+        
+        /* Header & Buttons */
+        .header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 0.75rem;
+            margin-bottom: 1rem;
+        }
+        h2 { margin: 0; color: var(--text); }
+        .button-group {
+            display: flex;
+            gap: 0.75rem;
+        }
+        .action-btn {
+            background-color: var(--bg);
+            color: var(--text);
+            border: 1px solid var(--border);
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .action-btn:hover {
+            filter: brightness(1.2);
+            border-color: var(--orange);
+        }
+
+        .description { color: var(--chart-text); margin-bottom: 1.5rem; line-height: 1.5; font-size: 0.95rem; }
+        
+        /* Tool Panel */
+        .tool-panel {
+            background-color: var(--bg);
+            border: 1px solid var(--orange);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 2rem;
+            transition: background-color 0.3s;
+        }
+        .tool-controls { flex: 1; display: flex; flex-direction: column; gap: 1.5rem; }
+        .control-group { display: flex; flex-direction: column; gap: 0.5rem; }
+        
+        .tool-readout {
+            background: rgba(251, 146, 60, 0.1);
+            padding: 1.25rem;
+            border-radius: 6px;
+            min-width: 320px;
+            box-sizing: border-box;
+            align-self: stretch;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        label { display: block; font-weight: 600; color: var(--orange); margin: 0; }
+        .slider-container { display: flex; align-items: center; gap: 1rem; }
+        input[type="range"] { flex-grow: 1; cursor: pointer; }
+        input[type="number"] {
+            width: 100%; padding: 0.5rem; border: 1px solid var(--border);
+            border-radius: 4px; background: var(--input-bg); color: var(--text); 
+            font-size: 1rem; font-family: monospace; box-sizing: border-box;
+        }
+        
+        .input-split { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 0.25rem;}
+        .input-box { display: flex; flex-direction: column; gap: 0.25rem; }
+        .input-label { font-size: 0.85rem; color: var(--chart-text); font-weight: 600; }
+
+        .data-row { display: flex; justify-content: space-between; margin-bottom: 0.75rem; font-family: monospace; font-size: 1.05rem; }
+        .data-row:last-child { margin-bottom: 0; }
+        .data-row.highlight { color: var(--orange); font-weight: bold; border-top: 1px solid rgba(251,146,60,0.3); padding-top: 0.75rem; margin-top: 0.5rem; flex-direction: column; gap: 0.4rem;}
+        .data-row.highlight .val-line { display: flex; justify-content: space-between; }
+        
+        .chart-container { 
+            position: relative; height: 650px; width: 100%; 
+            background: var(--bg); border-radius: 8px; padding: 1rem; 
+            box-sizing: border-box; border: 1px solid var(--border);
+            transition: background-color 0.3s;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header-row">
+        <h2>Altitude vs. Transmit Power (Presentation Ready)</h2>
+        <div class="button-group">
+            <button class="action-btn" onclick="saveDataAndChart()">💾 Save Presentation PNGs</button>
+            <button class="action-btn" id="themeBtn" onclick="toggleTheme()"☀️ Light Mode</button>
+        </div>
+    </div>
+    
+    <div class="description">
+        Use the logarithmic slider to move the measuring tool. Adjust the <b>Edge of Coverage</b> controls to constrain the satellite's beam footprint. <br>
+        <i>Note: Fonts and exported elements have been scaled up for PowerPoint legibility.</i>
+    </div>
+
+    <div class="tool-panel">
+        <div class="tool-controls">
+            <div class="control-group">
+                <label>1. Measurement Altitude</label>
+                <div class="slider-container">
+                    <input type="range" id="logSlider" min="0" max="455.6" step="0.1" value="154.4" oninput="handleAltSliderChange()">
+                    <div style="display: flex; align-items: center; gap: 0.5rem; width: 140px;">
+                        <input type="number" id="altInput" min="1" max="36000" value="35" oninput="handleAltInputChange()" style="text-align: right;">
+                        <span style="font-weight: 600;">km</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label>2. Edge of Coverage</label>
+                <input type="range" id="elevSlider" min="0" max="89.9" step="0.1" value="0" oninput="handleElevSlider()">
+                <div class="input-split">
+                    <div class="input-box">
+                        <span class="input-label">Min. Elevation (&deg;)</span>
+                        <input type="number" id="elevInput" min="0" max="89.9" step="0.1" value="0" oninput="handleElevInput()">
+                    </div>
+                    <div class="input-box">
+                        <span class="input-label">Surface Radius (km)</span>
+                        <input type="number" id="surfInput" min="0" step="0.1" value="0" oninput="handleSurfInput()">
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="tool-readout">
+            <div class="data-row"><span>Nadir P<sub>tx</sub>:</span> <span id="ro-nadir">--</span></div>
+            <div class="data-row"><span id="ro-edge-label">Edge P<sub>tx</sub>:</span> <span id="ro-edge">--</span></div>
+            <div class="data-row highlight">
+                <div class="val-line"><span>Slant Penalty:</span> <span id="ro-penalty-db">--</span></div>
+                <div class="val-line" style="font-size: 0.95em; opacity: 0.9;"><span>(Absolute &#916;):</span> <span id="ro-penalty-watts">--</span></div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="chart-container">
+        <canvas id="altChart"></canvas>
+    </div>
+</div>
+
+<script>
+    const R_E = 6371; // Earth Radius in km
+    const GPS_ALT = 20200;
+    const GPS_EIRP_DBW = 30.0; // 17 dBW Ptx + 13 dBi Gtx
+    let myChart;
+    let isLightMode = false;
+    let currentMinElev = 0;
+
+    // Formatting Helpers
+    function formatWatts(w) {
+        if (w === 0) return "0 W";
+        let absW = Math.abs(w);
+        let sign = w < 0 ? "-" : "";
+        if (absW < 1e-12) return sign + (absW * 1e15).toFixed(1) + " fW";
+        if (absW < 1e-9) return sign + (absW * 1e12).toFixed(1) + " pW";
+        if (absW < 1e-6) return sign + (absW * 1e9).toFixed(1) + " nW";
+        if (absW < 1e-3) return sign + (absW * 1e6).toFixed(2) + " \u00B5W";
+        if (absW < 1) return sign + (absW * 1e3).toFixed(2) + " mW";
+        if (absW < 1e3) return sign + absW.toFixed(2) + " W";
+        if (absW < 1e6) return sign + (absW / 1e3).toFixed(2) + " kW";
+        return sign + (absW / 1e6).toFixed(2) + " MW";
+    }
+
+    function dbwToWattsStr(dbw) {
+        return formatWatts(Math.pow(10, dbw / 10));
+    }
+
+    function elevToSurfaceDistance(h, elevDeg) {
+        let elevRad = elevDeg * (Math.PI / 180);
+        let sinGamma = (R_E * Math.cos(elevRad)) / (R_E + h);
+        let gamma = Math.asin(sinGamma); 
+        let alpha = (Math.PI / 2) - elevRad - gamma; 
+        return R_E * alpha; 
+    }
+
+    function surfaceDistanceToElev(h, surfDist) {
+        let alphaMax = Math.acos(R_E / (R_E + h));
+        let sMax = R_E * alphaMax;
+        
+        let s = Math.min(surfDist, sMax);
+        if (s < 0) s = 0;
+
+        let alpha = s / R_E;
+        let D = Math.sqrt(Math.pow(R_E, 2) + Math.pow(R_E + h, 2) - 2 * R_E * (R_E + h) * Math.cos(alpha));
+        let elevRad = Math.acos(((R_E + h) * Math.sin(alpha)) / D);
+        return elevRad * (180 / Math.PI);
+    }
+
+    function generateLogAltitudes(min, max, steps) {
+        let alts = [];
+        let logMin = Math.log10(min);
+        let logMax = Math.log10(max);
+        let step = (logMax - logMin) / (steps - 1);
+        for (let i = 0; i < steps; i++) {
+            alts.push(Math.pow(10, logMin + i * step));
+        }
+        return alts;
+    }
+
+    function calculateBandData(alts, gain, minElevDeg) {
+        let nadirData = [];
+        let edgeData = [];
+        let elevRad = minElevDeg * (Math.PI / 180);
+
+        alts.forEach(h => {
+            let d_nadir = h;
+            let term1 = Math.pow(R_E + h, 2);
+            let term2 = Math.pow(R_E * Math.cos(elevRad), 2);
+            let d_edge = Math.sqrt(term1 - term2) - (R_E * Math.sin(elevRad));
+
+            let ptx_nadir = GPS_EIRP_DBW + 20 * Math.log10(d_nadir / GPS_ALT) - gain;
+            let ptx_edge = GPS_EIRP_DBW + 20 * Math.log10(d_edge / GPS_ALT) - gain;
+
+            nadirData.push({ x: ptx_nadir, y: h, dNadir: d_nadir, dEdge: d_edge, ptxEdge: ptx_edge });
+            edgeData.push({ x: ptx_edge, y: h });
+        });
+        return { nadirData, edgeData };
+    }
+
+    const customCanvasBackgroundColor = {
+        id: 'customCanvasBackgroundColor',
+        beforeDraw: (chart) => {
+            const {ctx} = chart;
+            ctx.save();
+            ctx.globalCompositeOperation = 'destination-over';
+            const style = getComputedStyle(document.body);
+            ctx.fillStyle = style.getPropertyValue('--bg').trim() || '#0f172a';
+            ctx.fillRect(0, 0, chart.width, chart.height);
+            ctx.restore();
+        }
+    };
+
+    const measuringCaliperPlugin = {
+        id: 'measuringCaliper',
+        afterDraw(chart) {
+            if (!chart.measureAlt) return;
+            const h = chart.measureAlt;
+            const ctx = chart.ctx;
+            const xAxis = chart.scales.x;
+            const yAxis = chart.scales.y;
+
+            const gain = 7; 
+            const elevRad = currentMinElev * (Math.PI / 180);
+            const d_edge = Math.sqrt(Math.pow(R_E + h, 2) - Math.pow(R_E * Math.cos(elevRad), 2)) - (R_E * Math.sin(elevRad));
+            
+            const p_nadir = GPS_EIRP_DBW + 20 * Math.log10(h / GPS_ALT) - gain;
+            const p_edge = GPS_EIRP_DBW + 20 * Math.log10(d_edge / GPS_ALT) - gain;
+            const penalty_db = p_edge - p_nadir;
+
+            const yPixel = yAxis.getPixelForValue(h);
+            const xNadir = xAxis.getPixelForValue(p_nadir);
+            const xEdge = xAxis.getPixelForValue(p_edge);
+
+            if (yPixel < yAxis.top || yPixel > yAxis.bottom) return;
+
+            const style = getComputedStyle(document.body);
+            const dashColor = style.getPropertyValue('--caliper-dash').trim();
+            const bgColor = style.getPropertyValue('--caliper-bg').trim();
+
+            ctx.save();
+
+            ctx.beginPath(); ctx.moveTo(xAxis.left, yPixel); ctx.lineTo(xAxis.right, yPixel);
+            ctx.strokeStyle = dashColor; ctx.lineWidth = 1.5; ctx.setLineDash([6, 6]); ctx.stroke();
+
+            ctx.beginPath(); ctx.moveTo(xNadir, yPixel); ctx.lineTo(xEdge, yPixel);
+            ctx.strokeStyle = 'rgb(251, 146, 60)'; ctx.lineWidth = 4; ctx.setLineDash([]); ctx.stroke();
+
+            ctx.fillStyle = bgColor;
+            ctx.beginPath(); ctx.arc(xNadir, yPixel, 6, 0, 2*Math.PI); ctx.fill();
+            ctx.beginPath(); ctx.arc(xEdge, yPixel, 6, 0, 2*Math.PI); ctx.fill();
+            ctx.strokeStyle = 'rgb(251, 146, 60)'; ctx.lineWidth = 2.5;
+            ctx.beginPath(); ctx.arc(xNadir, yPixel, 6, 0, 2*Math.PI); ctx.stroke();
+            ctx.beginPath(); ctx.arc(xEdge, yPixel, 6, 0, 2*Math.PI); ctx.stroke();
+
+            // Enlarged Tooltip for Presentation
+            const labelText = `+${penalty_db.toFixed(1)} dB`;
+            ctx.font = 'bold 22px sans-serif'; // BUMPED FONT SIZE
+            const textWidth = ctx.measureText(labelText).width;
+            
+            const centerX = (xNadir + xEdge) / 2;
+            ctx.fillStyle = bgColor;
+            ctx.beginPath(); 
+            // Wider padding for the larger font
+            ctx.roundRect(centerX - textWidth/2 - 12, yPixel - 42, textWidth + 24, 34, 6); 
+            ctx.fill();
+            ctx.strokeStyle = 'rgb(251, 146, 60)'; ctx.lineWidth = 1.5; ctx.stroke();
+            
+            ctx.fillStyle = 'rgb(251, 146, 60)'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.fillText(labelText, centerX, yPixel - 25); // Adjusted Y offset
+
+            ctx.restore();
+        }
+    };
+
+    function initChart() {
+        Chart.register(customCanvasBackgroundColor, measuringCaliperPlugin);
+        
+        let alts = generateLogAltitudes(1, 36000, 150);
+        let gpsAntenna = calculateBandData(alts, 13, currentMinElev);
+        let stratoAntenna = calculateBandData(alts, 7, currentMinElev);
+
+        const style = getComputedStyle(document.body);
+        const gridColor = style.getPropertyValue('--chart-grid').trim();
+        const textColor = style.getPropertyValue('--chart-text').trim();
+        const dashColor = style.getPropertyValue('--caliper-dash').trim();
+
+        const ctx = document.getElementById('altChart').getContext('2d');
+        myChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                datasets: [
+                    { label: '13 dBi (Edge)', data: gpsAntenna.edgeData, borderColor: 'transparent', backgroundColor: 'transparent', borderWidth: 0, pointRadius: 0, pointHoverRadius: 0, fill: false },
+                    { label: '13 dBi (Band)', data: gpsAntenna.nadirData, borderColor: 'rgb(56, 189, 248)', backgroundColor: 'rgba(56, 189, 248, 0.15)', borderWidth: 3, pointRadius: 0, pointHoverRadius: 0, fill: '-1' },
+                    { label: '7 dBi (Edge)', data: stratoAntenna.edgeData, borderColor: 'transparent', backgroundColor: 'transparent', borderWidth: 0, pointRadius: 0, pointHoverRadius: 0, fill: false },
+                    { label: '7 dBi (Band)', data: stratoAntenna.nadirData, borderColor: 'rgb(251, 146, 60)', backgroundColor: 'rgba(251, 146, 60, 0.15)', borderWidth: 3, pointRadius: 0, pointHoverRadius: 0, fill: '-1' },
+                    { label: '35 km Intercept', data: [{x: -120, y: 35}, {x: 40, y: 35}], borderColor: dashColor, borderDash: [6, 6], borderWidth: 1.5, pointRadius: 0, pointHoverRadius: 0, fill: false },
+                    { label: 'GPS Orbit Intercept', data: [{x: -120, y: 20200}, {x: 40, y: 20200}], borderColor: dashColor, borderDash: [6, 6], borderWidth: 1.5, pointRadius: 0, pointHoverRadius: 0, fill: false }
+                ]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false, indexAxis: 'y', animation: false,
+                interaction: { mode: 'nearest', axis: 'y', intersect: false },
+                layout: { padding: { top: 20, right: 30, bottom: 20, left: 10 } },
+                scales: {
+                    x: { 
+                        type: 'linear', 
+                        title: { display: true, text: 'Transmit Power (dBW)', color: textColor, font: { size: 24, weight: 'bold' } }, // ENLARGED
+                        grid: { color: gridColor }, 
+                        ticks: { color: textColor, font: { size: 18 } }, // ENLARGED
+                        min: -100, max: 40 
+                    },
+                    y: { 
+                        type: 'logarithmic', 
+                        title: { display: true, text: 'Altitude (km)', color: textColor, font: { size: 24, weight: 'bold' } }, // ENLARGED
+                        grid: { color: gridColor }, min: 1, max: 36000,
+                        ticks: { 
+                            color: textColor, 
+                            font: { size: 18 }, // ENLARGED
+                            callback: function(v) { if ([1, 10, 100, 1000, 10000].includes(v)) return v + ' km'; return null; } 
+                        }
+                    }
+                },
+                plugins: { 
+                    legend: { 
+                        labels: { color: textColor, font: { size: 18 }, padding: 20, filter: (item) => !item.text.includes('(Edge)') } // ENLARGED
+                    }, 
+                    tooltip: { enabled: false } 
+                }
+            }
+        });
+
+        let h = parseFloat(document.getElementById('altInput').value);
+        syncSurfaceDistanceDisplay(h, currentMinElev);
+        updateToolMath(h);
+    }
+
+    // --- Actions ---
+    function saveDataAndChart() {
+        // 1. Download the Chart
+        const chartLink = document.createElement('a');
+        chartLink.download = `LinkBudget_Chart_${currentMinElev.toFixed(1)}deg.png`;
+        chartLink.href = document.getElementById('altChart').toDataURL('image/png', 1.0);
+        chartLink.click();
+
+        // 2. Generate and Download the ENLARGED Data Card PNG
+        const canvas = document.createElement('canvas');
+        // Doubled resolution for crisp PowerPoint scaling
+        canvas.width = 1000;
+        canvas.height = 680; 
+        const ctx = canvas.getContext('2d');
+
+        const style = getComputedStyle(document.body);
+        const bgColor = style.getPropertyValue('--card-bg').trim() || '#1e293b';
+        const textColor = style.getPropertyValue('--text').trim() || '#f8fafc';
+        const borderColor = style.getPropertyValue('--border').trim() || '#334155';
+        const orangeColor = 'rgb(251, 146, 60)';
+
+        // Draw Background & Border
+        ctx.fillStyle = bgColor;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.strokeStyle = borderColor;
+        ctx.lineWidth = 8;
+        ctx.strokeRect(0, 0, canvas.width, canvas.height);
+
+        // Header
+        ctx.fillStyle = textColor;
+        ctx.font = 'bold 44px sans-serif';
+        ctx.fillText('Link Budget Constraints', 60, 90);
+        ctx.beginPath();
+        ctx.moveTo(60, 120); ctx.lineTo(940, 120);
+        ctx.strokeStyle = borderColor; ctx.lineWidth = 2; ctx.stroke();
+
+        let h = document.getElementById('altInput').value;
+        let elev = document.getElementById('elevInput').value;
+        let surf = document.getElementById('surfInput').value;
+        let nadirText = document.getElementById('ro-nadir').innerText;
+        let edgeText = document.getElementById('ro-edge').innerText;
+        let penaltyDbText = document.getElementById('ro-penalty-db').innerText;
+        let penaltyWattsText = document.getElementById('ro-penalty-watts').innerText;
+
+        // Draw Text Rows (Scaled Up)
+        ctx.font = '32px monospace';
+        const startY = 200;
+        const rowHeight = 64;
+
+        const rows = [
+            { label: 'Altitude:', val: `${h} km`, color: textColor },
+            { label: 'Edge Elevation:', val: `${elev}\xB0`, color: textColor },
+            { label: 'Surface Radius:', val: `${surf} km`, color: textColor },
+            { label: '------------------', val: '------------------', color: borderColor },
+            { label: 'Nadir Req P_tx:', val: nadirText, color: textColor },
+            { label: 'Edge Req P_tx:', val: edgeText, color: orangeColor },
+            { label: 'Slant Penalty:', val: `${penaltyDbText} (${penaltyWattsText})`, color: orangeColor }
+        ];
+
+        rows.forEach((row, idx) => {
+            let y = startY + (idx * rowHeight);
+            ctx.fillStyle = row.color;
+            ctx.textAlign = 'left';
+            ctx.fillText(row.label, 60, y);
+            ctx.textAlign = 'right';
+            ctx.fillText(row.val, 940, y);
+        });
+
+        setTimeout(() => {
+            const dataLink = document.createElement('a');
+            dataLink.download = `LinkBudget_Data_${currentMinElev.toFixed(1)}deg.png`;
+            dataLink.href = canvas.toDataURL('image/png', 1.0);
+            dataLink.click();
+        }, 500); 
+    }
+
+    function toggleTheme() {
+        isLightMode = !isLightMode;
+        document.body.classList.toggle('light-mode', isLightMode);
+        document.getElementById('themeBtn').innerHTML = isLightMode ? '🌙 Dark Mode' : '☀️ Light Mode';
+        
+        const style = getComputedStyle(document.body);
+        const gridColor = style.getPropertyValue('--chart-grid').trim();
+        const textColor = style.getPropertyValue('--chart-text').trim();
+        const dashColor = style.getPropertyValue('--caliper-dash').trim();
+
+        myChart.options.scales.x.grid.color = gridColor; myChart.options.scales.x.ticks.color = textColor; myChart.options.scales.x.title.color = textColor;
+        myChart.options.scales.y.grid.color = gridColor; myChart.options.scales.y.ticks.color = textColor; myChart.options.scales.y.title.color = textColor;
+        myChart.options.plugins.legend.labels.color = textColor;
+        myChart.data.datasets[4].borderColor = dashColor; myChart.data.datasets[5].borderColor = dashColor;
+        myChart.update();
+    }
+
+    // --- Data Synchronization ---
+    function updateChartData() {
+        let alts = generateLogAltitudes(1, 36000, 150);
+        let gpsAntenna = calculateBandData(alts, 13, currentMinElev);
+        let stratoAntenna = calculateBandData(alts, 7, currentMinElev);
+
+        myChart.data.datasets[0].data = gpsAntenna.edgeData; myChart.data.datasets[1].data = gpsAntenna.nadirData;
+        myChart.data.datasets[2].data = stratoAntenna.edgeData; myChart.data.datasets[3].data = stratoAntenna.nadirData;
+        
+        let h = parseFloat(document.getElementById('altInput').value);
+        updateToolMath(h);
+    }
+
+    function syncSurfaceDistanceDisplay(h, elev) {
+        let s = elevToSurfaceDistance(h, elev);
+        document.getElementById('surfInput').value = s.toFixed(1);
+    }
+
+    function handleElevSlider() {
+        currentMinElev = parseFloat(document.getElementById('elevSlider').value);
+        document.getElementById('elevInput').value = currentMinElev.toFixed(1);
+        let h = parseFloat(document.getElementById('altInput').value);
+        syncSurfaceDistanceDisplay(h, currentMinElev);
+        updateChartData();
+    }
+
+    function handleElevInput() {
+        let val = parseFloat(document.getElementById('elevInput').value);
+        if (isNaN(val) || val < 0) val = 0;
+        if (val > 89.9) val = 89.9;
+        
+        currentMinElev = val;
+        document.getElementById('elevSlider').value = val;
+        let h = parseFloat(document.getElementById('altInput').value);
+        syncSurfaceDistanceDisplay(h, currentMinElev);
+        updateChartData();
+    }
+
+    function handleSurfInput() {
+        let h = parseFloat(document.getElementById('altInput').value);
+        let targetS = parseFloat(document.getElementById('surfInput').value);
+        if (isNaN(targetS) || targetS < 0) targetS = 0;
+
+        let newElev = surfaceDistanceToElev(h, targetS);
+        currentMinElev = newElev;
+        document.getElementById('elevInput').value = newElev.toFixed(1);
+        document.getElementById('elevSlider').value = newElev;
+        
+        syncSurfaceDistanceDisplay(h, newElev);
+        updateChartData();
+    }
+
+    function handleAltSliderChange() {
+        let logVal = parseFloat(document.getElementById('logSlider').value);
+        let h = Math.pow(10, logVal / 100);
+        if (h > 36000) h = 36000;
+        if (h < 1) h = 1;
+        document.getElementById('altInput').value = h.toFixed(1);
+        
+        syncSurfaceDistanceDisplay(h, currentMinElev);
+        updateToolMath(h);
+    }
+
+    function handleAltInputChange() {
+        let h = parseFloat(document.getElementById('altInput').value);
+        if (isNaN(h) || h < 1) h = 1;
+        if (h > 36000) h = 36000;
+        let logVal = Math.log10(h) * 100;
+        document.getElementById('logSlider').value = logVal;
+        
+        syncSurfaceDistanceDisplay(h, currentMinElev);
+        updateToolMath(h);
+    }
+
+    function updateToolMath(h) {
+        myChart.measureAlt = h;
+        myChart.update(); 
+
+        const gain = 7;
+        const elevRad = currentMinElev * (Math.PI / 180);
+        const d_edge = Math.sqrt(Math.pow(R_E + h, 2) - Math.pow(R_E * Math.cos(elevRad), 2)) - (R_E * Math.sin(elevRad));
+        
+        const p_nadir = GPS_EIRP_DBW + 20 * Math.log10(h / GPS_ALT) - gain;
+        const p_edge = GPS_EIRP_DBW + 20 * Math.log10(d_edge / GPS_ALT) - gain;
+        const penalty_db = p_edge - p_nadir;
+
+        const w_nadir = Math.pow(10, p_nadir / 10);
+        const w_edge = Math.pow(10, p_edge / 10);
+        const penalty_watts = w_edge - w_nadir;
+
+        document.getElementById('ro-nadir').innerText = `${p_nadir.toFixed(1)} dBW (${formatWatts(w_nadir)})`;
+        document.getElementById('ro-edge-label').innerText = `Edge (${currentMinElev.toFixed(1)}\xB0) P_tx:`;
+        document.getElementById('ro-edge').innerText = `${p_edge.toFixed(1)} dBW (${formatWatts(w_edge)})`;
+        document.getElementById('ro-penalty-db').innerText = `+${penalty_db.toFixed(2)} dB`;
+        document.getElementById('ro-penalty-watts').innerText = `+${formatWatts(penalty_watts)}`;
+    }
+
+    // Run on load
+    initChart();
+</script>
+
+</body>
+</html>
