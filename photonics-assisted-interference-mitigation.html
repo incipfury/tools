@@ -259,6 +259,240 @@ body {
   color: var(--text-secondary);
   flex-shrink: 0;
 }
+/* ── Sidebar attribution ── */
+.sidebar-attribution {
+  margin-top: 14px;
+  padding: 10px 8px;
+  border-top: 1px solid var(--border);
+  font-size: 10.5px;
+  line-height: 1.45;
+  color: var(--text-secondary);
+}
+.sidebar-attribution .attr-label {
+  font-size: 9.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-secondary);
+  display: block;
+  margin-bottom: 4px;
+}
+.sidebar-attribution .attr-cite {
+  font-style: italic;
+}
+.sidebar-attribution a {
+  color: var(--accent);
+  text-decoration: none;
+}
+.sidebar-attribution a:hover { text-decoration: underline; }
+/* ── Academic paper tab ── */
+.tab-panel.paper-panel {
+  overflow-y: auto;
+  padding: 0;
+}
+.tab-panel.paper-panel.active {
+  display: block;
+}
+.paper-doc {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 32px 40px 64px 40px;
+  font-family: 'Charter', 'Georgia', 'Iowan Old Style', 'Palatino Linotype', 'Times New Roman', serif;
+  font-size: 14.5px;
+  line-height: 1.65;
+  color: var(--text);
+}
+.paper-doc .paper-eyebrow {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  font-size: 10.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: var(--accent);
+  margin-bottom: 8px;
+}
+.paper-doc h1.paper-title {
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.25;
+  margin-bottom: 10px;
+  letter-spacing: -0.01em;
+}
+.paper-doc .paper-authors {
+  font-size: 14px;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+.paper-doc .paper-affil {
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  font-style: italic;
+  margin-bottom: 18px;
+}
+.paper-doc .paper-citation {
+  background: var(--surface-alt);
+  border-left: 3px solid var(--accent);
+  padding: 12px 16px;
+  margin: 0 0 24px 0;
+  font-size: 12.5px;
+  line-height: 1.55;
+  border-radius: 0 6px 6px 0;
+}
+.paper-doc .paper-citation .cite-label {
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--text-secondary);
+  display: block;
+  margin-bottom: 4px;
+}
+.paper-doc .paper-citation a {
+  color: var(--accent);
+  text-decoration: none;
+}
+.paper-doc .paper-citation a:hover { text-decoration: underline; }
+.paper-doc .paper-abstract {
+  font-size: 13.5px;
+  line-height: 1.6;
+  margin-bottom: 22px;
+  padding: 0 8px;
+}
+.paper-doc .paper-abstract::before {
+  content: "Abstract — ";
+  font-weight: 700;
+  font-style: normal;
+}
+.paper-doc .paper-keywords {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-bottom: 28px;
+  padding: 0 8px;
+}
+.paper-doc .paper-keywords::before {
+  content: "Index Terms — ";
+  font-weight: 700;
+  font-style: normal;
+  color: var(--text);
+}
+.paper-doc h2.paper-section {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--text);
+  margin: 28px 0 10px 0;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--border);
+}
+.paper-doc h3.paper-subsection {
+  font-size: 14px;
+  font-weight: 600;
+  font-style: italic;
+  margin: 18px 0 6px 0;
+  color: var(--text);
+}
+.paper-doc p { margin-bottom: 12px; text-align: justify; hyphens: auto; }
+.paper-doc p.paper-first-para::first-line { font-variant: small-caps; letter-spacing: 0.5px; }
+.paper-doc .paper-equation {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin: 18px 0;
+  padding: 14px 16px;
+  background: var(--surface-alt);
+  border-radius: 8px;
+  font-family: 'Charter', 'Georgia', 'Times New Roman', serif;
+}
+.paper-doc .paper-equation .eq-body {
+  font-size: 16px;
+  font-style: italic;
+  flex: 1;
+  text-align: center;
+  overflow-x: auto;
+}
+.paper-doc .paper-equation .eq-num {
+  font-style: normal;
+  font-size: 13px;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+.paper-doc .paper-equation .frac {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  vertical-align: middle;
+  margin: 0 2px;
+  font-size: 13px;
+}
+.paper-doc .paper-equation .frac > span:first-child {
+  border-bottom: 1px solid currentColor;
+  padding: 0 6px 2px 6px;
+}
+.paper-doc .paper-equation .frac > span:last-child {
+  padding: 2px 6px 0 6px;
+}
+.paper-doc table.param-map {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 14px 0 18px 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 12.5px;
+}
+.paper-doc table.param-map th,
+.paper-doc table.param-map td {
+  text-align: left;
+  padding: 7px 10px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+.paper-doc table.param-map th {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-secondary);
+  background: var(--surface-alt);
+  border-bottom: 1px solid var(--border);
+}
+.paper-doc table.param-map td.sym {
+  font-family: 'Charter', 'Georgia', serif;
+  font-style: italic;
+  width: 18%;
+  white-space: nowrap;
+}
+.paper-doc table.param-map td.ctrl {
+  font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+  font-size: 11.5px;
+  color: var(--accent);
+  width: 28%;
+}
+.paper-doc ul.paper-list {
+  margin: 6px 0 14px 0;
+  padding-left: 22px;
+}
+.paper-doc ul.paper-list li { margin-bottom: 4px; }
+.paper-doc .paper-footer {
+  margin-top: 32px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+  font-size: 11.5px;
+  color: var(--text-secondary);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-style: normal;
+  line-height: 1.55;
+}
+.paper-doc .paper-footer a { color: var(--accent); text-decoration: none; }
+.paper-doc .paper-footer a:hover { text-decoration: underline; }
+.paper-doc .ref-num {
+  font-size: 11.5px;
+  vertical-align: super;
+  line-height: 0;
+  color: var(--accent);
+}
 </style>
 </head>
 <body>
@@ -299,6 +533,14 @@ body {
     <div class="param-row checkbox-row"><input type="checkbox" id="en_canceller"><label for="en_canceller">FIR Canceller</label></div>
 
     <button class="btn-run" onclick="runSimulation()">Run Simulation</button>
+
+    <div class="sidebar-attribution">
+      <span class="attr-label">Based on</span>
+      <span class="attr-cite">Urick, Godinez &amp; Mikeska,</span>
+      <span class="attr-cite">J. Lightw. Technol. <strong>38</strong>(6), 1268&ndash;1274 (2020).</span>
+      <br>
+      <a href="#" onclick="document.querySelector('.tab-btn[data-tab=&quot;7&quot;]').click(); return false;">See Paper tab &rarr;</a>
+    </div>
   </aside>
 
   <!-- ── Main ── -->
@@ -311,6 +553,7 @@ body {
       <button class="tab-btn" data-tab="4">SINR Analysis</button>
       <button class="tab-btn" data-tab="5">Layered Budget</button>
       <button class="tab-btn" data-tab="6">Parameter Sweep</button>
+      <button class="tab-btn" data-tab="7">Paper</button>
     </div>
     <div class="tab-panels" id="tabPanels">
       <div class="tab-panel active" data-panel="0"><div class="plot-container" id="plot-combined"></div></div>
@@ -336,6 +579,93 @@ body {
           <button class="btn-sweep" onclick="runSweep()">Run Sweep</button>
         </div>
         <div class="plot-container" id="plot-sweep" style="flex:1;min-height:0"></div>
+      </div>
+
+      <!-- ── Tab 7: Academic Paper Summary ── -->
+      <div class="tab-panel paper-panel" data-panel="7">
+        <article class="paper-doc">
+          <div class="paper-eyebrow">Source Reference &middot; Invited Paper</div>
+          <h1 class="paper-title">Photonic Assisted Radio-Frequency Interference Mitigation</h1>
+          <div class="paper-authors">Vincent J. Urick, Modesto E. Godinez, and Dennis C. Mikeska</div>
+          <div class="paper-affil">Defense Advanced Research Projects Agency (DARPA), Arlington, VA &middot; ECS Federal &middot; 2 Circle Inc.</div>
+
+          <div class="paper-citation">
+            <span class="cite-label">Citation</span>
+            V. J. Urick, M. E. Godinez, and D. C. Mikeska, &ldquo;Photonic Assisted Radio-Frequency Interference Mitigation,&rdquo; <em>Journal of Lightwave Technology</em>, vol. 38, no. 6, pp. 1268&ndash;1274, Mar. 2020. doi:&nbsp;<a href="https://doi.org/10.1109/JLT.2019.2955921" target="_blank" rel="noopener">10.1109/JLT.2019.2955921</a>
+          </div>
+
+          <p class="paper-abstract">Rapidly evolving technologies for photonic interference mitigation are surveyed and organized into three architectural categories: photonic RF filters, photonic RF cancellers, and photonic RF front ends. Analysis is presented on a layered approach that combines linear and nonlinear photonic RF front ends within a single Mach&ndash;Zehnder modulator (MZM) architecture, and an argument is made for cooperative photonic, analog-electronic, and digital-electronic interference mitigation strategies.</p>
+
+          <p class="paper-keywords">Full-duplex; interference cancellation, mitigation, and suppression; microwave photonics; radio-frequency photonics; simultaneous transmit and receive (STAR).</p>
+
+          <h2 class="paper-section">I. Background and Motivation</h2>
+          <p class="paper-first-para">Modern RF systems face increasingly demanding interference environments arising from electronic protection, full-duplex radio, and other simultaneous transmit/receive (STAR) requirements. The most challenging applications require self-interference suppression well in excess of 100&nbsp;dB at operational frequencies extending into the millimeter wave with instantaneous bandwidths exceeding 1&nbsp;GHz. No singular technique meets these requirements, motivating layered solutions that combine analog electronic, digital electronic, and&mdash;as argued in this work&mdash;photonic processing layers.</p>
+          <p>Photonics offers complementary capability that conventional electronics cannot match in the same form factor: very low fiber propagation loss (0.2&nbsp;dB/km), instantaneous bandwidths beyond 10&nbsp;GHz, and analog signal processing that introduces low latency and operates without prior knowledge of interferer waveforms. Conventional electronic cancellers, by contrast, typically provide less than 30&nbsp;dB of suppression near 1&nbsp;GHz of instantaneous bandwidth.</p>
+
+          <h2 class="paper-section">II. State of the Art</h2>
+          <p>The paper organizes the published literature into three architectural categories defined by their insertion point in the RF chain (Fig.&nbsp;2 of the paper):</p>
+
+          <h3 class="paper-subsection">A.&nbsp;&nbsp;Photonic RF Filters</h3>
+          <p>Inserted between the receive and transmit paths, these implement filtering directly in the optical domain. Subcategories include fiber-based finite- and infinite-impulse-response notch filters, filters cooperating with digital signal processing, and filters based on stimulated Brillouin scattering (SBS). The principal limitation is a noise figure of 20&ndash;40&nbsp;dB with commercially available technology, which often outweighs the bandwidth advantage versus electronic filters.</p>
+
+          <h3 class="paper-subsection">B.&nbsp;&nbsp;Photonic RF Cancellers</h3>
+          <p>Photonic cancellers sample the transmit waveform, route it through a bank of fiber-optic delay lines configured as an FIR filter, and recombine it with the receive path to subtract coherent self-interference. They inherit the low loss and wide bandwidth of fiber but face two principal challenges: tap scalability (each tap is hardware, not memory) and RF-domain phase control given the ~2&times;10<sup>4</sup> ratio between optical and microwave frequencies. Photonic integrated circuits and photonic-lantern fiber combiners are emerging to address both.</p>
+
+          <h3 class="paper-subsection">C.&nbsp;&nbsp;Photonic RF Front Ends</h3>
+          <p>These leverage the electro-optic modulator&mdash;typically a LiNbO<sub>3</sub> MZM&mdash;directly as the mitigation element. Two regimes are distinguished:</p>
+          <ul class="paper-list">
+            <li><strong>Linear regime</strong> (e.g., the TIPRx counter-propagating architecture<span class="ref-num">[37]</span>): exploits signal-path symmetry through the MZM electrodes to achieve high transmit-to-receive isolation.</li>
+            <li><strong>Nonlinear regime</strong> (Bessel-function nulling<span class="ref-num">[45]</span>): drives the MZM into compression so that high-power interference falls on a periodic zero of the modulator response, while lower-power signals of interest remain in the linear region.</li>
+          </ul>
+          <p>Front-end techniques produced the highest reported suppression and the widest instantaneous bandwidth among all surveyed photonic methods.</p>
+
+          <h2 class="paper-section">III. Layered Optical Approach</h2>
+          <p>Section&nbsp;III of the paper presents a single-aperture architecture (Fig.&nbsp;6) that combines the linear and nonlinear front-end techniques in a single MZM. The receive path traverses the modulator biased for the nonlinear regime, nulling high-power self-interference; the counter-propagating transmit path is isolated from the receive path via the linear technique and is unaffected by the nonlinear suppression because of its differing phase relationship.</p>
+
+          <p>Combining Eqs.&nbsp;(2)&ndash;(3) of <span class="ref-num">[45]</span> with Eq.&nbsp;(12) of <span class="ref-num">[37]</span>, the paper derives a closed-form expression for the combined isolation:</p>
+
+          <div class="paper-equation">
+            <span class="eq-body">
+              ISO &nbsp;=&nbsp;
+              <span class="frac">
+                <span>c<sup>6</sup>&nbsp;V<sub>&pi;</sub><sup>2</sup>&nbsp;sin<sup>2</sup>(2&pi;fnL/c)&nbsp;J<sub>1</sub><sup>2</sup>(&pi;V<sub>int</sub>/V<sub>&pi;</sub>)</span>
+                <span>16&pi;<sup>8</sup>&nbsp;V<sub>int</sub><sup>2</sup>&nbsp;f<sup>6</sup>&nbsp;n<sup>6</sup>&nbsp;L<sup>6</sup>&nbsp;J<sub>0</sub><sup>2</sup>(&pi;V<sub>int</sub>/V<sub>&pi;</sub>)</span>
+              </span>
+            </span>
+            <span class="eq-num">(1)</span>
+          </div>
+
+          <p>Equation&nbsp;(1) holds under five assumptions: (i) the MZM has a tapered electrode-to-waveguide interaction optimized for the linear technique; (ii) the MZM electrodes are lossless; (iii) V<sub>&pi;</sub> is the same for the signal and interference; (iv) impedances are well matched throughout; and (v) the signal voltage is much less than V<sub>&pi;</sub>/&pi;. For a fixed interference voltage, V<sub>&pi;</sub> dictates both the magnitude and the frequency response of the isolation, so effective tuning of V<sub>&pi;</sub> controls the suppression profile.</p>
+
+          <p>Plotting Eq.&nbsp;(1) with parameters drawn from <span class="ref-num">[37]</span> and <span class="ref-num">[45]</span> (n&nbsp;=&nbsp;2.2, L&nbsp;=&nbsp;7&nbsp;cm, V<sub>&pi;</sub>&nbsp;=&nbsp;4.0&nbsp;V at 6&nbsp;GHz rising linearly to 4.6&nbsp;V at 18&nbsp;GHz, V<sub>int</sub>&nbsp;=&nbsp;24.5&nbsp;dBm) yields a maximum theoretical suppression near 13&nbsp;GHz exceeding 100&nbsp;dB. The measured combination of the two techniques (Fig.&nbsp;8 of the paper) reaches 80&ndash;90&nbsp;dB across 6&ndash;18&nbsp;GHz, the difference reflecting that neither technique reached its theoretical minimum in laboratory practice.</p>
+
+          <h2 class="paper-section">IV. Mapping to the Simulator</h2>
+          <p>This interactive tool implements Eq.&nbsp;(1) directly, alongside an analytical photonic link gain/noise-figure model and an N-tap fiber-optic FIR canceller. The sidebar controls correspond to the symbols in Eq.&nbsp;(1) as follows:</p>
+
+          <table class="param-map">
+            <thead>
+              <tr><th>Symbol</th><th>Sidebar Control</th><th>Description</th></tr>
+            </thead>
+            <tbody>
+              <tr><td class="sym">V<sub>&pi;</sub>(f)</td><td class="ctrl">V<sub>&pi;</sub> Low / High, f Low / High</td><td>MZM half-wave voltage with linear frequency dispersion between two anchor points.</td></tr>
+              <tr><td class="sym">n</td><td class="ctrl">n_eff</td><td>Effective propagation index of the MZM electrodes.</td></tr>
+              <tr><td class="sym">L</td><td class="ctrl">L (cm)</td><td>Physical length of the MZM electrodes.</td></tr>
+              <tr><td class="sym">V<sub>int</sub></td><td class="ctrl">Interference (dBm)</td><td>Self-interference RF power, converted internally to peak voltage assuming a 50&nbsp;&Omega; reference.</td></tr>
+              <tr><td class="sym">f</td><td class="ctrl">Start / Stop / Num Points</td><td>RF frequency axis swept across the displayed range.</td></tr>
+              <tr><td class="sym">c</td><td class="ctrl">&mdash;</td><td>Speed of light in vacuum (fixed constant).</td></tr>
+            </tbody>
+          </table>
+
+          <p>The <em>Combined Isolation</em> tab reproduces the calculation underlying Fig.&nbsp;9 of the paper, decomposed into its linear (<em>sin</em><sup>2</sup>) and nonlinear (J<sub>1</sub><sup>2</sup>/J<sub>0</sub><sup>2</sup>) contributions. The <em>MZM Response</em> tab shows the modulator transfer function and Bessel functions J<sub>0</sub>&ndash;J<sub>3</sub> that govern the nonlinear nulling regime (Fig.&nbsp;7 of the paper). The <em>Link Performance</em> tab computes the gain and noise figure of the underlying intensity-modulation, direct-detection link&mdash;quantifying the well-known photonic noise-figure penalty discussed in Section&nbsp;II.A. The <em>Layered Budget</em> tab illustrates the cooperative photonic + electronic + digital strategy advocated in Section&nbsp;IV of the paper.</p>
+
+          <h2 class="paper-section">V. Summary</h2>
+          <p>Photonic mitigation techniques achieve their advantage in operational frequency range and instantaneous bandwidth rather than peak suppression at a single frequency&mdash;layered electronic techniques can achieve higher rejection over much narrower bands. The most promising published results combine linear and nonlinear MZM-based front-end techniques, yielding suppression in excess of 80&nbsp;dB across multi-GHz bandwidths. The paper&rsquo;s central recommendation is that successful interference mitigation systems treat photonics as <em>part</em> of a layered solution&mdash;working cooperatively with analog and digital electronics&mdash;rather than as a replacement for electronic hardware.</p>
+
+          <div class="paper-footer">
+            <strong>Full text:</strong> <a href="https://ieeexplore.ieee.org/document/8918050" target="_blank" rel="noopener">IEEE Xplore</a> &middot; <strong>DOI:</strong> <a href="https://doi.org/10.1109/JLT.2019.2955921" target="_blank" rel="noopener">10.1109/JLT.2019.2955921</a><br>
+            <em>Reference numbers in brackets refer to the bibliography of the source article. This summary is provided for context within the simulator and is not a substitute for the full paper.</em>
+          </div>
+        </article>
       </div>
     </div>
   </div>
