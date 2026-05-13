@@ -1,0 +1,1096 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hewitt M2 Attenuator — Response Analyzer</title>
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:              #f2f4f8;
+    --surface:         #ffffff;
+    --surface-alt:     #e9ebf0;
+    --border:          #e9ebf0;
+    --border-strong:   #b1b3b7;
+    --heading:         #163960;
+    --body:            #4a4f57;
+    --muted:           #76777a;
+    --accent:          #1369b3;
+    --accent-hover:    #15cde6;
+    --orange:          #ff8a3d;
+    --teal:            #2ba1a1;
+    --amber:           #b44533;
+    --slate:           #7b8c9f;
+    --grid:            #e9ebf0;
+    --axis:            #b1b3b7;
+  }
+  [data-theme="dark"] {
+    --bg:              #18191c;
+    --surface:         #2a3037;
+    --surface-alt:     #2a3037;
+    --border:          #2a3037;
+    --border-strong:   #4a4f57;
+    --heading:         #f2f4f8;
+    --body:            #e9ebf0;
+    --muted:           #b1b3b7;
+    --accent:          #66a8d1;
+    --accent-hover:    #15cde6;
+    --orange:          #ff8a3d;
+    --teal:            #2ba1a1;
+    --amber:           #b44533;
+    --slate:           #7b8c9f;
+    --grid:            #2a3037;
+    --axis:            #4a4f57;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--body);
+    font-family: 'IBM Plex Sans', -apple-system, sans-serif;
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+  .frame { max-width: 1320px; margin: 0 auto; padding: 24px; }
+
+  header {
+    display: flex; justify-content: space-between; align-items: baseline;
+    flex-wrap: wrap; gap: 12px;
+    padding-bottom: 16px;
+    margin-bottom: 24px;
+    border-bottom: 1px solid var(--border-strong);
+  }
+  h1 {
+    margin: 0; font-weight: 600; font-size: 22px;
+    color: var(--heading); letter-spacing: -0.01em;
+  }
+  h1 .sub-title { color: var(--muted); font-weight: 400; }
+  .header-meta { display: flex; align-items: center; gap: 16px; }
+  .meta-text {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px; color: var(--muted); letter-spacing: 0.04em;
+  }
+  .theme-toggle {
+    background: transparent;
+    border: 1px solid var(--border-strong);
+    color: var(--body);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px; padding: 6px 12px; cursor: pointer;
+    border-radius: 4px;
+    transition: border-color 0.15s, color 0.15s;
+    letter-spacing: 0.04em;
+  }
+  .theme-toggle:hover { color: var(--accent); border-color: var(--accent); }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    gap: 24px;
+  }
+  .main-content {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    min-width: 0; /* allow content to shrink in grid cell */
+  }
+  .schematic-body { padding: 20px 24px; }
+  @media (max-width: 980px) {
+    .layout { grid-template-columns: 1fr; }
+    .main-content { gap: 18px; }
+  }
+
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .panel-header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 18px;
+    border-bottom: 1px solid var(--border);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--heading); font-weight: 500;
+  }
+  .panel-header .meta {
+    color: var(--muted); font-weight: 400;
+    text-transform: none; letter-spacing: 0.02em;
+  }
+  .panel-body { padding: 18px; }
+
+  .schematic { width: 100%; height: auto; display: block; margin-bottom: 14px; }
+
+  .ctrl-group { margin-bottom: 18px; }
+  .ctrl-group:last-child { margin-bottom: 0; }
+  .ctrl-group-title {
+    display: flex; justify-content: space-between; align-items: baseline;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em;
+    color: var(--heading);
+    padding-bottom: 6px; margin-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+    font-weight: 500;
+  }
+  .ctrl-group-title .hint {
+    color: var(--muted); font-weight: 400;
+    text-transform: none; letter-spacing: 0.02em; font-size: 10px;
+  }
+
+  .row {
+    display: grid;
+    grid-template-columns: 60px 1fr 28px;
+    align-items: center; gap: 10px;
+    padding: 4px 0;
+  }
+  .row label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px; color: var(--body); font-weight: 500;
+  }
+  .row select, .row input[type=number] {
+    background: var(--bg);
+    border: 1px solid var(--border-strong);
+    color: var(--body);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px; padding: 5px 8px;
+    border-radius: 4px; width: 100%;
+    -moz-appearance: textfield;
+  }
+  .row input[type=number]::-webkit-outer-spin-button,
+  .row input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .row select:focus, .row input:focus {
+    outline: none; border-color: var(--accent);
+  }
+  .row .unit {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px; color: var(--muted);
+  }
+
+  .switches {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+  }
+  .switch-box {
+    background: var(--bg);
+    border: 1px solid var(--border-strong);
+    border-radius: 4px;
+    padding: 10px 6px;
+    cursor: pointer; text-align: center; user-select: none;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .switch-box:hover { border-color: var(--accent); }
+  .switch-box.engaged {
+    background: var(--surface-alt);
+    border-color: var(--accent);
+  }
+  [data-theme="dark"] .switch-box.engaged {
+    background: rgba(102, 168, 209, 0.08);
+  }
+  .switch-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--muted);
+  }
+  .switch-state {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px; font-weight: 600;
+    color: var(--body); margin-top: 4px;
+  }
+  .switch-box.engaged .switch-state { color: var(--accent); }
+  .switch-footer {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px; color: var(--muted); margin-top: 8px;
+  }
+
+  .preset-row { display: flex; gap: 6px; margin-bottom: 12px; }
+  .preset-btn {
+    flex: 1;
+    background: var(--bg);
+    border: 1px solid var(--border-strong);
+    color: var(--body);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px; padding: 6px 4px; cursor: pointer;
+    border-radius: 4px;
+    transition: border-color 0.15s, color 0.15s, background 0.15s;
+  }
+  .preset-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .preset-btn.active {
+    background: var(--accent); color: var(--bg);
+    border-color: var(--accent); font-weight: 500;
+  }
+
+  .plot-wrap { padding: 6px 8px 0; }
+  #plot { height: 540px; }
+
+  .stats {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    border-top: 1px solid var(--border);
+  }
+  .stat {
+    padding: 14px 12px; text-align: center;
+    border-right: 1px solid var(--border);
+  }
+  .stat:last-child { border-right: none; }
+  .stat-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--muted);
+  }
+  .stat-value {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 18px; font-weight: 500;
+    margin-top: 4px; color: var(--accent);
+  }
+  .stat-value.orange { color: var(--orange); }
+  .stat-value.teal { color: var(--teal); }
+
+  .design-note {
+    background: var(--surface-alt);
+    border-left: 2px solid var(--accent);
+    padding: 10px 12px; margin-bottom: 14px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px; color: var(--body);
+    border-radius: 0 4px 4px 0;
+    line-height: 1.55;
+  }
+  .design-note .k { color: var(--accent); font-weight: 500; }
+  [data-theme="dark"] .design-note { background: rgba(102, 168, 209, 0.05); }
+
+  /* Master true-bypass toggle — Tech Orange when engaged */
+  .master-toggle {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 12px;
+    background: var(--bg);
+    border: 1px solid var(--border-strong);
+    border-radius: 4px;
+    cursor: pointer; user-select: none;
+    margin-bottom: 14px;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .master-toggle:hover { border-color: var(--orange); }
+  .master-toggle.engaged {
+    background: rgba(255, 138, 61, 0.08);
+    border-color: var(--orange);
+  }
+  .master-toggle-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px; font-weight: 500;
+    color: var(--body);
+    text-transform: uppercase; letter-spacing: 0.06em;
+  }
+  .master-toggle.engaged .master-toggle-label { color: var(--orange); }
+  .master-toggle-state {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px; font-weight: 600;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+  }
+  .master-toggle.engaged .master-toggle-state { color: var(--orange); }
+
+  /* When master bypass is on, dim the stage controls */
+  .stage-block.muted { opacity: 0.4; pointer-events: none; transition: opacity 0.2s; }
+  .stage-block { transition: opacity 0.2s; }
+</style>
+</head>
+<body>
+<div class="frame">
+  <header>
+    <h1>Hewitt M2 Attenuator <span class="sub-title">— response analyzer</span></h1>
+    <div class="header-meta">
+      <span class="meta-text" id="speakerMeta">Blues Jr IV Tweed · Jensen C12N · 8 Ω</span>
+      <button class="theme-toggle" id="themeToggle">◐ LIGHT</button>
+    </div>
+  </header>
+
+  <div class="layout">
+
+    <div class="panel">
+      <div class="panel-header">
+        <span>Parameters</span>
+        <span class="meta">controls</span>
+      </div>
+      <div class="panel-body">
+
+
+        <div class="master-toggle" id="masterBypass">
+          <span class="master-toggle-label">True Bypass · PA → Speaker</span>
+          <span class="master-toggle-state">OFF</span>
+        </div>
+
+        <div class="stage-block" id="stageBlock">
+
+        <div class="ctrl-group">
+          <div class="ctrl-group-title"><span>Stage 1 — compensated</span><span class="hint">always on</span></div>
+          <div class="row"><label>R2a</label><select id="R2a"></select><span class="unit">Ω</span></div>
+          <div class="row"><label>R2b</label><select id="R2b"></select><span class="unit">Ω</span></div>
+          <div class="row"><label>L1</label><input type="number" id="L1" value="0.9" step="0.05" min="0"><span class="unit">mH</span></div>
+          <div class="row"><label>R1</label><select id="R1"></select><span class="unit">Ω</span></div>
+          <div class="row"><label>+ R10</label><input type="number" id="mShunt" value="0" step="1" min="0" placeholder="0 = off"><span class="unit">Ω</span></div>
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--muted); margin-top: 2px;">
+            R10: extra R from node M to GND (parallel with R1). For 16 Ω cab mod, set 68.
+          </div>
+        </div>
+
+        <div class="ctrl-group">
+          <div class="ctrl-group-title"><span>Stages 2–4 — switchable</span><span class="hint">series · shunt</span></div>
+          <div class="row"><label>R4 / R3</label>
+            <span style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+              <select id="R4"></select><select id="R3"></select>
+            </span>
+            <span class="unit">Ω</span></div>
+          <div class="row"><label>R6 / R5</label>
+            <span style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+              <select id="R6"></select><select id="R5"></select>
+            </span>
+            <span class="unit">Ω</span></div>
+          <div class="row"><label>R8 / R7</label>
+            <span style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+              <select id="R8"></select><select id="R7"></select>
+            </span>
+            <span class="unit">Ω</span></div>
+        </div>
+
+        <div class="ctrl-group">
+          <div class="ctrl-group-title"><span>Switches</span><span class="hint">click to toggle</span></div>
+          <div class="switches">
+            <div class="switch-box engaged" id="sw1"><div class="switch-label">SW1 · −7 dB</div><div class="switch-state">IN</div></div>
+            <div class="switch-box engaged" id="sw2"><div class="switch-label">SW2 · −14 dB</div><div class="switch-state">IN</div></div>
+            <div class="switch-box engaged" id="sw3"><div class="switch-label">SW3 · −3.5 dB</div><div class="switch-state">IN</div></div>
+          </div>
+          <div class="switch-footer">Stage 1 (always on): −7 dB reactive · max total ≈ −31.5 dB</div>
+        </div>
+
+        </div><!-- /stage-block -->
+
+        <div class="ctrl-group">
+          <div class="ctrl-group-title"><span>Speaker load</span><span class="hint">8 Ω driver</span></div>
+          <div class="row" style="grid-template-columns: 60px 1fr; margin-bottom: 4px;">
+            <label>Preset</label>
+            <select id="speakerPreset">
+              <optgroup label="8 Ω drivers">
+                <option value="c12n">Jensen C12N · Blues Jr IV Tweed</option>
+                <option value="ctype">Celestion A-Type · Blues Jr IV</option>
+                <option value="greenback">Celestion G12M Greenback · 25 W</option>
+                <option value="v30">Celestion Vintage 30 · 60 W</option>
+                <option value="blue">Celestion Alnico Blue · Vox AC30</option>
+                <option value="g12h">Celestion G12H-30 Heritage</option>
+                <option value="c12k">Jensen C12K · Fender HR/Twin</option>
+                <option value="canrex">Eminence Cannabis Rex</option>
+                <option value="ideal">Ideal 8 Ω (reference)</option>
+              </optgroup>
+              <optgroup label="16 Ω drivers">
+                <option value="g10n40_16">Celestion G10N-40 · Blackstar HT-5</option>
+                <option value="greenback16">Celestion G12M Greenback · 16 Ω</option>
+                <option value="v30_16">Celestion Vintage 30 · 16 Ω</option>
+                <option value="ideal16">Ideal 16 Ω (reference)</option>
+              </optgroup>
+            </select>
+          </div>
+          <div class="row"><label>Re</label><input type="number" id="Re" value="6.05" step="0.1" min="0.1"><span class="unit">Ω</span></div>
+          <div class="row"><label>Le</label><input type="number" id="Le" value="0.90" step="0.05" min="0"><span class="unit">mH</span></div>
+          <div class="row"><label>fs</label><input type="number" id="fs" value="113" step="1" min="20"><span class="unit">Hz</span></div>
+          <div class="row"><label>RES</label><input type="number" id="RES" value="38.5" step="0.5" min="0.5"><span class="unit">Ω</span></div>
+          <div class="row"><label>Qms</label><input type="number" id="Qms" value="7.52" step="0.1" min="0.1"><span class="unit">—</span></div>
+          <div class="row" style="margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--border);">
+            <label>+ R11</label><input type="number" id="outSeries" value="0" step="1" min="0" placeholder="0 = off"><span class="unit">Ω</span>
+          </div>
+          <div class="row">
+            <label>Out shunt</label><input type="number" id="loadMatch" value="0" step="1" min="0" placeholder="0 = off"><span class="unit">Ω</span>
+          </div>
+          <div class="row">
+            <label>Out return</label><input type="number" id="outReturn" value="0" step="1" min="0" placeholder="0 = off"><span class="unit">Ω</span>
+          </div>
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--muted); margin-top: 4px;">
+            Output network. R11 = series top rail (after R8). Out shunt = parallel across speaker. Out return = series in speaker– return. For Hewitt 16 Ω mod, set R11=10, R10=68 in Stage 1.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="main-content">
+
+      <div class="panel">
+        <div class="panel-header">
+          <span>Network</span>
+          <span class="meta">4-stage L-pad ladder</span>
+        </div>
+        <div class="panel-body schematic-body">
+        <svg class="schematic" viewBox="0 -28 460 175" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <line x1="22" y1="22" x2="435" y2="22" stroke="currentColor" stroke-width="0.8" opacity="0.55"/>
+          <line x1="22" y1="92" x2="435" y2="92" stroke="currentColor" stroke-width="0.8" opacity="0.55"/>
+
+          <!-- ===== 4PDT TRUE BYPASS (T-side: P1, P2) ===== -->
+          <!-- Bypass wire across the top; in engaged mode this is dim; in bypass it's bright. -->
+          <line id="bypass-wire" x1="22" y1="-15" x2="432" y2="-15" stroke="var(--orange)" opacity="0.25" stroke-width="1.4"/>
+          <text x="138" y="-18" fill="var(--orange)" opacity="0.7" font-family="IBM Plex Mono" font-size="7">4PDT TRUE BYPASS</text>
+          <!-- Mechanical-link indicator: dashed line tying the two poles (ganged) -->
+          <line x1="22" y1="-3" x2="320" y2="-3" stroke="currentColor" opacity="0.25" stroke-dasharray="2,3" stroke-width="0.6"/>
+
+          <!-- Pole 1 (input side, intercepts top rail at x=22) -->
+          <line x1="22" y1="-15" x2="22" y2="-8" stroke="var(--orange)" opacity="0.7"/>
+          <circle id="contact-bp1-byp" cx="22" cy="-8" r="1.4" fill="none" stroke="var(--orange)" stroke-width="0.8"/>
+          <circle id="contact-bp1-eng" cx="32" cy="22" r="1.4" fill="var(--orange)"/>
+          <circle cx="22" cy="22" r="1.5" fill="currentColor" opacity="0.7"/>
+          <line id="wiper-bp1" x1="22" y1="22" x2="32" y2="22" stroke="var(--orange)" stroke-width="1.4"/>
+          <text x="8" y="2" fill="var(--orange)" opacity="0.7" font-family="IBM Plex Mono" font-size="7">P1</text>
+
+          <!-- Pole 2 (output side, intercepts top rail at x=320) -->
+          <line x1="320" y1="-15" x2="320" y2="-8" stroke="var(--orange)" opacity="0.7"/>
+          <circle id="contact-bp2-byp" cx="320" cy="-8" r="1.4" fill="none" stroke="var(--orange)" stroke-width="0.8"/>
+          <circle id="contact-bp2-eng" cx="316" cy="22" r="1.4" fill="var(--orange)"/>
+          <circle cx="320" cy="22" r="1.5" fill="currentColor" opacity="0.7"/>
+          <line id="wiper-bp2" x1="320" y1="22" x2="316" y2="22" stroke="var(--orange)" stroke-width="1.4"/>
+          <text x="306" y="2" fill="var(--orange)" opacity="0.7" font-family="IBM Plex Mono" font-size="7">P2</text>
+
+          <!-- ===== R11 BYPASS: extend bypass jumper to Out3 Tip directly =====
+               Engaged: bypass wire floats, drop is a passive stub at Out3 Tip potential (R11 still active).
+               Bypass : bypass wire carries signal, drop puts Out3 Tip at signal level → R11 has both ends
+                        at the same potential, no current/drop. -->
+          <line id="bypass-out3-drop" x1="432" y1="-15" x2="432" y2="46" stroke="var(--orange)" opacity="0.25" stroke-width="1.4"/>
+          <circle id="bypass-out3-junction" cx="432" cy="46" r="1.4" fill="var(--orange)" opacity="0.25"/>
+          <text x="402" y="-18" fill="var(--orange)" opacity="0.7" font-family="IBM Plex Mono" font-size="7">&#8594; Out3</text>
+
+          <!-- ===== SLEEVE-SIDE BYPASS (P3, P4) — bottom mirror of T-side ===== -->
+          <!-- Bypass wire across the bottom; bright when bypass is active. -->
+          <line id="bypass-wire-s" x1="22" y1="129" x2="320" y2="129" stroke="var(--orange)" opacity="0.25" stroke-width="1.4"/>
+          <!-- Mechanical-link indicator (ganged) for sleeve poles -->
+          <line x1="22" y1="117" x2="320" y2="117" stroke="currentColor" opacity="0.25" stroke-dasharray="2,3" stroke-width="0.6"/>
+
+          <!-- Pole 3 (input sleeve side, intercepts bottom rail at x=22) -->
+          <line x1="22" y1="129" x2="22" y2="122" stroke="var(--orange)" opacity="0.7"/>
+          <circle id="contact-bp3-byp" cx="22" cy="122" r="1.4" fill="none" stroke="var(--orange)" stroke-width="0.8"/>
+          <circle id="contact-bp3-eng" cx="32" cy="92" r="1.4" fill="var(--orange)"/>
+          <circle cx="22" cy="92" r="1.5" fill="currentColor" opacity="0.7"/>
+          <line id="wiper-bp3" x1="22" y1="92" x2="32" y2="92" stroke="var(--orange)" stroke-width="1.4"/>
+          <text x="8" y="140" fill="var(--orange)" opacity="0.7" font-family="IBM Plex Mono" font-size="7">P3</text>
+
+          <!-- Pole 4 (output sleeve side, intercepts bottom rail at x=320) -->
+          <line x1="320" y1="129" x2="320" y2="122" stroke="var(--orange)" opacity="0.7"/>
+          <circle id="contact-bp4-byp" cx="320" cy="122" r="1.4" fill="none" stroke="var(--orange)" stroke-width="0.8"/>
+          <circle id="contact-bp4-eng" cx="316" cy="92" r="1.4" fill="var(--orange)"/>
+          <circle cx="320" cy="92" r="1.5" fill="currentColor" opacity="0.7"/>
+          <line id="wiper-bp4" x1="320" y1="92" x2="316" y2="92" stroke="var(--orange)" stroke-width="1.4"/>
+          <text x="306" y="140" fill="var(--orange)" opacity="0.7" font-family="IBM Plex Mono" font-size="7">P4</text>
+
+          <!-- ===== Input TS jack ===== -->
+          <text x="2" y="36" fill="currentColor" opacity="0.6" font-family="IBM Plex Mono" font-size="7">IN</text>
+          <rect x="2" y="40" width="14" height="28" fill="none" stroke="currentColor" stroke-width="0.6" opacity="0.5"/>
+          <line x1="8" y1="46" x2="14" y2="46" stroke="currentColor" opacity="0.7" stroke-width="1.2"/>
+          <text x="3" y="50" fill="currentColor" opacity="0.5" font-family="IBM Plex Mono" font-size="6">T</text>
+          <line x1="8" y1="60" x2="14" y2="60" stroke="currentColor" opacity="0.7" stroke-width="1.2"/>
+          <text x="3" y="64" fill="currentColor" opacity="0.5" font-family="IBM Plex Mono" font-size="6">S</text>
+          <line x1="14" y1="46" x2="22" y2="46" stroke="currentColor" opacity="0.55"/>
+          <line x1="22" y1="46" x2="22" y2="22" stroke="currentColor" opacity="0.55"/>
+          <line x1="14" y1="60" x2="22" y2="60" stroke="currentColor" opacity="0.55"/>
+          <line x1="22" y1="60" x2="22" y2="92" stroke="currentColor" opacity="0.55"/>
+
+          <!-- Stage 1: R2A series A→B on top rail; L1+R2B branch below with internal node M; R1 from M down to GND. -->
+          <rect x="32" y="18" width="42" height="8" fill="none" stroke="var(--accent)" stroke-width="1.2"/>
+          <text x="46" y="14" fill="var(--accent)" font-family="IBM Plex Mono" font-size="8">R2A</text>
+          <!-- L1+R2B path: A → down → L1 → right → node M → right → R2B → up → B -->
+          <line x1="32" y1="26" x2="32" y2="42" stroke="var(--accent)" stroke-width="1.2"/>
+          <rect x="28" y="42" width="8" height="10" fill="none" stroke="var(--accent)" stroke-width="1.2"/>
+          <text x="38" y="49" fill="var(--accent)" font-family="IBM Plex Mono" font-size="8">L1</text>
+          <line x1="32" y1="52" x2="32" y2="62" stroke="var(--accent)" stroke-width="1.2"/>
+          <!-- Node M -->
+          <line x1="32" y1="62" x2="74" y2="62" stroke="var(--accent)" stroke-width="1.2"/>
+          <circle cx="53" cy="62" r="1.2" fill="var(--accent)"/>
+          <text x="46" y="59" fill="var(--accent)" font-family="IBM Plex Mono" font-size="7">M</text>
+          <!-- R2B from M to B -->
+          <line x1="74" y1="62" x2="74" y2="52" stroke="var(--accent)" stroke-width="1.2"/>
+          <rect x="70" y="42" width="8" height="10" fill="none" stroke="var(--accent)" stroke-width="1.2"/>
+          <text x="58" y="49" fill="var(--accent)" font-family="IBM Plex Mono" font-size="8">R2B</text>
+          <line x1="74" y1="42" x2="74" y2="26" stroke="var(--accent)" stroke-width="1.2"/>
+          <!-- R1 from M to ground -->
+          <line x1="53" y1="62" x2="53" y2="72" stroke="var(--accent)" stroke-width="1.2"/>
+          <rect x="49" y="72" width="8" height="10" fill="none" stroke="var(--accent)" stroke-width="1.2"/>
+          <line x1="53" y1="82" x2="53" y2="92" stroke="var(--accent)" stroke-width="1.2"/>
+          <text x="60" y="79" fill="var(--accent)" font-family="IBM Plex Mono" font-size="8">R1</text>
+
+          <!-- Stages 2-4: SPDT shown in engaged position. Wiper on top rail before R-series.
+               Engaged contact (filled) → through R3/R5/R7 to GND. Bypass contact (open) → wire
+               around R-series to after-R-series node. -->
+
+          <!-- ===== Stage 2: SW1 / R3 / R4 ===== -->
+          <rect x="118" y="18" width="34" height="8" fill="none" stroke="var(--accent)" stroke-width="1.2"/>
+          <text x="128" y="14" fill="var(--accent)" font-family="IBM Plex Mono" font-size="8">R4</text>
+          <text x="88" y="14" fill="var(--orange)" font-family="IBM Plex Mono" font-size="8">SW1</text>
+          <!-- wiper pivot on top rail -->
+          <circle cx="98" cy="22" r="1.3" fill="currentColor" opacity="0.7"/>
+          <!-- wiper arm — JS rewrites endpoint based on switch state -->
+          <line id="wiper-sw1" x1="98" y1="22" x2="92" y2="40" stroke="var(--orange)" stroke-width="1.4"/>
+          <!-- contacts: filled = active, outline = inactive; JS swaps these -->
+          <circle id="contact-sw1-eng" cx="92" cy="40" r="1.4" fill="var(--orange)"/>
+          <circle id="contact-sw1-byp" cx="104" cy="40" r="1.4" fill="none" stroke="var(--orange)" stroke-width="0.8"/>
+          <!-- R3 path: engaged contact → R3 → GND -->
+          <line x1="92" y1="40" x2="92" y2="48" stroke="currentColor" opacity="0.55"/>
+          <rect x="86" y="48" width="12" height="20" fill="none" stroke="var(--accent)" stroke-width="1.2"/>
+          <line x1="92" y1="68" x2="92" y2="92" stroke="currentColor" opacity="0.55"/>
+          <text x="100" y="60" fill="var(--accent)" font-family="IBM Plex Mono" font-size="8">R3</text>
+          <!-- bypass wire: bypass contact → up & right → top rail after R4 -->
+          <line x1="104" y1="40" x2="104" y2="34" stroke="currentColor" opacity="0.55"/>
+          <line x1="104" y1="34" x2="160" y2="34" stroke="currentColor" opacity="0.55"/>
+          <line x1="160" y1="34" x2="160" y2="22" stroke="currentColor" opacity="0.55"/>
+          <circle cx="160" cy="22" r="1.3" fill="currentColor" opacity="0.7"/>
+
+          <!-- ===== Stage 3: SW2 / R5 / R6 ===== -->
+          <rect x="196" y="18" width="34" height="8" fill="none" stroke="var(--accent)" stroke-width="1.2"/>
+          <text x="206" y="14" fill="var(--accent)" font-family="IBM Plex Mono" font-size="8">R6</text>
+          <text x="166" y="14" fill="var(--orange)" font-family="IBM Plex Mono" font-size="8">SW2</text>
+          <circle cx="176" cy="22" r="1.3" fill="currentColor" opacity="0.7"/>
+          <line id="wiper-sw2" x1="176" y1="22" x2="170" y2="40" stroke="var(--orange)" stroke-width="1.4"/>
+          <circle id="contact-sw2-eng" cx="170" cy="40" r="1.4" fill="var(--orange)"/>
+          <circle id="contact-sw2-byp" cx="182" cy="40" r="1.4" fill="none" stroke="var(--orange)" stroke-width="0.8"/>
+          <line x1="170" y1="40" x2="170" y2="48" stroke="currentColor" opacity="0.55"/>
+          <rect x="164" y="48" width="12" height="20" fill="none" stroke="var(--accent)" stroke-width="1.2"/>
+          <line x1="170" y1="68" x2="170" y2="92" stroke="currentColor" opacity="0.55"/>
+          <text x="178" y="60" fill="var(--accent)" font-family="IBM Plex Mono" font-size="8">R5</text>
+          <line x1="182" y1="40" x2="182" y2="34" stroke="currentColor" opacity="0.55"/>
+          <line x1="182" y1="34" x2="238" y2="34" stroke="currentColor" opacity="0.55"/>
+          <line x1="238" y1="34" x2="238" y2="22" stroke="currentColor" opacity="0.55"/>
+          <circle cx="238" cy="22" r="1.3" fill="currentColor" opacity="0.7"/>
+
+          <!-- ===== Stage 4: SW3 / R7 / R8 ===== -->
+          <rect x="274" y="18" width="34" height="8" fill="none" stroke="var(--accent)" stroke-width="1.2"/>
+          <text x="284" y="14" fill="var(--accent)" font-family="IBM Plex Mono" font-size="8">R8</text>
+          <text x="244" y="14" fill="var(--orange)" font-family="IBM Plex Mono" font-size="8">SW3</text>
+          <circle cx="254" cy="22" r="1.3" fill="currentColor" opacity="0.7"/>
+          <line id="wiper-sw3" x1="254" y1="22" x2="248" y2="40" stroke="var(--orange)" stroke-width="1.4"/>
+          <circle id="contact-sw3-eng" cx="248" cy="40" r="1.4" fill="var(--orange)"/>
+          <circle id="contact-sw3-byp" cx="260" cy="40" r="1.4" fill="none" stroke="var(--orange)" stroke-width="0.8"/>
+          <line x1="248" y1="40" x2="248" y2="48" stroke="currentColor" opacity="0.55"/>
+          <rect x="242" y="48" width="12" height="20" fill="none" stroke="var(--accent)" stroke-width="1.2"/>
+          <line x1="248" y1="68" x2="248" y2="92" stroke="currentColor" opacity="0.55"/>
+          <text x="256" y="60" fill="var(--accent)" font-family="IBM Plex Mono" font-size="8">R7</text>
+          <line x1="260" y1="40" x2="260" y2="34" stroke="currentColor" opacity="0.55"/>
+          <line x1="260" y1="34" x2="316" y2="34" stroke="currentColor" opacity="0.55"/>
+          <line x1="316" y1="34" x2="316" y2="22" stroke="currentColor" opacity="0.55"/>
+          <circle cx="316" cy="22" r="1.3" fill="currentColor" opacity="0.7"/>
+
+          <!-- ===== Out 1 TS jack (8 Ω or 16 Ω cab) ===== -->
+          <text x="343" y="36" fill="currentColor" opacity="0.6" font-family="IBM Plex Mono" font-size="7">Out1</text>
+          <rect x="343" y="40" width="14" height="28" fill="none" stroke="currentColor" stroke-width="0.6" opacity="0.5"/>
+          <line x1="349" y1="46" x2="357" y2="46" stroke="currentColor" opacity="0.7" stroke-width="1.2"/>
+          <text x="357" y="50" fill="currentColor" opacity="0.5" font-family="IBM Plex Mono" font-size="6">T</text>
+          <line x1="349" y1="60" x2="357" y2="60" stroke="currentColor" opacity="0.7" stroke-width="1.2"/>
+          <text x="357" y="64" fill="currentColor" opacity="0.5" font-family="IBM Plex Mono" font-size="6">S</text>
+          <line x1="343" y1="46" x2="338" y2="46" stroke="currentColor" opacity="0.55"/>
+          <line x1="338" y1="46" x2="338" y2="22" stroke="currentColor" opacity="0.55"/>
+          <line x1="343" y1="60" x2="338" y2="60" stroke="currentColor" opacity="0.55"/>
+          <line x1="338" y1="60" x2="338" y2="92" stroke="currentColor" opacity="0.55"/>
+          <circle cx="338" cy="22" r="1.2" fill="currentColor" opacity="0.7"/>
+          <circle cx="338" cy="92" r="1.2" fill="currentColor" opacity="0.7"/>
+
+          <!-- ===== Out 2 TS jack (parallel — second cab for two 16 Ω = 8 Ω) ===== -->
+          <text x="375" y="36" fill="currentColor" opacity="0.6" font-family="IBM Plex Mono" font-size="7">Out2</text>
+          <rect x="375" y="40" width="14" height="28" fill="none" stroke="currentColor" stroke-width="0.6" opacity="0.5"/>
+          <line x1="381" y1="46" x2="389" y2="46" stroke="currentColor" opacity="0.7" stroke-width="1.2"/>
+          <text x="389" y="50" fill="currentColor" opacity="0.5" font-family="IBM Plex Mono" font-size="6">T</text>
+          <line x1="381" y1="60" x2="389" y2="60" stroke="currentColor" opacity="0.7" stroke-width="1.2"/>
+          <text x="389" y="64" fill="currentColor" opacity="0.5" font-family="IBM Plex Mono" font-size="6">S</text>
+          <line x1="375" y1="46" x2="370" y2="46" stroke="currentColor" opacity="0.55"/>
+          <line x1="370" y1="46" x2="370" y2="22" stroke="currentColor" opacity="0.55"/>
+          <line x1="375" y1="60" x2="370" y2="60" stroke="currentColor" opacity="0.55"/>
+          <line x1="370" y1="60" x2="370" y2="92" stroke="currentColor" opacity="0.55"/>
+          <circle cx="370" cy="22" r="1.2" fill="currentColor" opacity="0.7"/>
+          <circle cx="370" cy="92" r="1.2" fill="currentColor" opacity="0.7"/>
+
+          <!-- ===== Out 3 TRS jack (16 Ω cab via R10/R11) ===== -->
+          <text x="436" y="36" fill="var(--orange)" opacity="0.75" font-family="IBM Plex Mono" font-size="7">Out3</text>
+          <rect x="435" y="40" width="14" height="36" fill="none" stroke="var(--orange)" stroke-width="0.6" opacity="0.7"/>
+          <line x1="441" y1="46" x2="449" y2="46" stroke="var(--orange)" opacity="0.85" stroke-width="1.2"/>
+          <text x="449" y="50" fill="var(--orange)" opacity="0.7" font-family="IBM Plex Mono" font-size="6">T</text>
+          <line x1="441" y1="58" x2="449" y2="58" stroke="var(--orange)" opacity="0.85" stroke-width="1.2"/>
+          <text x="449" y="62" fill="var(--orange)" opacity="0.7" font-family="IBM Plex Mono" font-size="6">R</text>
+          <line x1="441" y1="70" x2="449" y2="70" stroke="var(--orange)" opacity="0.85" stroke-width="1.2"/>
+          <text x="449" y="74" fill="var(--orange)" opacity="0.7" font-family="IBM Plex Mono" font-size="6">S</text>
+
+          <!-- R11 in series: top rail tap → R11 → Out 3 Tip -->
+          <circle cx="425" cy="22" r="1.2" fill="var(--orange)" opacity="0.75"/>
+          <line x1="425" y1="22" x2="425" y2="30" stroke="var(--orange)" opacity="0.8"/>
+          <rect x="420" y="30" width="10" height="8" fill="none" stroke="var(--orange)" stroke-width="1.2"/>
+          <text x="406" y="36" fill="var(--orange)" font-family="IBM Plex Mono" font-size="8">R11</text>
+          <line x1="425" y1="38" x2="425" y2="46" stroke="var(--orange)" opacity="0.8"/>
+          <line x1="425" y1="46" x2="435" y2="46" stroke="var(--orange)" opacity="0.8"/>
+
+          <!-- Out 3 Sleeve → ground rail (column x=415, separate from R11 column at x=425) -->
+          <line x1="435" y1="70" x2="415" y2="70" stroke="currentColor" opacity="0.55"/>
+          <line x1="415" y1="70" x2="415" y2="92" stroke="currentColor" opacity="0.55"/>
+          <circle cx="415" cy="92" r="1.2" fill="currentColor" opacity="0.7"/>
+
+          <!-- R10 trace: Out 3 Ring → loop back to node M (dashed orange to distinguish). -->
+          <!-- Path: Ring (435, 58) → left to (405, 58) → down to bottom corridor at y=110, -->
+          <!-- across the schematic to x=84, through R10 body, then up to node M at (53, 62). -->
+          <line x1="435" y1="58" x2="405" y2="58" stroke="var(--orange)" opacity="0.7" stroke-dasharray="3,2"/>
+          <line x1="405" y1="58" x2="405" y2="110" stroke="var(--orange)" opacity="0.7" stroke-dasharray="3,2"/>
+          <line x1="405" y1="110" x2="98" y2="110" stroke="var(--orange)" opacity="0.7" stroke-dasharray="3,2"/>
+          <rect x="84" y="106" width="14" height="8" fill="none" stroke="var(--orange)" stroke-width="1.2"/>
+          <text x="85" y="102" fill="var(--orange)" font-family="IBM Plex Mono" font-size="8">R10</text>
+          <line x1="84" y1="110" x2="47" y2="110" stroke="var(--orange)" opacity="0.7" stroke-dasharray="3,2"/>
+          <line x1="47" y1="110" x2="47" y2="62" stroke="var(--orange)" opacity="0.7" stroke-dasharray="3,2"/>
+          <line x1="47" y1="62" x2="53" y2="62" stroke="var(--orange)" opacity="0.7" stroke-dasharray="3,2"/>
+        </svg>
+        <div class="design-note">
+          <span class="k">Stage 1</span> morphs with frequency: at LF (L1 ≈ short) R1 sits at the input; at HF (L1 ≈ open) R2B+R1 sit as a shunt at the output. Roughly −7 dB at both extremes when loaded by the speaker.<br>
+          <span class="k">Stages 2–4</span>: SPDT wiper sits on the top rail before each R-series. Engaged ⇒ wiper down-left to the R-shunt path (R3/R5/R7 to GND). Bypass ⇒ wiper down-right to the wire shorting R-series. The R-shunt floats in bypass.<br>
+          <span class="k">Outputs</span>: Out1/Out2 (TS) direct-tap for 8 Ω cabs (or two 16 Ω in parallel). Out3 (TRS) uses R11 in series and R10 from node M for a single 16 Ω cab. In bypass, the jumper also taps Out3 Tip directly, shunting R11.
+        </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <span>Frequency response</span>
+        <span class="meta">20 Hz – 20 kHz · |H(f)| · |Z<sub>in</sub>| · |Z<sub>spkr</sub>|</span>
+      </div>
+      <div class="plot-wrap"><div id="plot"></div></div>
+      <div class="stats">
+        <div class="stat"><div class="stat-label">Att @ 1 kHz</div><div class="stat-value" id="stat-att">—</div></div>
+        <div class="stat"><div class="stat-label">Δ HF (10 k − 1 k)</div><div class="stat-value" id="stat-hf">—</div></div>
+        <div class="stat"><div class="stat-label">Δ LF (100 − 1 k)</div><div class="stat-value" id="stat-lf">—</div></div>
+        <div class="stat"><div class="stat-label">|Z<sub>in</sub>| @ 1 kHz</div><div class="stat-value orange" id="stat-zin">—</div></div>
+      </div>
+    </div>
+
+    </div>
+
+  </div>
+</div>
+
+<script>
+const html = document.documentElement;
+const themeBtn = document.getElementById('themeToggle');
+function getTheme() { return html.getAttribute('data-theme') || 'dark'; }
+function setTheme(t) {
+  html.setAttribute('data-theme', t);
+  themeBtn.textContent = t === 'dark' ? '◐ LIGHT' : '◑ DARK';
+  updatePlot();
+}
+themeBtn.addEventListener('click', () => setTheme(getTheme() === 'dark' ? 'light' : 'dark'));
+
+function cssVar(name) { return getComputedStyle(html).getPropertyValue(name).trim(); }
+
+const C = (re, im=0) => ({re, im});
+const cAdd = (a,b) => ({re:a.re+b.re, im:a.im+b.im});
+const cSub = (a,b) => ({re:a.re-b.re, im:a.im-b.im});
+const cNeg = (a) => ({re:-a.re, im:-a.im});
+const cMul = (a,b) => ({re:a.re*b.re - a.im*b.im, im:a.re*b.im + a.im*b.re});
+const cDiv = (a,b) => { const d = b.re*b.re+b.im*b.im; return {re:(a.re*b.re+a.im*b.im)/d, im:(a.im*b.re-a.re*b.im)/d}; };
+const cInv = (a) => { const d = a.re*a.re+a.im*a.im; return {re:a.re/d, im:-a.im/d}; };
+const cMag = (a) => Math.sqrt(a.re*a.re+a.im*a.im);
+const cParallel = (a,b) => cInv(cAdd(cInv(a), cInv(b)));
+
+const abcdId = () => [[C(1),C(0)],[C(0),C(1)]];
+const abcdSeries = (Z) => [[C(1), Z],[C(0), C(1)]];
+const abcdShunt = (Z) => [[C(1), C(0)],[cInv(Z), C(1)]];
+function abcdMul(M1, M2) {
+  const [[A1,B1],[C1,D1]] = M1;
+  const [[A2,B2],[C2,D2]] = M2;
+  return [
+    [cAdd(cMul(A1,A2), cMul(B1,C2)), cAdd(cMul(A1,B2), cMul(B1,D2))],
+    [cAdd(cMul(C1,A2), cMul(D1,C2)), cAdd(cMul(C1,B2), cMul(D1,D2))]
+  ];
+}
+const abcdCascade = (mats) => mats.reduce((acc,m) => abcdMul(acc,m), abcdId());
+
+// Stage 1 — 3 nodes (A=input, M=internal, B=output) with R1 from M to GND.
+// Components: R2A (A-B), L1 (A-M), R2B (M-B), R1 (M-GND).
+// Build the 3x3 nodal admittance, eliminate node M, get 2-port Y, convert to ABCD.
+function stage1ABCD(w, R2A, R2B, R1, L1) {
+  const yR2A = C(1/R2A, 0);
+  const yR2B = C(1/R2B, 0);
+  const yR1  = C(1/R1, 0);
+  const yL1  = (L1 > 0 && w > 0)
+                 ? cInv(C(0, w*L1))   // 1/(jωL) = -j/(ωL)
+                 : C(1e12, 0);        // L1=0 ⇒ short (large admittance)
+  // Nodal admittances:
+  const Y_AA = cAdd(yR2A, yL1);
+  const Y_MM = cAdd(cAdd(yL1, yR2B), yR1);
+  const Y_BB = cAdd(yR2A, yR2B);
+  const Y_AM = cNeg(yL1);
+  const Y_AB = cNeg(yR2A);
+  const Y_MB = cNeg(yR2B);
+  // Eliminate internal node M: Y2(i,j) = Y(i,j) − Y(i,M)·Y(M,j)/Y(M,M)
+  const Y11 = cSub(Y_AA, cDiv(cMul(Y_AM, Y_AM), Y_MM));
+  const Y12 = cSub(Y_AB, cDiv(cMul(Y_AM, Y_MB), Y_MM));
+  const Y21 = Y12;   // reciprocal passive network
+  const Y22 = cSub(Y_BB, cDiv(cMul(Y_MB, Y_MB), Y_MM));
+  // ABCD from Y: A=−Y22/Y21, B=−1/Y21, C=−det(Y)/Y21, D=−Y11/Y21
+  const negY21 = cNeg(Y21);
+  const A = cDiv(Y22, negY21);
+  const B = cDiv(C(1,0), negY21);
+  const detY = cSub(cMul(Y11, Y22), cMul(Y12, Y21));
+  const Cm  = cDiv(cNeg(detY), Y21);
+  const D = cDiv(Y11, negY21);
+  return [[A, B], [Cm, D]];
+}
+
+function networkResponse(M, ZL) {
+  const [[A,B],[Cm,D]] = M;
+  const denH = cAdd(cMul(A, ZL), B);
+  const H = cDiv(ZL, denH);
+  const Zin = cDiv(denH, cAdd(cMul(Cm, ZL), D));
+  return {H, Zin};
+}
+
+function speakerZ(f) {
+  const presetVal = document.getElementById('speakerPreset')?.value || '';
+  const idealMode = presetVal.startsWith('ideal');
+  const Re_ = +document.getElementById('Re').value;
+  const Le_ = +document.getElementById('Le').value * 1e-3;
+  const w = 2*Math.PI*f;
+  if (idealMode) return cAdd(C(Re_, 0), C(0, w*Le_));
+  const fs = +document.getElementById('fs').value;
+  const RES = +document.getElementById('RES').value;
+  const Qms = +document.getElementById('Qms').value;
+  const ws = 2*Math.PI*fs;
+  const Cmes = Qms/(RES*ws);
+  const Lces = 1/(ws*ws*Cmes);
+  const Y_R = C(1/RES, 0);
+  const Y_L = C(0, -1/(w*Lces));
+  const Y_C = C(0, w*Cmes);
+  const Y_m = {re: Y_R.re + Y_L.re + Y_C.re, im: Y_R.im + Y_L.im + Y_C.im};
+  const Z_m = cInv(Y_m);
+  return cAdd(cAdd(C(Re_,0), C(0, w*Le_)), Z_m);
+}
+
+function buildNetwork(f) {
+  // True bypass — attenuator removed from chain. ABCD identity ⇒ H=1, Zin=Zspkr.
+  if (document.getElementById('masterBypass').classList.contains('engaged')) {
+    return abcdId();
+  }
+
+  const w = 2*Math.PI*f;
+  const R2a = +document.getElementById('R2a').value;
+  const R2b = +document.getElementById('R2b').value;
+  const L1  = +document.getElementById('L1').value * 1e-3;
+  const R1  = +document.getElementById('R1').value;
+  const R3  = +document.getElementById('R3').value;
+  const R4  = +document.getElementById('R4').value;
+  const R5  = +document.getElementById('R5').value;
+  const R6  = +document.getElementById('R6').value;
+  const R7  = +document.getElementById('R7').value;
+  const R8  = +document.getElementById('R8').value;
+  const sw1 = document.getElementById('sw1').classList.contains('engaged');
+  const sw2 = document.getElementById('sw2').classList.contains('engaged');
+  const sw3 = document.getElementById('sw3').classList.contains('engaged');
+
+  // R10 (extra at node M) sits in parallel with R1 if present.
+  const R10extra = +document.getElementById('mShunt').value;
+  const R1eff = (R10extra > 0 && isFinite(R10extra)) ? (R1 * R10extra)/(R1 + R10extra) : R1;
+  const stage1 = stage1ABCD(w, R2a, R2b, R1eff, L1);
+
+  // Stages 2-4: SPDT engages a full L-pad (input shunt + series).
+  // When bypassed, both shunt and series drop out — stage becomes identity.
+  const stage = (engaged, Rseries, Rshunt) =>
+    engaged ? abcdMul(abcdShunt(C(Rshunt, 0)), abcdSeries(C(Rseries, 0)))
+            : abcdId();
+
+  const mats = [
+    stage1,
+    stage(sw1, R4, R3),
+    stage(sw2, R6, R5),
+    stage(sw3, R8, R7)
+  ];
+
+  // R11: series resistor on top rail after R8.
+  const Rtop = +document.getElementById('outSeries').value;
+  if (Rtop > 0 && isFinite(Rtop)) {
+    mats.push(abcdSeries(C(Rtop, 0)));
+  }
+
+  // Optional shunt across the speaker terminals (load match for 16 → 8 Ω).
+  const Rload = +document.getElementById('loadMatch').value;
+  if (Rload > 0 && isFinite(Rload)) {
+    mats.push(abcdShunt(C(Rload, 0)));
+  }
+
+  return abcdCascade(mats);
+}
+
+function sweep() {
+  const N = 401, fmin = 20, fmax = 20000;
+  const freqs = new Array(N), H_db = new Array(N), Zin_mag = new Array(N), Zspk_mag = new Array(N);
+  const Rret = +document.getElementById('outReturn').value;
+  const hasReturn = (Rret > 0 && isFinite(Rret));
+  for (let i=0; i<N; i++) {
+    const f = fmin * Math.pow(fmax/fmin, i/(N-1));
+    freqs[i] = f;
+    const ZL_speaker = speakerZ(f);
+    const ZL = hasReturn ? cAdd(ZL_speaker, C(Rret, 0)) : ZL_speaker;
+    const M = buildNetwork(f);
+    const {H, Zin} = networkResponse(M, ZL);
+    H_db[i] = 20*Math.log10(Math.max(cMag(H), 1e-12));
+    Zin_mag[i] = cMag(Zin);
+    Zspk_mag[i] = cMag(ZL_speaker);
+  }
+  return {freqs, H_db, Zin_mag, Zspk_mag};
+}
+
+let plotInit = false;
+function updatePlot() {
+  const {freqs, H_db, Zin_mag, Zspk_mag} = sweep();
+
+  // Theme tokens read at draw time so plot follows toggle.
+  const accent   = cssVar('--accent');    // chart slot 1 — primary trace
+  const orange   = cssVar('--orange');    // chart slot 2 — Zin
+  const teal     = cssVar('--teal');      // chart slot 3 — Zspkr reference
+  const body     = cssVar('--body');
+  const muted    = cssVar('--muted');
+  const grid     = cssVar('--grid');
+  const axis     = cssVar('--axis');
+
+  const traces = [
+    { x: freqs, y: H_db, type: 'scatter', mode: 'lines',
+      name: '|H(f)| · gain (dB)', yaxis: 'y',
+      line: {color: accent, width: 2.2},
+      hovertemplate: '%{x:.0f} Hz · %{y:.2f} dB<extra></extra>' },
+    { x: freqs, y: Zin_mag, type: 'scatter', mode: 'lines',
+      name: '|Z<sub>in</sub>| seen by amp (Ω)', yaxis: 'y2',
+      line: {color: orange, width: 1.8},
+      hovertemplate: '%{x:.0f} Hz · %{y:.2f} Ω<extra></extra>' },
+    { x: freqs, y: Zspk_mag, type: 'scatter', mode: 'lines',
+      name: '|Z<sub>spkr</sub>| (Ω, ref)', yaxis: 'y2',
+      line: {color: teal, width: 1.4, dash: 'dot'},
+      hovertemplate: '%{x:.0f} Hz · %{y:.2f} Ω<extra></extra>' }
+  ];
+
+  const layout = {
+    paper_bgcolor: 'rgba(0,0,0,0)',
+    plot_bgcolor:  'rgba(0,0,0,0)',
+    font: {family: 'IBM Plex Sans, sans-serif', size: 11, color: body},
+    margin: {l: 60, r: 60, t: 12, b: 70},
+    showlegend: true,
+    legend: {
+      orientation: 'h', x: 0.5, xanchor: 'center', y: -0.22,
+      bgcolor: 'rgba(0,0,0,0)',
+      font: {color: body, size: 11, family: 'IBM Plex Sans, sans-serif'}
+    },
+    xaxis: {
+      type: 'log',
+      title: {text: 'frequency (Hz)', font: {color: muted, size: 11, family: 'IBM Plex Sans'}},
+      gridcolor: grid, gridwidth: 0.5, zerolinecolor: grid,
+      linecolor: axis, linewidth: 1, mirror: false, showline: true,
+      tickfont: {color: muted, size: 10, family: 'IBM Plex Mono'},
+      tickcolor: axis,
+      range: [Math.log10(20), Math.log10(20000)],
+      tickvals: [20,50,100,200,500,1000,2000,5000,10000,20000],
+      ticktext: ['20','50','100','200','500','1k','2k','5k','10k','20k']
+    },
+    yaxis: {
+      title: {text: 'gain |H(f)| (dB)', font: {color: accent, size: 11, family: 'IBM Plex Sans'}},
+      gridcolor: grid, gridwidth: 0.5, zerolinecolor: grid,
+      linecolor: axis, linewidth: 1, showline: true, mirror: false,
+      tickfont: {color: muted, size: 10, family: 'IBM Plex Mono'},
+      tickcolor: axis,
+      side: 'left'
+    },
+    yaxis2: {
+      title: {text: 'impedance (Ω, log)', font: {color: orange, size: 11, family: 'IBM Plex Sans'}},
+      overlaying: 'y', side: 'right',
+      linecolor: axis, linewidth: 1, showline: true, mirror: false,
+      tickfont: {color: muted, size: 10, family: 'IBM Plex Mono'},
+      tickcolor: axis,
+      gridcolor: 'rgba(0,0,0,0)',
+      type: 'log'
+    },
+    hoverlabel: {
+      bgcolor: cssVar('--surface'), bordercolor: cssVar('--border-strong'),
+      font: {family: 'IBM Plex Mono', color: body, size: 11}
+    }
+  };
+
+  const config = {displayModeBar: false, responsive: true};
+  if (!plotInit) { Plotly.newPlot('plot', traces, layout, config); plotInit = true; }
+  else { Plotly.react('plot', traces, layout, config); }
+
+  const idx = (target) => {
+    let best=0, bd=Infinity;
+    for (let i=0; i<freqs.length; i++) { const d = Math.abs(freqs[i]-target); if (d<bd){bd=d;best=i;} }
+    return best;
+  };
+  const i1k = idx(1000), i10k = idx(10000), i100 = idx(100);
+  document.getElementById('stat-att').textContent = H_db[i1k].toFixed(2) + ' dB';
+  document.getElementById('stat-hf').textContent  = (H_db[i10k]-H_db[i1k]).toFixed(2) + ' dB';
+  document.getElementById('stat-lf').textContent  = (H_db[i100]-H_db[i1k]).toFixed(2) + ' dB';
+  document.getElementById('stat-zin').textContent = Zin_mag[i1k].toFixed(2) + ' Ω';
+}
+
+const RVALUES = [1, 1.5, 2.2, 2.7, 3.3, 3.9, 4.7, 5.6, 6.8, 8, 8.2, 10, 12, 15, 18, 20, 22, 25, 27, 30, 33, 39, 47, 50, 56, 68, 75, 82, 100];
+const DEFAULTS = {R1:15, R2a:22, R2b:18, R3:15, R4:10, R5:4.7, R6:15, R7:33, R8:5.6};
+
+function populate() {
+  for (const id of Object.keys(DEFAULTS)) {
+    const sel = document.getElementById(id);
+    for (const v of RVALUES) {
+      const opt = document.createElement('option');
+      opt.value = v; opt.textContent = v;
+      if (v === DEFAULTS[id]) opt.selected = true;
+      sel.appendChild(opt);
+    }
+    sel.addEventListener('change', updatePlot);
+  }
+  for (const id of ['L1','Re','Le','fs','RES','Qms','loadMatch','outSeries','outReturn','mShunt']) {
+    document.getElementById(id).addEventListener('input', updatePlot);
+  }
+  // Schematic wiper coordinates per switch — engaged = down-left, bypass = down-right
+  const WIPER_GEOM = {
+    sw1: { pivotX: 98,  engX: 92,  bypX: 104 },
+    sw2: { pivotX: 176, engX: 170, bypX: 182 },
+    sw3: { pivotX: 254, engX: 248, bypX: 260 }
+  };
+  function updateSwitchVisual(swId) {
+    const g = WIPER_GEOM[swId];
+    if (!g) return;
+    const engaged = document.getElementById(swId).classList.contains('engaged');
+    const wiper = document.getElementById('wiper-' + swId);
+    const cEng  = document.getElementById('contact-' + swId + '-eng');
+    const cByp  = document.getElementById('contact-' + swId + '-byp');
+    // Wiper endpoint follows the touched contact
+    wiper.setAttribute('x2', engaged ? g.engX : g.bypX);
+    // Active contact filled, inactive contact outlined only
+    cEng.setAttribute('fill',   engaged ? 'var(--orange)' : 'none');
+    cEng.setAttribute('stroke', engaged ? 'var(--orange)' : 'var(--orange)');
+    cEng.setAttribute('stroke-width', engaged ? '0' : '0.8');
+    cByp.setAttribute('fill',   engaged ? 'none' : 'var(--orange)');
+    cByp.setAttribute('stroke', engaged ? 'var(--orange)' : 'var(--orange)');
+    cByp.setAttribute('stroke-width', engaged ? '0.8' : '0');
+  }
+
+  for (const id of ['sw1','sw2','sw3']) {
+    const el = document.getElementById(id);
+    el.addEventListener('click', () => {
+      el.classList.toggle('engaged');
+      el.querySelector('.switch-state').textContent = el.classList.contains('engaged') ? 'IN' : 'BYPASS';
+      updateSwitchVisual(id);
+      updatePlot();
+    });
+  }
+  // Display labels for the subtitle — "Amp · Speaker · Z"
+  const SPEAKER_META = {
+    c12n:        "Blues Jr IV Tweed · Jensen C12N · 8 Ω",
+    ctype:       "Blues Jr IV · Celestion A-Type · 8 Ω",
+    greenback:   "Celestion G12M Greenback · 25 W · 8 Ω",
+    v30:         "Celestion Vintage 30 · 60 W · 8 Ω",
+    blue:        "Vox AC30 · Celestion Alnico Blue · 8 Ω",
+    g12h:        "Celestion G12H-30 Heritage · 8 Ω",
+    c12k:        "Fender HR/Twin · Jensen C12K · 8 Ω",
+    canrex:      "Eminence Cannabis Rex · 8 Ω",
+    ideal:       "Reference · Ideal · 8 Ω",
+    g10n40_16:   "Blackstar HT-5 · Celestion G10N-40 · 16 Ω",
+    greenback16: "Celestion G12M Greenback · 16 Ω",
+    v30_16:      "Celestion Vintage 30 · 16 Ω",
+    ideal16:     "Reference · Ideal · 16 Ω"
+  };
+
+  // Speaker preset table — published Re/Fs where available; Qms/Le/RES are community/derived.
+  // Representative to ~10-15% — edit fields for spec-grade work.
+  const SPEAKERS = {
+    c12n:        { Re: 6.05, Le: 0.90, fs: 113, RES: 38.5, Qms: 7.52 },
+    ctype:       { Re: 6.4,  Le: 0.7,  fs: 90,  RES: 37.3, Qms: 3.5  },
+    greenback:   { Re: 6.7,  Le: 0.7,  fs: 75,  RES: 30,   Qms: 4.0  },
+    v30:         { Re: 6.9,  Le: 0.4,  fs: 75,  RES: 30,   Qms: 7.0  },
+    blue:        { Re: 6.8,  Le: 0.5,  fs: 75,  RES: 35,   Qms: 3.5  },
+    g12h:        { Re: 6.5,  Le: 0.65, fs: 55,  RES: 32,   Qms: 4.0  },
+    c12k:        { Re: 5.5,  Le: 0.65, fs: 120, RES: 28,   Qms: 4.0  },
+    canrex:      { Re: 5.95, Le: 0.6,  fs: 90,  RES: 25,   Qms: 2.6  },
+    ideal:       { Re: 8.0,  Le: 0.0,  fs: 1,   RES: 1,    Qms: 1    },
+    // 16 Ω drivers — Re·Fs from manufacturer; Qms, Le, RES from community measurements of equivalent drivers
+    g10n40_16:   { Re: 12.05, Le: 1.4, fs: 98,  RES: 50,   Qms: 4.5  },
+    greenback16: { Re: 13.5,  Le: 1.4, fs: 75,  RES: 60,   Qms: 4.0  },
+    v30_16:      { Re: 13.8,  Le: 0.8, fs: 75,  RES: 60,   Qms: 7.0  },
+    ideal16:     { Re: 16.0,  Le: 0.0, fs: 1,   RES: 1,    Qms: 1    }
+  };
+
+  function applySpeakerPreset(val) {
+    const p = SPEAKERS[val];
+    if (!p) return;
+    document.getElementById('Re').value  = p.Re;
+    document.getElementById('Le').value  = p.Le;
+    document.getElementById('fs').value  = p.fs;
+    document.getElementById('RES').value = p.RES;
+    document.getElementById('Qms').value = p.Qms;
+    const meta = SPEAKER_META[val];
+    const metaEl = document.getElementById('speakerMeta');
+    if (meta && metaEl) metaEl.textContent = meta;
+  }
+  document.getElementById('speakerPreset').addEventListener('change', (e) => {
+    applySpeakerPreset(e.target.value);
+    updatePlot();
+  });
+
+  // ===== 4PDT bypass visual updater =====
+  // active=true means master bypass is engaged (signal goes around the network).
+  function updateBypassVisual(active) {
+    const wire = document.getElementById('bypass-wire');
+    if (wire) wire.setAttribute('opacity', active ? '0.85' : '0.25');
+    // R11 bypass extension to Out3 Tip — tracks the same active state as the bypass wire
+    const dropO3 = document.getElementById('bypass-out3-drop');
+    const juncO3 = document.getElementById('bypass-out3-junction');
+    if (dropO3) dropO3.setAttribute('opacity', active ? '0.85' : '0.25');
+    if (juncO3) juncO3.setAttribute('opacity', active ? '0.85' : '0.25');
+
+    // Pole 1: wiper between (22,22) and either (32,22) [engaged, right along rail] or (22,-8) [bypass, up]
+    const w1 = document.getElementById('wiper-bp1');
+    if (w1) { w1.setAttribute('x2', active ? '22' : '32'); w1.setAttribute('y2', active ? '-8' : '22'); }
+    const c1e = document.getElementById('contact-bp1-eng');
+    const c1b = document.getElementById('contact-bp1-byp');
+    if (c1e) { c1e.setAttribute('fill', active ? 'none' : 'var(--orange)'); c1e.setAttribute('stroke', 'var(--orange)'); c1e.setAttribute('stroke-width', active ? '0.8' : '0'); }
+    if (c1b) { c1b.setAttribute('fill', active ? 'var(--orange)' : 'none'); c1b.setAttribute('stroke', 'var(--orange)'); c1b.setAttribute('stroke-width', active ? '0' : '0.8'); }
+
+    // Pole 2: wiper between (320,22) and either (316,22) [engaged, left to network out] or (320,-8) [bypass, up]
+    const w2 = document.getElementById('wiper-bp2');
+    if (w2) { w2.setAttribute('x2', active ? '320' : '316'); w2.setAttribute('y2', active ? '-8' : '22'); }
+    const c2e = document.getElementById('contact-bp2-eng');
+    const c2b = document.getElementById('contact-bp2-byp');
+    if (c2e) { c2e.setAttribute('fill', active ? 'none' : 'var(--orange)'); c2e.setAttribute('stroke', 'var(--orange)'); c2e.setAttribute('stroke-width', active ? '0.8' : '0'); }
+    if (c2b) { c2b.setAttribute('fill', active ? 'var(--orange)' : 'none'); c2b.setAttribute('stroke', 'var(--orange)'); c2b.setAttribute('stroke-width', active ? '0' : '0.8'); }
+
+    // Sleeve-side bypass wire opacity
+    const wireS = document.getElementById('bypass-wire-s');
+    if (wireS) wireS.setAttribute('opacity', active ? '0.85' : '0.25');
+
+    // Pole 3: wiper between (22,92) and either (32,92) [engaged, right along bottom rail] or (22,122) [bypass, down]
+    const w3 = document.getElementById('wiper-bp3');
+    if (w3) { w3.setAttribute('x2', active ? '22' : '32'); w3.setAttribute('y2', active ? '122' : '92'); }
+    const c3e = document.getElementById('contact-bp3-eng');
+    const c3b = document.getElementById('contact-bp3-byp');
+    if (c3e) { c3e.setAttribute('fill', active ? 'none' : 'var(--orange)'); c3e.setAttribute('stroke', 'var(--orange)'); c3e.setAttribute('stroke-width', active ? '0.8' : '0'); }
+    if (c3b) { c3b.setAttribute('fill', active ? 'var(--orange)' : 'none'); c3b.setAttribute('stroke', 'var(--orange)'); c3b.setAttribute('stroke-width', active ? '0' : '0.8'); }
+
+    // Pole 4: wiper between (320,92) and either (316,92) [engaged, left along rail] or (320,122) [bypass, down]
+    const w4 = document.getElementById('wiper-bp4');
+    if (w4) { w4.setAttribute('x2', active ? '320' : '316'); w4.setAttribute('y2', active ? '122' : '92'); }
+    const c4e = document.getElementById('contact-bp4-eng');
+    const c4b = document.getElementById('contact-bp4-byp');
+    if (c4e) { c4e.setAttribute('fill', active ? 'none' : 'var(--orange)'); c4e.setAttribute('stroke', 'var(--orange)'); c4e.setAttribute('stroke-width', active ? '0.8' : '0'); }
+    if (c4b) { c4b.setAttribute('fill', active ? 'var(--orange)' : 'none'); c4b.setAttribute('stroke', 'var(--orange)'); c4b.setAttribute('stroke-width', active ? '0' : '0.8'); }
+  }
+
+  // Master true-bypass toggle
+  const masterEl = document.getElementById('masterBypass');
+  const stageBlock = document.getElementById('stageBlock');
+  masterEl.addEventListener('click', () => {
+    masterEl.classList.toggle('engaged');
+    const on = masterEl.classList.contains('engaged');
+    masterEl.querySelector('.master-toggle-state').textContent = on ? 'BYPASSED' : 'OFF';
+    stageBlock.classList.toggle('muted', on);
+    updateBypassVisual(on);
+    updatePlot();
+  });
+
+  // ===== Initial sync: make sure SVG matches sidebar state on load =====
+  for (const id of ['sw1','sw2','sw3']) updateSwitchVisual(id);
+  updateBypassVisual(masterEl.classList.contains('engaged'));
+}
+
+populate();
+updatePlot();
+</script>
+</body>
+</html>
