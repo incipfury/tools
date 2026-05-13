@@ -59,6 +59,86 @@
   }
   .frame { max-width: 1320px; margin: 0 auto; padding: 24px; }
 
+  /* ===== Tab navigation ===== */
+  .tab-nav {
+    display: flex;
+    gap: 4px;
+    border-bottom: 1px solid var(--axis);
+    margin: 8px 0 24px 0;
+  }
+  .tab-btn {
+    background: transparent;
+    color: var(--muted);
+    border: none;
+    padding: 10px 18px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    transition: color .2s, border-color .2s;
+  }
+  .tab-btn:hover { color: var(--body); }
+  .tab-btn.active {
+    color: var(--orange);
+    border-bottom-color: var(--orange);
+  }
+
+  /* ===== Tab views ===== */
+  .tab-view { display: none; }
+  .tab-view.active { display: block; }
+
+  /* ===== Tutorial layout ===== */
+  .tutorial { max-width: 820px; margin: 0 auto; padding: 8px 4px 60px; }
+  .tut-intro { margin-bottom: 24px; }
+  .tut-title {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-weight: 500; font-size: 22px;
+    margin: 0 0 6px 0; color: var(--body);
+    letter-spacing: -0.01em;
+  }
+  .tut-meta {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 13px; color: var(--muted);
+    margin: 0; line-height: 1.5;
+  }
+  .tut-section { margin: 36px 0; padding-top: 24px; border-top: 1px solid var(--grid); }
+  .tut-section:first-of-type { border-top: none; padding-top: 0; margin-top: 8px; }
+  .tut-heading {
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 500; font-size: 14px;
+    color: var(--orange);
+    margin: 0 0 14px 0;
+    letter-spacing: 0.03em;
+  }
+  .tut-prose {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 14px; line-height: 1.65;
+    color: var(--body);
+    margin: 0 0 14px 0;
+  }
+  .tut-prose .var {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px; color: var(--accent);
+    background: var(--surface-alt);
+    padding: 1px 5px; border-radius: 2px;
+  }
+  .tut-plot { width: 100%; height: 340px; margin: 16px 0 22px 0; }
+  .tut-insight {
+    margin: 14px 0 0 0;
+    padding: 12px 16px;
+    border-left: 3px solid var(--orange);
+    background: rgba(255, 138, 61, 0.07);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 13px; line-height: 1.55;
+    color: var(--body);
+    border-radius: 0 4px 4px 0;
+  }
+  .tut-insight strong { color: var(--orange); font-weight: 600; }
+
+
   header {
     display: flex; justify-content: space-between; align-items: baseline;
     flex-wrap: wrap; gap: 12px;
@@ -306,6 +386,13 @@
       <button class="theme-toggle" id="themeToggle">◐ LIGHT</button>
     </div>
   </header>
+
+  <nav class="tab-nav">
+    <button class="tab-btn active" data-tab="analyzer">Analyzer</button>
+    <button class="tab-btn" data-tab="tutorial">Tutorial</button>
+  </nav>
+
+  <div id="analyzer-view" class="tab-view active">
 
   <div class="layout">
 
@@ -660,6 +747,79 @@
     </div>
 
   </div>
+  </div>  <!-- /#analyzer-view -->
+
+  <div id="tutorial-view" class="tab-view">
+    <article class="tutorial">
+      <header class="tut-intro">
+        <h1 class="tut-title">Reactive attenuators — a tutorial</h1>
+        <p class="tut-meta">From textbook L-pads to the limits of human hearing. The running example is a Fender Blues Jr IV driving a Jensen C12N through the Hewitt M2 — but the principles transfer to any amp / speaker / attenuator combination.</p>
+      </header>
+
+      <section class="tut-section">
+        <h2 class="tut-heading">1 · The textbook attenuator</h2>
+        <p class="tut-prose">Pretend, for a moment, that the world is simple. An ideal amplifier — zero output impedance, infinite bandwidth — drives a resistive attenuator into a resistive load (an &quot;ideal speaker&quot; that's just a fixed resistor). The voltage at the load is a constant fraction of the amp's output, independent of frequency.</p>
+        <p class="tut-prose">The math is one line: <span class="var">H = (R<sub>shunt</sub> &#8741; R<sub>L</sub>) / (R<sub>series</sub> + R<sub>shunt</sub> &#8741; R<sub>L</sub>)</span>. Pick the resistors for whatever attenuation you want and the frequency response is a flat horizontal line.</p>
+        <div class="tut-plot" id="tutPlot1"></div>
+        <div class="tut-insight"><strong>Insight:</strong> if frequency-independent components drive a frequency-independent load, attenuation is just a number. The rest of this tutorial is about why neither assumption holds in practice.</div>
+      </section>
+
+      <section class="tut-section">
+        <h2 class="tut-heading">2 · Speakers aren't resistors</h2>
+        <p class="tut-prose">A guitar speaker is a mass-on-spring with a voice coil in a magnet gap. It is emphatically not a resistor — its impedance swings dramatically with frequency, and that swing is most of what gives a speaker its character.</p>
+        <div class="tut-plot" id="tutPlot2a"></div>
+        <p class="tut-prose">Three features dominate. At DC the impedance is the voice coil's DC resistance <span class="var">R<sub>e</sub> &asymp; 6 &#937;</span>. Around 100–150 Hz the cone's mechanical resonance <span class="var">F<sub>s</sub></span> creates a peak that can reach 4–6&times; R<sub>e</sub>. Above ~2 kHz the voice coil's inductance L<sub>e</sub> drives the impedance up monotonically.</p>
+        <p class="tut-prose">Now consider the simplest possible &quot;attenuator&quot;: one resistor in series, no shunt. The voltage at the speaker is <span class="var">V<sub>amp</sub> &middot; Z<sub>spkr</sub> / (R<sub>series</sub> + Z<sub>spkr</sub>)</span>. Where Z<sub>spkr</sub> is high (resonance, HF rise), the series resistor drops <em>less</em> of the voltage and more gets through. Where Z<sub>spkr</sub> is low (the dip between resonance and the HF rise), the series resistor drops <em>more</em>. The &quot;attenuation&quot; bumps and dips with the impedance curve.</p>
+        <div class="tut-plot" id="tutPlot2b"></div>
+        <div class="tut-insight"><strong>Insight:</strong> a single resistor is not a flat attenuator into a real speaker — it applies the speaker's impedance curve as an EQ. This is why crude &quot;stick a resistor in line&quot; attenuators get a reputation for sounding boomy and uneven.</div>
+      </section>
+
+      <section class="tut-section">
+        <h2 class="tut-heading">3 · Tube amps aren't voltage sources</h2>
+        <p class="tut-prose">A power amp is not an ideal voltage source. The output stage has finite source impedance R<sub>amp</sub>, and the ratio R<sub>load</sub> / R<sub>amp</sub> is called the damping factor — higher values mean more voltage-source-like behavior.</p>
+        <p class="tut-prose">Solid-state amps usually run damping factors above 100. Tube amps with global negative feedback land between 5 and 15. Tube amps without feedback (Class-A designs, smaller combos like the Blues Jr) can be down at 1–3, where R<sub>amp</sub> is comparable to the speaker's nominal impedance.</p>
+        <div class="tut-plot" id="tutPlot3"></div>
+        <p class="tut-prose">The amp's source impedance interacts with the speaker's impedance curve. Where Z<sub>spkr</sub> rises (resonance, HF), the speaker pulls less current; the higher R<sub>amp</sub>, the more this lightened current draw shows up as a voltage bump at the speaker terminals. A &quot;tight&quot; damping factor flattens this; a &quot;loose&quot; one accentuates it.</p>
+        <div class="tut-insight"><strong>Insight:</strong> what the player hears isn't just what comes out of the tubes — it's the tubes <em>into that specific speaker</em>, with the source-impedance dance baked in. The same amp into a flat dummy load gives a measurably different result.</div>
+      </section>
+
+      <section class="tut-section">
+        <h2 class="tut-heading">4 · The reference</h2>
+        <p class="tut-prose">Combine sections 2 and 3. The voltage delivered to a real speaker by a real amp, no attenuator in the path:</p>
+        <p class="tut-prose" style="text-align: center; margin: 18px 0;"><span class="var" style="font-size: 14px; padding: 4px 10px;">H<sub>ref</sub>(f) = Z<sub>spkr</sub>(f) / (R<sub>amp</sub> + Z<sub>spkr</sub>(f))</span></p>
+        <p class="tut-prose">This is <em>not flat</em>. It has the resonance peak, the HF rise, and the amp-speaker coupling all in there. Crucially: <strong>this is what the player and the band have been listening to all along.</strong> It's the sound.</p>
+        <div class="tut-plot" id="tutPlot4"></div>
+        <p class="tut-prose">A transparent attenuator should deliver <span class="var">K &middot; H<sub>ref</sub>(f)</span> to the speaker — same shape, scaled down by a constant K. The amp should &quot;sound the same, just quieter&quot;.</p>
+        <div class="tut-insight"><strong>Insight:</strong> &quot;flat attenuation response&quot; is the wrong design goal. A genuinely flat-response attenuator would strip out the very character that makes the amp sound like the amp.</div>
+      </section>
+
+      <section class="tut-section">
+        <h2 class="tut-heading">5 · Reactive matching — the M2</h2>
+        <p class="tut-prose">The Hewitt M2 (and most attenuators marketed as &quot;reactive&quot;) pursue two goals at once:</p>
+        <ol class="tut-prose" style="padding-left: 28px;">
+          <li>The transfer function <span class="var">H<sub>M2</sub>(f)</span> into the speaker should track <span class="var">K &middot; H<sub>ref</sub>(f)</span> — preserve the shape.</li>
+          <li>The input impedance <span class="var">Z<sub>in,M2</sub>(f)</span> the amp sees should track <span class="var">Z<sub>spkr</sub>(f)</span> — so the amp &quot;sees&quot; the same load it would normally see.</li>
+        </ol>
+        <p class="tut-prose">Stage 1's L1 + R2B + R1 branch is the main mechanism. As frequency rises, L1's reactance increases, raising the shunt branch's impedance — mimicking how a real speaker's |Z| rises at HF. The series R2A and the cascaded L-pad stages set the overall attenuation level.</p>
+        <div class="tut-plot" id="tutPlot5a"></div>
+        <p class="tut-prose">The M2's input impedance tracks the speaker's shape — same resonance peak, similar HF rise. Now compare the transfer function against a pure-resistive L-pad with the same DC attenuation:</p>
+        <div class="tut-plot" id="tutPlot5b"></div>
+        <p class="tut-prose">The M2 closely follows the K&middot;H<sub>ref</sub> target. The pure-resistive L-pad deviates — it's flatter in absolute response, which is exactly the wrong thing if the goal is preserving the speaker's character.</p>
+        <div class="tut-insight"><strong>Insight:</strong> the reactive components aren't there for marketing. They're load-aware compensation — correcting for the fact that the speaker presents a complex impedance. A purely resistive attenuator hides the speaker; a reactive one preserves it.</div>
+      </section>
+
+      <section class="tut-section">
+        <h2 class="tut-heading">6 · Your ears</h2>
+        <p class="tut-prose">There's one final limit even a perfect attenuator can't fix: the listener.</p>
+        <p class="tut-prose">Human hearing is not frequency-flat, and worse, its frequency response changes with sound pressure level. Lower-SPL listening makes the ear progressively less sensitive to the frequency extremes — especially bass.</p>
+        <p class="tut-prose">The Fletcher-Munson curves (modernized as ISO 226) describe this. Each contour shows the actual SPL needed at each frequency to produce the same perceived loudness, in phons.</p>
+        <div class="tut-plot" id="tutPlot6"></div>
+        <p class="tut-prose">At 100 phon (&quot;cranked&quot;), the contour is nearly flat — bass, mids, and treble are heard roughly equally. At 40 phon (&quot;quiet bedroom&quot;), the ear is ~30 dB less sensitive at 50 Hz than at 1 kHz. So even with a perfectly transparent attenuator, the same audio at lower SPL sounds bass-and-treble light to the ear.</p>
+        <p class="tut-prose">This is psychoacoustics, not the attenuator. Some attenuators add a mild low-shelf and/or treble boost (&quot;compensation EQ&quot;) to push back against this perceptual rolloff at low SPLs. The M2 doesn't — it leaves that judgment to the player.</p>
+        <div class="tut-insight"><strong>Insight:</strong> &quot;same sound, just quieter&quot; is perceptually impossible. Knowing why helps separate what an attenuator can fix (load matching, transfer function shape) from what it can't (your ears at low SPL).</div>
+      </section>
+    </article>
+  </div>  <!-- /#tutorial-view -->
 </div>
 
 <script>
@@ -1091,6 +1251,308 @@ function populate() {
 
 populate();
 updatePlot();
+
+// ============================================================================
+// ===== TUTORIAL TAB =====
+// ============================================================================
+
+function logspace(min, max, n) {
+  const lmin = Math.log10(min), lmax = Math.log10(max);
+  const out = new Array(n);
+  for (let i = 0; i < n; i++) out[i] = Math.pow(10, lmin + (lmax - lmin) * i / (n - 1));
+  return out;
+}
+
+// Hardcoded Jensen C12N speaker model — matches main analyzer's speakerZ()
+function zSpkr_C12N(f) {
+  const Re = 6.05, Le = 0.90e-3, fs = 113, RES = 38.5, Qms = 7.52;
+  const w  = 2 * Math.PI * f;
+  const ws = 2 * Math.PI * fs;
+  const Cmes = Qms / (RES * ws);
+  const Lces = 1 / (ws * ws * Cmes);
+  const Y_R = C(1/RES, 0);
+  const Y_L = C(0, -1/(w*Lces));
+  const Y_C = C(0, w*Cmes);
+  const Y_m = {re: Y_R.re + Y_L.re + Y_C.re, im: Y_R.im + Y_L.im + Y_C.im};
+  const Z_m = cInv(Y_m);
+  return cAdd(cAdd(C(Re, 0), C(0, w*Le)), Z_m);
+}
+
+// Hewitt M2, all SW1-3 engaged, 8 Ω values (no R10/R11)
+function buildM2_allEngaged(f) {
+  const w = 2 * Math.PI * f;
+  const R2A=22, R2B=18, R1=15, L1=0.9e-3;
+  const R3=15, R4=10, R5=4.7, R6=15, R7=33, R8=5.6;
+  const stage1 = stage1ABCD(w, R2A, R2B, R1, L1);
+  const stage = (Rs, Rsh) => abcdMul(abcdShunt(C(Rsh, 0)), abcdSeries(C(Rs, 0)));
+  return abcdCascade([stage1, stage(R4, R3), stage(R6, R5), stage(R8, R7)]);
+}
+
+// Standard matched resistive L-pad: series-then-shunt-across-load. K = linear attenuation factor.
+function buildResistiveLpad(K, R_L) {
+  R_L = R_L || 8;
+  const Rs = R_L * (1 - K);
+  const Rp = R_L * K / (1 - K);
+  return abcdMul(abcdSeries(C(Rs, 0)), abcdShunt(C(Rp, 0)));
+}
+
+// H_total = V_speaker / V_source — accounts for amp source impedance R_amp
+function totalTransfer(ABCD, ZL, Ramp) {
+  const A = ABCD[0][0], B = ABCD[0][1], C_ = ABCD[1][0], D = ABCD[1][1];
+  const num = cAdd(cMul(A, ZL), B);
+  const den = cAdd(cMul(C_, ZL), D);
+  const Zin = cDiv(num, den);
+  const H_att = cDiv(ZL, num);
+  const V_in_frac = cDiv(Zin, cAdd(C(Ramp, 0), Zin));
+  return cMul(V_in_frac, H_att);
+}
+
+// Reference: no attenuator, source through R_amp into load Z_L
+function refTransfer(ZL, Ramp) {
+  return cDiv(ZL, cAdd(C(Ramp, 0), ZL));
+}
+
+// Plotly layout factory matching the analyzer's style
+function tutLayoutDB(yMin, yMax) {
+  const body = cssVar('--body'), muted = cssVar('--muted');
+  const grid = cssVar('--grid'), axis = cssVar('--axis');
+  const accent = cssVar('--accent');
+  return {
+    paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)',
+    font: {family: 'IBM Plex Sans, sans-serif', size: 11, color: body},
+    margin: {l: 60, r: 30, t: 12, b: 70},
+    showlegend: true,
+    legend: {orientation: 'h', x: 0.5, xanchor: 'center', y: -0.22,
+             bgcolor: 'rgba(0,0,0,0)',
+             font: {color: body, size: 11, family: 'IBM Plex Sans, sans-serif'}},
+    xaxis: {
+      type: 'log',
+      title: {text: 'frequency (Hz)', font: {color: muted, size: 11, family: 'IBM Plex Sans'}},
+      gridcolor: grid, gridwidth: 0.5, zerolinecolor: grid,
+      linecolor: axis, linewidth: 1, mirror: false, showline: true,
+      tickfont: {color: muted, size: 10, family: 'IBM Plex Mono'},
+      tickcolor: axis,
+      range: [Math.log10(20), Math.log10(20000)],
+      tickvals: [20,50,100,200,500,1000,2000,5000,10000,20000],
+      ticktext: ['20','50','100','200','500','1k','2k','5k','10k','20k']
+    },
+    yaxis: {
+      title: {text: 'gain |H(f)| (dB)', font: {color: accent, size: 11, family: 'IBM Plex Sans'}},
+      gridcolor: grid, gridwidth: 0.5, zerolinecolor: grid,
+      linecolor: axis, linewidth: 1, showline: true, mirror: false,
+      tickfont: {color: muted, size: 10, family: 'IBM Plex Mono'},
+      tickcolor: axis,
+      range: (yMin !== undefined) ? [yMin, yMax] : undefined
+    }
+  };
+}
+
+function tutLayoutImpedance(yMin, yMax) {
+  const lo = tutLayoutDB();
+  lo.yaxis.title.text = 'impedance |Z(f)| (Ω, log)';
+  lo.yaxis.title.font.color = cssVar('--orange');
+  lo.yaxis.type = 'log';
+  if (yMin !== undefined) lo.yaxis.range = [Math.log10(yMin), Math.log10(yMax)];
+  return lo;
+}
+
+const TUT_PLOT_CONFIG = {responsive: true, displayModeBar: false};
+
+// ---- PLOT 1: Textbook (flat lines at fixed attenuation) ----
+function buildPlot1() {
+  const f = logspace(20, 20000, 100);
+  const flat = (db) => f.map(() => db);
+  const traces = [
+    {x: f, y: flat(-3),  name: '−3 dB',  type:'scatter', mode:'lines',
+     line:{color: cssVar('--orange'), width: 2.2}},
+    {x: f, y: flat(-7),  name: '−7 dB',  type:'scatter', mode:'lines',
+     line:{color: cssVar('--accent'), width: 2.2}},
+    {x: f, y: flat(-15), name: '−15 dB', type:'scatter', mode:'lines',
+     line:{color: cssVar('--teal'),   width: 2.2}}
+  ];
+  Plotly.newPlot('tutPlot1', traces, tutLayoutDB(-20, 1), TUT_PLOT_CONFIG);
+}
+
+// ---- PLOT 2a: |Z_spkr(f)| Jensen C12N ----
+function buildPlot2a() {
+  const f = logspace(20, 20000, 400);
+  const Z = f.map(freq => cMag(zSpkr_C12N(freq)));
+  const traces = [
+    {x: f, y: Z, name: '|Z| Jensen C12N', type:'scatter', mode:'lines',
+     line:{color: cssVar('--orange'), width: 2.4},
+     hovertemplate: '%{x:.0f} Hz · %{y:.2f} Ω<extra></extra>'}
+  ];
+  Plotly.newPlot('tutPlot2a', traces, tutLayoutImpedance(2, 200), TUT_PLOT_CONFIG);
+}
+
+// ---- PLOT 2b: H(f) for single series-R into C12N ----
+function buildPlot2b() {
+  const f = logspace(20, 20000, 400);
+  const colors = [cssVar('--orange'), cssVar('--accent'), cssVar('--teal')];
+  const traces = [4, 8, 16].map((Rs, i) => {
+    const H = f.map(freq => {
+      const Z = zSpkr_C12N(freq);
+      return 20 * Math.log10(Math.max(cMag(cDiv(Z, cAdd(C(Rs, 0), Z))), 1e-12));
+    });
+    return {x: f, y: H, name: `R<sub>series</sub> = ${Rs} Ω`,
+            type:'scatter', mode:'lines',
+            line:{color: colors[i], width: 2.2}};
+  });
+  Plotly.newPlot('tutPlot2b', traces, tutLayoutDB(-20, 1), TUT_PLOT_CONFIG);
+}
+
+// ---- PLOT 3: H(f) of bare speaker, varying R_amp ----
+function buildPlot3() {
+  const f = logspace(20, 20000, 400);
+  const cases = [
+    {R: 0, name: 'R<sub>amp</sub> = 0 Ω (ideal source)', color: cssVar('--muted'),  dash: 'dot'},
+    {R: 2, name: 'R<sub>amp</sub> = 2 Ω',               color: cssVar('--teal'),   dash: 'solid'},
+    {R: 5, name: 'R<sub>amp</sub> = 5 Ω (≈ Blues Jr)',  color: cssVar('--orange'), dash: 'solid'},
+    {R: 8, name: 'R<sub>amp</sub> = 8 Ω',               color: cssVar('--accent'), dash: 'solid'}
+  ];
+  const traces = cases.map(c => {
+    const H = f.map(freq => {
+      const Z = zSpkr_C12N(freq);
+      return 20 * Math.log10(Math.max(cMag(cDiv(Z, cAdd(C(c.R, 0), Z))), 1e-12));
+    });
+    return {x: f, y: H, name: c.name, type:'scatter', mode:'lines',
+            line:{color: c.color, width: c.dash === 'dot' ? 1.6 : 2.2, dash: c.dash}};
+  });
+  Plotly.newPlot('tutPlot3', traces, tutLayoutDB(-9, 3), TUT_PLOT_CONFIG);
+}
+
+// ---- PLOT 4: H_ref vs K · H_ref (same shape, vertical shift) ----
+function buildPlot4() {
+  const f = logspace(20, 20000, 400);
+  const Ramp = 5, Kdb = -12;
+  const H_ref = f.map(freq => {
+    const Z = zSpkr_C12N(freq);
+    return 20 * Math.log10(Math.max(cMag(refTransfer(Z, Ramp)), 1e-12));
+  });
+  const H_K = H_ref.map(v => v + Kdb);
+  const traces = [
+    {x: f, y: H_ref, name: 'H<sub>ref</sub>(f)  no attenuator', type:'scatter', mode:'lines',
+     line:{color: cssVar('--orange'), width: 2.4}},
+    {x: f, y: H_K,   name: 'K · H<sub>ref</sub>(f),  K = −12 dB (target)', type:'scatter', mode:'lines',
+     line:{color: cssVar('--accent'), width: 2, dash:'dash'}}
+  ];
+  Plotly.newPlot('tutPlot4', traces, tutLayoutDB(-18, 3), TUT_PLOT_CONFIG);
+}
+
+// ---- PLOT 5a: |Z_in_M2| vs |Z_spkr| (same-shape goal) ----
+function buildPlot5a() {
+  const f = logspace(20, 20000, 400);
+  const Z_spkr = f.map(zSpkr_C12N);
+  const Z_in   = f.map((freq, i) => {
+    const M = buildM2_allEngaged(freq);
+    const A = M[0][0], B = M[0][1], C_ = M[1][0], D = M[1][1];
+    return cDiv(cAdd(cMul(A, Z_spkr[i]), B), cAdd(cMul(C_, Z_spkr[i]), D));
+  });
+  const traces = [
+    {x: f, y: Z_in.map(cMag),   name: '|Z<sub>in,M2</sub>(f)|', type:'scatter', mode:'lines',
+     line:{color: cssVar('--orange'), width: 2.4}},
+    {x: f, y: Z_spkr.map(cMag), name: '|Z<sub>spkr</sub>(f)|',  type:'scatter', mode:'lines',
+     line:{color: cssVar('--teal'), width: 1.8, dash:'dot'}}
+  ];
+  Plotly.newPlot('tutPlot5a', traces, tutLayoutImpedance(2, 200), TUT_PLOT_CONFIG);
+}
+
+// ---- PLOT 5b: H_total — target vs M2 vs pure-resistive L-pad ----
+function buildPlot5b() {
+  const f = logspace(20, 20000, 400);
+  const Ramp = 5;
+  // Reference K so target K·H_ref aligns with M2 actual at 1 kHz
+  const Z_1k     = zSpkr_C12N(1000);
+  const H_M2_1k  = totalTransfer(buildM2_allEngaged(1000), Z_1k, Ramp);
+  const H_ref_1k = refTransfer(Z_1k, Ramp);
+  const K_target = cMag(H_M2_1k) / cMag(H_ref_1k);
+  // Build a resistive L-pad whose nominal (8 Ω resistive) attenuation matches K_target
+  // Note: into a real (reactive) speaker it'll deliver a frequency-dependent response
+  const Lpad = buildResistiveLpad(K_target);
+
+  const H_target_db = f.map(freq => {
+    const Z = zSpkr_C12N(freq);
+    return 20 * Math.log10(Math.max(K_target * cMag(refTransfer(Z, Ramp)), 1e-12));
+  });
+  const H_M2_db = f.map(freq => {
+    const Z = zSpkr_C12N(freq);
+    return 20 * Math.log10(Math.max(cMag(totalTransfer(buildM2_allEngaged(freq), Z, Ramp)), 1e-12));
+  });
+  const H_res_db = f.map(freq => {
+    const Z = zSpkr_C12N(freq);
+    return 20 * Math.log10(Math.max(cMag(totalTransfer(Lpad, Z, Ramp)), 1e-12));
+  });
+
+  const traces = [
+    {x: f, y: H_target_db, name: 'K · H<sub>ref</sub>(f) — target', type:'scatter', mode:'lines',
+     line:{color: cssVar('--muted'), width: 2.5, dash:'dash'}},
+    {x: f, y: H_M2_db,     name: 'H<sub>M2</sub>(f) — reactive (M2)', type:'scatter', mode:'lines',
+     line:{color: cssVar('--orange'), width: 2.4}},
+    {x: f, y: H_res_db,    name: 'H<sub>L-pad</sub>(f) — pure resistive', type:'scatter', mode:'lines',
+     line:{color: cssVar('--accent'), width: 2}}
+  ];
+  Plotly.newPlot('tutPlot5b', traces, tutLayoutDB(-50, -20), TUT_PLOT_CONFIG);
+}
+
+// ---- PLOT 6: ISO 226 equal-loudness contours ----
+function buildPlot6() {
+  // Approximate ISO 226:2003 — SPL (dB) at ~1/3-octave centers
+  const f_iso = [20, 31.5, 50, 80, 125, 200, 315, 500, 800, 1000, 1600, 2500, 4000, 6300, 10000, 12500];
+  const data = {
+     '40 phon':  [99, 88, 78, 68, 60, 53, 47, 43, 41, 40, 39, 36, 37, 41, 54, 53],
+     '60 phon':  [113, 98, 90, 78, 71, 66, 62, 62, 61, 60, 58, 55, 56, 60, 71, 71],
+     '80 phon':  [124, 108, 101, 89, 82, 79, 77, 80, 80, 80, 78, 75, 77, 80, 88, 88],
+    '100 phon':  [135, 118, 111, 99, 95, 95, 96, 99, 100, 100, 99, 95, 99, 101, 105, 104]
+  };
+  const styles = {
+     '40 phon':  {color: cssVar('--muted'),  width: 1.8, dash: 'dot'},
+     '60 phon':  {color: cssVar('--teal'),   width: 2.2, dash: 'solid'},
+     '80 phon':  {color: cssVar('--accent'), width: 2.2, dash: 'solid'},
+    '100 phon':  {color: cssVar('--orange'), width: 2.4, dash: 'solid'}
+  };
+  const traces = Object.keys(data).map(L => ({
+    x: f_iso, y: data[L], name: L, type:'scatter', mode:'lines',
+    line: {color: styles[L].color, width: styles[L].width, dash: styles[L].dash, shape: 'spline', smoothing: 0.8}
+  }));
+  const lo = tutLayoutDB(20, 140);
+  lo.yaxis.title.text = 'SPL (dB) — equal-loudness contour';
+  lo.yaxis.title.font.color = cssVar('--orange');
+  Plotly.newPlot('tutPlot6', traces, lo, TUT_PLOT_CONFIG);
+}
+
+// ---- Build all tutorial plots (lazy, on first tab visit) ----
+let _tutorialBuilt = false;
+function buildTutorialPlots() {
+  if (_tutorialBuilt) return;
+  buildPlot1();
+  buildPlot2a(); buildPlot2b();
+  buildPlot3();
+  buildPlot4();
+  buildPlot5a(); buildPlot5b();
+  buildPlot6();
+  _tutorialBuilt = true;
+}
+
+// ---- Tab switching ----
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const tab = btn.dataset.tab;
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+    document.querySelectorAll('.tab-view').forEach(v => v.classList.toggle('active', v.id === tab + '-view'));
+    if (tab === 'tutorial') buildTutorialPlots();
+  });
+});
+
+// ---- Theme toggle: rebuild tutorial plots with new theme colors ----
+themeBtn.addEventListener('click', () => {
+  if (_tutorialBuilt) {
+    _tutorialBuilt = false;
+    if (document.getElementById('tutorial-view').classList.contains('active')) {
+      buildTutorialPlots();
+    }
+  }
+});
+
 </script>
 </body>
 </html>
