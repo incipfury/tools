@@ -138,6 +138,159 @@
   }
   .tut-insight strong { color: var(--orange); font-weight: 600; }
 
+  /* ===== Cheat-sheet reference box ===== */
+  .tut-cheatsheet {
+    background: var(--surface-alt);
+    border: 1px solid var(--border-strong);
+    border-radius: 6px;
+    margin: 14px 0 0 0;
+    overflow: hidden;
+  }
+  .tut-cheatsheet dl {
+    margin: 0;
+    display: grid;
+    grid-template-columns: 116px 1fr;
+  }
+  .tut-cheatsheet .grp {
+    grid-column: 1 / -1;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px; text-transform: uppercase; letter-spacing: 0.09em;
+    color: var(--muted); font-weight: 500;
+    padding: 10px 14px 5px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+  }
+  .tut-cheatsheet dt {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px; font-weight: 500;
+    color: var(--accent);
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .tut-cheatsheet dd {
+    margin: 0;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 13px; line-height: 1.5;
+    color: var(--body);
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .tut-cheatsheet dl > dt:last-of-type,
+  .tut-cheatsheet dl > dd:last-of-type { border-bottom: none; }
+  .tut-cheatsheet dd .u {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px; color: var(--orange);
+  }
+
+  /* ===== Prominent callout — the "EQ Fingerprint" explainer ===== */
+  .tut-callout {
+    margin: 16px 0;
+    padding: 14px 16px 14px 18px;
+    border-left: 3px solid var(--accent);
+    background: rgba(102, 168, 209, 0.09);
+    border-radius: 0 4px 4px 0;
+  }
+  .tut-callout .callout-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px; text-transform: uppercase; letter-spacing: 0.09em;
+    color: var(--accent); font-weight: 600;
+    display: block; margin-bottom: 7px;
+  }
+  .tut-callout p {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 13px; line-height: 1.6; color: var(--body);
+    margin: 0 0 9px 0;
+  }
+  .tut-callout p:last-child { margin-bottom: 0; }
+  .tut-callout strong { color: var(--accent); font-weight: 600; }
+
+  /* ===== Roadmap — the 4-stage ladder overview ===== */
+  .tut-roadmap {
+    margin: 14px 0 18px 0;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .tut-stage {
+    display: grid;
+    grid-template-columns: 96px 1fr;
+    gap: 14px; align-items: start;
+    padding: 11px 14px;
+    background: var(--surface-alt);
+    border: 1px solid var(--border-strong);
+    border-radius: 5px;
+  }
+  .tut-stage .stage-tag {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px; font-weight: 600;
+    color: var(--orange); letter-spacing: 0.02em;
+  }
+  .tut-stage .stage-tag .stage-db {
+    display: block; color: var(--muted); font-weight: 400;
+    font-size: 10px; margin-top: 2px;
+  }
+  .tut-stage .stage-desc {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 13px; line-height: 1.5; color: var(--body);
+  }
+  .tut-stage .stage-desc strong { color: var(--heading); font-weight: 600; }
+
+  /* ===== Inline mini circuit drawings ===== */
+  .tut-circuit {
+    margin: 16px 0;
+    padding: 16px 16px 12px;
+    background: var(--surface-alt);
+    border: 1px solid var(--border-strong);
+    border-radius: 6px;
+  }
+  .tut-circuit svg.mini {
+    display: block;
+    width: 100%; max-width: 460px;
+    height: auto; margin: 0 auto;
+    color: var(--body);
+  }
+  .tut-circuit .circ-cap {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 12px; line-height: 1.5;
+    color: var(--muted);
+    margin: 10px auto 0;
+    max-width: 560px; text-align: center;
+  }
+  .tut-circuit .circ-cap .hot { color: var(--orange); font-weight: 500; }
+  .mini .wire    { stroke: currentColor; stroke-width: 1.3; opacity: 0.6; fill: none; }
+  .mini .comp    { stroke: var(--accent); stroke-width: 1.6; }
+  .mini .hot     { stroke: var(--orange); stroke-width: 1.8; }
+  .mini .dash    { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 4 3; opacity: 0.7; }
+  .mini .bracket { stroke: var(--muted); stroke-width: 1; opacity: 0.8; }
+  .mini .node    { fill: var(--accent); }
+  .mini text.lbl { font-family: 'IBM Plex Mono', monospace; font-size: 10px; fill: var(--muted); }
+  .mini text.mid { text-anchor: middle; }
+  .mini text.end { text-anchor: end; }
+  .mini text.sm  { font-size: 8.5px; }
+  .mini text.hotlbl { fill: var(--orange); }
+
+  /* ===== Part dividers ===== */
+  .tut-part { margin: 52px 0 8px; }
+  .tut-part:first-of-type { margin-top: 16px; }
+  .tut-part-num {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--orange); font-weight: 600;
+  }
+  .tut-part-title {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 21px; font-weight: 600;
+    color: var(--heading);
+    margin: 5px 0 7px; letter-spacing: -0.01em;
+  }
+  .tut-part-tag {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 13px; color: var(--muted);
+    margin: 0; line-height: 1.55; max-width: 640px;
+  }
+  .tut-part-rule {
+    height: 2px; background: var(--orange); opacity: 0.5;
+    border: none; margin: 12px 0 0;
+  }
+  .tut-part + .tut-section { border-top: none; padding-top: 14px; }
 
   header {
     display: flex; justify-content: space-between; align-items: baseline;
@@ -412,7 +565,7 @@
         <div class="stage-block" id="stageBlock">
 
         <div class="ctrl-group">
-          <div class="ctrl-group-title"><span>Stage 1 — compensated</span><span class="hint">always on</span></div>
+          <div class="ctrl-group-title"><span>Stage 1 — compensated</span><span class="hint">in unless bypassed</span></div>
           <div class="row"><label>R2a</label><select id="R2a"></select><span class="unit">Ω</span></div>
           <div class="row"><label>R2b</label><select id="R2b"></select><span class="unit">Ω</span></div>
           <div class="row"><label>L1</label><input type="number" id="L1" value="0.9" step="0.05" min="0"><span class="unit">mH</span></div>
@@ -445,11 +598,11 @@
         <div class="ctrl-group">
           <div class="ctrl-group-title"><span>Switches</span><span class="hint">click to toggle</span></div>
           <div class="switches">
-            <div class="switch-box engaged" id="sw1"><div class="switch-label">SW1 · −7 dB</div><div class="switch-state">IN</div></div>
-            <div class="switch-box engaged" id="sw2"><div class="switch-label">SW2 · −14 dB</div><div class="switch-state">IN</div></div>
+            <div class="switch-box engaged" id="sw1"><div class="switch-label">SW1 · −14 dB</div><div class="switch-state">IN</div></div>
+            <div class="switch-box engaged" id="sw2"><div class="switch-label">SW2 · −7 dB</div><div class="switch-state">IN</div></div>
             <div class="switch-box engaged" id="sw3"><div class="switch-label">SW3 · −3.5 dB</div><div class="switch-state">IN</div></div>
           </div>
-          <div class="switch-footer">Stage 1 (always on): −7 dB reactive · max total ≈ −31.5 dB</div>
+          <div class="switch-footer">Stage 1: −7 dB reactive when engaged · True Bypass (0 dB) overrides all switches · max total ≈ −31.5 dB</div>
         </div>
 
         </div><!-- /stage-block -->
@@ -753,70 +906,165 @@
     <article class="tutorial">
       <header class="tut-intro">
         <h1 class="tut-title">Reactive attenuators — a tutorial</h1>
-        <p class="tut-meta">From textbook L-pads to the limits of human hearing. The running example is a Fender Blues Jr IV driving a Jensen C12N through the Hewitt M2 — but the principles transfer to any amp / speaker / attenuator combination.</p>
+        <p class="tut-meta">Two parts. <strong>Part One</strong> is the everyday amp-and-speaker system — the rig exactly as it ships from the store — and why it sounds the way it does. <strong>Part Two</strong> adds an attenuator and works out what it takes to turn that sound down without losing it. The running example is a Fender Blues Jr IV driving a Jensen C12N through the Hewitt M2, but the principles transfer to any amp / speaker / attenuator combination. No math required: every idea is backed by a plot you can read at a glance.</p>
       </header>
-
       <section class="tut-section">
-        <h2 class="tut-heading">1 · The textbook attenuator</h2>
-        <p class="tut-prose">Pretend, for a moment, that the world is simple. An ideal amplifier — zero output impedance, infinite bandwidth — drives a resistive attenuator into a resistive load (an &quot;ideal speaker&quot; that's just a fixed resistor). The voltage at the load is a constant fraction of the amp's output, independent of frequency.</p>
-        <p class="tut-prose">The math is one line: <span class="var">H = (R<sub>shunt</sub> &#8741; R<sub>L</sub>) / (R<sub>series</sub> + R<sub>shunt</sub> &#8741; R<sub>L</sub>)</span>. Pick the resistors for whatever attenuation you want and the frequency response is a flat horizontal line.</p>
-        <div class="tut-plot" id="tutPlot1"></div>
-        <div class="tut-insight"><strong>Insight:</strong> if frequency-independent components drive a frequency-independent load, attenuation is just a number. The rest of this tutorial is about why neither assumption holds in practice.</div>
+        <h2 class="tut-heading">Start here · the system you already own</h2>
+        <p class="tut-prose">An electric guitar rig is two halves: an amplifier and a speaker; and that pairing has a voice that comes from the two of them pushing against each other.</p>
+        <p class="tut-prose">Part One looks at that untouched system — how a speaker behaves as an electrical load, how an amplifier behaves driving one, and what the two produce together. Part Two then adds the attenuator. Once Part One has pinned down what the untouched system does, it's clear what an attenuator has to preserve — and why the obvious cheap approach falls short.</p>
+        <div class="tut-insight"><strong>Insight:</strong> you can't judge what an attenuator should do until you know what the untouched rig already does. So we build the system first, then we touch it.</div>
       </section>
-
       <section class="tut-section">
-        <h2 class="tut-heading">2 · Speakers aren't resistors</h2>
+        <h2 class="tut-heading">Reference · the cheat sheet</h2>
+        <p class="tut-prose">A handful of symbols and units recur throughout. You never have to <em>calculate</em> with any of these — they're just labels on the curves — but it helps to know what they mean when you spot them.</p>
+        <div class="tut-cheatsheet">
+          <dl>
+            <div class="grp">Units</div>
+            <dt>&#937;</dt><dd>Ohms — a measure of electrical resistance or impedance. A higher value means the component &quot;pushes back&quot; harder against current flow.</dd>
+            <dt>H, mH</dt><dd>Henries (and milli-Henries; 1 mH = 0.001 H) — the unit of <em>inductance</em>. In Part Two, the inductor <span class="u">L1</span> is the key component used to imitate the physical voice coil of a speaker.</dd>
+            <dt>Hz, kHz</dt><dd>Hertz — frequency, or pitch. Low Hz is bass; high kHz is treble. The plots sweep 20 Hz–20 kHz, roughly the span of human hearing.</dd>
+            <dt>dB</dt><dd>Decibels — a ratio scale for loudness or gain. &quot;&minus;12 dB&quot; is a sizeable cut; &quot;0 dB&quot; means no change at all.</dd>
+            <dt>phon</dt><dd>A unit of <em>perceived</em> loudness — it shows up in Part Two, when we talk about your ears rather than the circuit.</dd>
+            <div class="grp">Symbols on the plots</div>
+            <dt>H(&#8202;f&#8202;)</dt><dd>The transfer function — a stage's &quot;EQ fingerprint,&quot; explained in full in Section 3. Read it as: how some part of the signal chain reshapes the signal across frequency. Note this is a different &quot;H&quot; from Henries above; context always makes clear which is meant.</dd>
+            <dt>Z(&#8202;f&#8202;)</dt><dd>Impedance, shown as it changes with frequency. <span class="u">Z<sub>spkr</sub></span> is the speaker's impedance; <span class="u">Z<sub>in</sub></span> is what the amp &quot;sees&quot; looking into the attenuator.</dd>
+            <dt>R<sub>amp</sub></dt><dd>The amp's own internal source resistance — small, but for tube amps just big enough to matter.</dd>
+            <dt>K</dt><dd>The target attenuation amount — the single constant an ideal attenuator scales everything down by.</dd>
+            <dt>Node M</dt><dd>A specific labelled junction inside the M2 circuit (see Section 6) — the point in the signal path immediately after the primary inductor L1.</dd>
+            <div class="grp">Speaker parameters (Thiele/Small)</div>
+            <dt>f<sub>s</sub></dt><dd>The frequency where the speaker cone naturally wants to vibrate the most — it causes a pronounced bass bump in the impedance curve.</dd>
+            <dt>L<sub>e</sub></dt><dd>The voice coil's inductance — it makes impedance climb at high frequencies and shapes the speaker's treble roll-off.</dd>
+            <dt>R<sub>e</sub></dt><dd>The voice coil's plain DC resistance — the &quot;floor&quot; of the impedance curve, what you'd read with a multimeter across the speaker terminals.</dd>
+            <dt>RES</dt><dd>The impedance at resonance — essentially how tall the f<sub>s</sub> bass bump rises.</dd>
+            <dt>Q<sub>ms</sub></dt><dd>The mechanical &quot;quality factor&quot; — whether that resonance peak is sharp and narrow or broad and rounded.</dd>
+          </dl>
+        </div>
+      </section>
+      <div class="tut-part">
+        <div class="tut-part-num">Part One</div>
+        <div class="tut-part-title">The amp-and-speaker system</div>
+        <p class="tut-part-tag">The rig exactly as you'd buy it — no attenuator yet. What a speaker is, electrically; what an amp is, as a source; and what the two of them produce together.</p>
+        <hr class="tut-part-rule">
+      </div>
+      <section class="tut-section">
+        <h2 class="tut-heading">1 · Speakers aren't resistors</h2>
         <p class="tut-prose">A guitar speaker is a mass-on-spring with a voice coil in a magnet gap. It is emphatically not a resistor — its impedance swings dramatically with frequency, and that swing is most of what gives a speaker its character.</p>
         <div class="tut-plot" id="tutPlot2a"></div>
-        <p class="tut-prose">Three features dominate. At DC the impedance is the voice coil's DC resistance <span class="var">R<sub>e</sub> &asymp; 6 &#937;</span>. Around 100–150 Hz the cone's mechanical resonance <span class="var">F<sub>s</sub></span> creates a peak that can reach 4–6&times; R<sub>e</sub>. Above ~2 kHz the voice coil's inductance L<sub>e</sub> drives the impedance up monotonically.</p>
-        <p class="tut-prose">Now consider the simplest possible &quot;attenuator&quot;: one resistor in series, no shunt. The voltage at the speaker is <span class="var">V<sub>amp</sub> &middot; Z<sub>spkr</sub> / (R<sub>series</sub> + Z<sub>spkr</sub>)</span>. Where Z<sub>spkr</sub> is high (resonance, HF rise), the series resistor drops <em>less</em> of the voltage and more gets through. Where Z<sub>spkr</sub> is low (the dip between resonance and the HF rise), the series resistor drops <em>more</em>. The &quot;attenuation&quot; bumps and dips with the impedance curve.</p>
-        <div class="tut-plot" id="tutPlot2b"></div>
-        <div class="tut-insight"><strong>Insight:</strong> a single resistor is not a flat attenuator into a real speaker — it applies the speaker's impedance curve as an EQ. This is why crude &quot;stick a resistor in line&quot; attenuators get a reputation for sounding boomy and uneven.</div>
+        <p class="tut-prose">The plot above sweeps five real drivers: two 8&nbsp;&#937; speakers (a Jensen C12N and a Celestion Greenback), two 16&nbsp;&#937; speakers (a Celestion G10N-40 and a 16&nbsp;&#937; Vintage 30), and, dashed, the 4&nbsp;&#937; curve from two C12Ns wired in parallel. Every one of them has the same three-part anatomy.</p>
+        <p class="tut-prose">At the low end the impedance settles toward the voice coil's plain DC resistance <span class="var">R<sub>e</sub></span> — roughly 6&nbsp;&#937; for a typical 8&nbsp;&#937; driver, roughly double that for a 16&nbsp;&#937; one. That's the number you'd read with a multimeter across the terminals. Around 75–150 Hz the cone's mechanical resonance <span class="var">F<sub>s</sub></span> throws up a tall peak, often 4–6&times; R<sub>e</sub>. And above ~2 kHz the voice coil's inductance <span class="var">L<sub>e</sub></span> drags the impedance steadily upward.</p>
+        <p class="tut-prose">So &quot;nominal impedance&quot; is loose: the &quot;8&nbsp;&#937;&quot; and &quot;16&nbsp;&#937;&quot; labels are closer to an average than a measurement — none of these curves sits flat at its rated value anywhere across the band. And the curves are stackable: two 8&nbsp;&#937; drivers in parallel give the 4&nbsp;&#937; trace, the identical shape at half the impedance.</p>
+        <div class="tut-insight"><strong>Insight:</strong> every speaker presents a fingerprint-shaped impedance curve, and the rated impedance is just a label slapped on something that's moving the whole time. This wandering curve is the load that everything downstream — amp, and later attenuator — has to cope with.</div>
       </section>
-
       <section class="tut-section">
-        <h2 class="tut-heading">3 · Tube amps aren't voltage sources</h2>
+        <h2 class="tut-heading">2 · The amp is not a voltage source</h2>
         <p class="tut-prose">A power amp is not an ideal voltage source. The output stage has finite source impedance R<sub>amp</sub>, and the ratio R<sub>load</sub> / R<sub>amp</sub> is called the damping factor — higher values mean more voltage-source-like behavior.</p>
-        <p class="tut-prose">Solid-state amps usually run damping factors above 100. Tube amps with global negative feedback land between 5 and 15. Tube amps without feedback (Class-A designs, smaller combos like the Blues Jr) can be down at 1–3, where R<sub>amp</sub> is comparable to the speaker's nominal impedance.</p>
+        <p class="tut-prose">Solid-state amps usually run damping factors above 100. Tube amps with global negative feedback land between 5 and 15. Tube amps without feedback — Class-A designs, small combos — can be down at 1–3, where R<sub>amp</sub> is comparable to the speaker's nominal impedance.</p>
+        <figure class="tut-circuit"><svg viewBox="0 0 380 218" xmlns="http://www.w3.org/2000/svg" class="mini" role="img"><rect x="22" y="52" width="170" height="110" rx="5" class="dash" fill="none"/><text x="30" y="68" class="lbl">AMP</text><circle cx="60" cy="120" r="15" class="comp" fill="none"/><path d="M 53 120 q 3.5 -7 7 0 q 3.5 7 7 0" class="comp" fill="none"/><line x1="60" y1="105" x2="60" y2="86" class="wire"/><line x1="60" y1="135" x2="60" y2="172" class="wire"/><line x1="60" y1="86" x2="95" y2="86" class="wire"/><line x1="95" y1="86" x2="106" y2="86" class="wire"/><rect x="106" y="79.5" width="36" height="13" class="hot" fill="none"/><line x1="142" y1="86" x2="153" y2="86" class="wire"/><line x1="153" y1="86" x2="192" y2="86" class="wire"/><line x1="192" y1="86" x2="300" y2="86" class="wire"/><line x1="288" y1="86" x2="300" y2="86" class="wire"/><line x1="288" y1="172" x2="300" y2="172" class="wire"/><rect x="300" y="82" width="15" height="94" class="comp" fill="none"/><path d="M 315 84.0 L 315 174.0 L 337 188.0 L 337 70.0 Z" class="comp" fill="none"/><line x1="60" y1="172" x2="288" y2="172" class="wire"/><line x1="174" y1="172" x2="174" y2="181" class="wire"/><line x1="163" y1="181" x2="185" y2="181" class="wire"/><line x1="167" y1="185" x2="181" y2="185" class="wire"/><line x1="171" y1="189" x2="177" y2="189" class="wire"/><text x="124" y="74" class="lbl mid">R amp</text><text x="305" y="80" class="lbl">+</text><text x="305" y="182" class="lbl">−</text><text x="326" y="206" class="lbl mid">real speaker</text></svg><figcaption class="circ-cap">A more honest amp model: the ideal source plus its own internal series resistance <span class="hot">R<sub>amp</sub></span>, driving the speaker. R<sub>amp</sub> and the speaker's swinging impedance interact — that interaction is the damping factor at work.</figcaption></figure>
         <div class="tut-plot" id="tutPlot3"></div>
-        <p class="tut-prose">The amp's source impedance interacts with the speaker's impedance curve. Where Z<sub>spkr</sub> rises (resonance, HF), the speaker pulls less current; the higher R<sub>amp</sub>, the more this lightened current draw shows up as a voltage bump at the speaker terminals. A &quot;tight&quot; damping factor flattens this; a &quot;loose&quot; one accentuates it.</p>
+        <p class="tut-prose">The amp's source impedance interacts with the speaker's impedance curve. Where Z<sub>spkr</sub> rises (resonance, HF), the speaker pulls less current; the higher R<sub>amp</sub>, the more that lightened current draw shows up as a voltage bump at the speaker terminals. A &quot;tight&quot; damping factor flattens this; a &quot;loose&quot; one accentuates it. The plot uses one speaker, but the same dance plays out with every driver from Section 1.</p>
         <div class="tut-insight"><strong>Insight:</strong> what the player hears isn't just what comes out of the tubes — it's the tubes <em>into that specific speaker</em>, with the source-impedance dance baked in. The same amp into a flat dummy load gives a measurably different result.</div>
       </section>
-
       <section class="tut-section">
-        <h2 class="tut-heading">4 · The reference</h2>
-        <p class="tut-prose">Combine sections 2 and 3. The voltage delivered to a real speaker by a real amp, no attenuator in the path:</p>
+        <h2 class="tut-heading">3 · The reference — what you've been hearing</h2>
+        <p class="tut-prose">Combine the last two sections. The voltage delivered to a real speaker by a real amp, with nothing else in the path:</p>
         <p class="tut-prose" style="text-align: center; margin: 18px 0;"><span class="var" style="font-size: 14px; padding: 4px 10px;">H<sub>ref</sub>(f) = Z<sub>spkr</sub>(f) / (R<sub>amp</sub> + Z<sub>spkr</sub>(f))</span></p>
-        <p class="tut-prose">This is <em>not flat</em>. It has the resonance peak, the HF rise, and the amp-speaker coupling all in there. Crucially: <strong>this is what the player and the band have been listening to all along.</strong> It's the sound.</p>
+        <div class="tut-callout">
+          <span class="callout-label">Meet H(&#8202;) — the &quot;EQ fingerprint&quot;</span>
+          <p>You'll see the letter <strong>H</strong> throughout this tutorial — H<sub>ref</sub> here, H<sub>M2</sub> later, plain H on the analyzer plots. Formally it's a &quot;transfer function&quot;; think of it as an <strong>EQ fingerprint</strong> — a description of how some piece of the signal chain reshapes the signal across frequency, which frequencies pass through strong and which get dampened.</p>
+          <p>No math needed: whenever H(&#8202;) comes up, just read the plotted curve. H(&#8202;) is the engine that calculates that curve's shape.</p>
+          <p>Every H(&#8202;) runs between an <strong>input</strong> and an <strong>output</strong>. For H<sub>ref</sub> here, the input is the raw power off the amplifier's output transformer and the output is the voltage reaching the speaker terminals. In Part Two we'll talk about the attenuator's own H(&#8202;) the same way — what happens to the tone between its input and output jacks.</p>
+        </div>
+        <figure class="tut-circuit"><svg viewBox="0 0 372 192" xmlns="http://www.w3.org/2000/svg" class="mini" role="img"><circle cx="70" cy="100" r="15" class="comp" fill="none"/><path d="M 63 100 q 3.5 -7 7 0 q 3.5 7 7 0" class="comp" fill="none"/><line x1="70" y1="85" x2="70" y2="70" class="wire"/><line x1="70" y1="115" x2="70" y2="158" class="wire"/><line x1="70" y1="70" x2="101" y2="70" class="wire"/><line x1="101" y1="70" x2="112" y2="70" class="wire"/><rect x="112" y="63.5" width="36" height="13" class="hot" fill="none"/><line x1="148" y1="70" x2="159" y2="70" class="wire"/><line x1="159" y1="70" x2="188" y2="70" class="wire"/><circle cx="188" cy="70" r="2.6" class="node"/><line x1="188" y1="70" x2="300" y2="70" class="wire"/><line x1="288" y1="70" x2="300" y2="70" class="wire"/><line x1="288" y1="158" x2="300" y2="158" class="wire"/><rect x="300" y="66" width="15" height="96" class="comp" fill="none"/><path d="M 315 68.0 L 315 160.0 L 337 174.0 L 337 54.0 Z" class="comp" fill="none"/><line x1="70" y1="158" x2="288" y2="158" class="wire"/><line x1="185" y1="158" x2="185" y2="167" class="wire"/><line x1="174" y1="167" x2="196" y2="167" class="wire"/><line x1="178" y1="171" x2="192" y2="171" class="wire"/><line x1="182" y1="175" x2="188" y2="175" class="wire"/><text x="130" y="58" class="lbl mid">R amp</text><text x="70" y="176" class="lbl mid sm">amp: ideal source + R amp</text><line x1="46" y1="70" x2="46" y2="158" class="bracket"/><text x="41" y="118" class="lbl end">V in</text><line x1="282" y1="70" x2="282" y2="158" class="bracket"/><text x="277" y="118" class="lbl end">V out</text><text x="305" y="64" class="lbl">+</text><text x="305" y="168" class="lbl">−</text></svg><figcaption class="circ-cap">The reference, H<sub>ref</sub>(f) = V<sub>out</sub> / V<sub>in</sub>: the amp (ideal source + <span class="hot">R<sub>amp</sub></span>) driving the speaker with nothing in between. This is the curve a transparent attenuator should preserve the shape of.</figcaption></figure>
+        <p class="tut-prose">H<sub>ref</sub>(f) is <em>not flat</em>. It carries the resonance peak, the HF rise, and the amp-speaker coupling all at once — and <strong>this is what the player and the band have been hearing all along.</strong> It's the sound.</p>
         <div class="tut-plot" id="tutPlot4"></div>
-        <p class="tut-prose">A transparent attenuator should deliver <span class="var">K &middot; H<sub>ref</sub>(f)</span> to the speaker — same shape, scaled down by a constant K. The amp should &quot;sound the same, just quieter&quot;.</p>
-        <div class="tut-insight"><strong>Insight:</strong> &quot;flat attenuation response&quot; is the wrong design goal. A genuinely flat-response attenuator would strip out the very character that makes the amp sound like the amp.</div>
+        <p class="tut-prose">Here H<sub>ref</sub> is plotted against <span class="var">K &middot; H<sub>ref</sub>(f)</span> — the same curve scaled straight down by a constant K. That scaled-down version is the goal for Part Two: an attenuator delivering K&middot;H<sub>ref</sub> would &quot;sound the same, just quieter.&quot; Keep this curve's shape in mind — every plot in Part Two is really just asking whether the attenuated signal still looks like it.</p>
+        <div class="tut-insight"><strong>Insight:</strong> the amp-and-speaker system you own already has a strongly shaped response. That shape <em>is</em> the tone — which means a &quot;flat&quot; attenuator would be the wrong tool. Anything we put in the path has to preserve this curve, not erase it.</div>
       </section>
-
+      <div class="tut-part">
+        <div class="tut-part-num">Part Two</div>
+        <div class="tut-part-title">Putting an attenuator in the path</div>
+        <p class="tut-part-tag">An attenuator burns off most of the amp's power as heat so you can run the rig quietly. The whole question is <em>how</em> it burns that power off — and whether the sound from Part One survives the trip.</p>
+        <hr class="tut-part-rule">
+      </div>
       <section class="tut-section">
-        <h2 class="tut-heading">5 · Reactive matching — the M2</h2>
-        <p class="tut-prose">The Hewitt M2 (and most attenuators marketed as &quot;reactive&quot;) pursue two goals at once:</p>
+        <h2 class="tut-heading">4 · The textbook attenuator</h2>
+        <p class="tut-prose">Pretend, for a moment, that the world is simple. An ideal amplifier — zero output impedance, infinite bandwidth — drives a resistive attenuator into a resistive load (an &quot;ideal speaker&quot; that's just a fixed resistor). The voltage at the load is a constant fraction of the amp's output, independent of frequency.</p>
+        <p class="tut-prose">The math is one line — the attenuator's own transfer function H(&#8202;), the EQ fingerprint from Section 3 applied to this little network: <span class="var">H = (R<sub>shunt</sub> &#8741; R<sub>L</sub>) / (R<sub>series</sub> + R<sub>shunt</sub> &#8741; R<sub>L</sub>)</span>. Pick the resistors for whatever attenuation you want and the response is a flat horizontal line.</p>
+        <figure class="tut-circuit"><svg viewBox="0 0 438 168" xmlns="http://www.w3.org/2000/svg" class="mini" role="img"><circle cx="46" cy="86" r="15" class="comp" fill="none"/><path d="M 39 86 q 3.5 -7 7 0 q 3.5 7 7 0" class="comp" fill="none"/><line x1="46" y1="71" x2="46" y2="52" class="wire"/><line x1="46" y1="101" x2="46" y2="132" class="wire"/><line x1="46" y1="52" x2="121" y2="52" class="wire"/><line x1="121" y1="52" x2="132" y2="52" class="wire"/><rect x="132" y="45.5" width="36" height="13" class="comp" fill="none"/><line x1="168" y1="52" x2="179" y2="52" class="wire"/><line x1="179" y1="52" x2="214" y2="52" class="wire"/><circle cx="214" cy="52" r="2.6" class="node"/><line x1="214" y1="52" x2="214" y2="72" class="wire"/><line x1="214" y1="72" x2="214" y2="80" class="wire"/><rect x="207.5" y="80" width="13" height="36" class="comp" fill="none"/><line x1="214" y1="116" x2="214" y2="124" class="wire"/><line x1="214" y1="124" x2="214" y2="132" class="wire"/><line x1="214" y1="52" x2="316" y2="52" class="wire"/><line x1="316" y1="52" x2="316" y2="72" class="wire"/><line x1="316" y1="72" x2="316" y2="80" class="wire"/><rect x="309.5" y="80" width="13" height="36" class="hot" fill="none"/><line x1="316" y1="116" x2="316" y2="124" class="wire"/><line x1="316" y1="124" x2="316" y2="132" class="wire"/><line x1="46" y1="132" x2="316" y2="132" class="wire"/><line x1="181" y1="132" x2="181" y2="141" class="wire"/><line x1="170" y1="141" x2="192" y2="141" class="wire"/><line x1="174" y1="145" x2="188" y2="145" class="wire"/><line x1="178" y1="149" x2="184" y2="149" class="wire"/><text x="46" y="156" class="lbl mid">ideal source</text><text x="150" y="38" class="lbl mid">R series</text><text x="205" y="102" class="lbl end">R shunt</text><text x="332" y="94" class="lbl">R L</text><text x="332" y="106" class="lbl sm">(ideal speaker)</text><text x="236" y="44" class="lbl">V out</text></svg><figcaption class="circ-cap">The textbook L-pad: an <span class="hot">ideal source</span> feeds R<sub>series</sub>, then R<sub>shunt</sub> and the load R<sub>L</sub> sit in parallel to ground. With everything resistive, V<sub>out</sub> is a fixed fraction of the input at every frequency.</figcaption></figure>
+        <div class="tut-plot" id="tutPlot1"></div>
+        <div class="tut-insight"><strong>Insight:</strong> if frequency-independent components drive a frequency-independent load, attenuation is just a number — the flat line on the plot above. But Part One already demolished both assumptions: the speaker is not a resistor, and the amp is not ideal. So the real question is what this tidy little divider does once it's dropped into an actual rig.</div>
+      </section>
+      <section class="tut-section">
+        <h2 class="tut-heading">5 · Why a plain resistor isn't enough</h2>
+        <p class="tut-prose">The textbook attenuator assumed a resistive load. Drop that assumption — swap in the real speaker curves from Section 1 — and even the simplest attenuator stops behaving.</p>
+        <p class="tut-prose">Consider the crudest possible &quot;attenuator&quot;: one resistor in series, no shunt. The voltage at the speaker is <span class="var">V<sub>amp</sub> &middot; Z<sub>spkr</sub> / (R<sub>series</sub> + Z<sub>spkr</sub>)</span>. Where Z<sub>spkr</sub> is high (resonance, HF rise), the series resistor drops <em>less</em> of the voltage and more gets through. Where Z<sub>spkr</sub> is low (the dip between resonance and the HF rise), it drops <em>more</em>. The &quot;attenuation&quot; bumps and dips along with the impedance curve.</p>
+        <figure class="tut-circuit"><svg viewBox="0 0 380 186" xmlns="http://www.w3.org/2000/svg" class="mini" role="img"><circle cx="50" cy="90" r="15" class="comp" fill="none"/><path d="M 43 90 q 3.5 -7 7 0 q 3.5 7 7 0" class="comp" fill="none"/><line x1="50" y1="75" x2="50" y2="52" class="wire"/><line x1="50" y1="105" x2="50" y2="140" class="wire"/><line x1="50" y1="52" x2="131" y2="52" class="wire"/><line x1="131" y1="52" x2="142" y2="52" class="wire"/><rect x="142" y="45.5" width="36" height="13" class="hot" fill="none"/><line x1="178" y1="52" x2="189" y2="52" class="wire"/><line x1="189" y1="52" x2="300" y2="52" class="wire"/><line x1="288" y1="52" x2="300" y2="52" class="wire"/><line x1="288" y1="140" x2="300" y2="140" class="wire"/><rect x="300" y="48" width="15" height="96" class="comp" fill="none"/><path d="M 315 50.0 L 315 142.0 L 337 156.0 L 337 36.0 Z" class="comp" fill="none"/><line x1="50" y1="140" x2="288" y2="140" class="wire"/><line x1="170" y1="140" x2="170" y2="149" class="wire"/><line x1="159" y1="149" x2="181" y2="149" class="wire"/><line x1="163" y1="153" x2="177" y2="153" class="wire"/><line x1="167" y1="157" x2="173" y2="157" class="wire"/><text x="50" y="162" class="lbl mid">amp</text><text x="160" y="38" class="lbl mid">R series</text><text x="302" y="49" class="lbl">+</text><text x="302" y="152" class="lbl">−</text><text x="326" y="174" class="lbl mid">real speaker</text></svg><figcaption class="circ-cap">The crudest "attenuator": a single <span class="hot">series resistor</span>, no shunt, feeding a real speaker. Because the speaker's impedance is not constant, the voltage divider it forms with R<sub>series</sub> changes with frequency — the impedance curve gets stamped onto the signal as EQ.</figcaption></figure>
+        <div class="tut-plot" id="tutPlot2b"></div>
+        <p class="tut-prose">And here's the key turn: you can't fix this by adding more resistors. A resistor network, however cleverly arranged, is still frequency-blind — it cannot help but stamp the speaker's impedance curve onto the signal. To track a moving target — the speaker's wandering impedance — the attenuator needs components that move too. That is the case for going <em>reactive</em>.</p>
+        <div class="tut-insight"><strong>Insight:</strong> a single resistor is not a flat attenuator into a real speaker — it applies the speaker's impedance curve as an EQ. This is why crude &quot;stick a resistor in line&quot; attenuators get a reputation for sounding boomy and uneven, and why a serious attenuator has to be more than resistors.</div>
+      </section>
+      <section class="tut-section">
+        <h2 class="tut-heading">6 · Reactive matching — the M2</h2>
+        <p class="tut-prose">A <strong>reactive</strong> attenuator answers Section 5 with inductors (and sometimes capacitors) — components whose effective &quot;resistance&quot; deliberately changes with frequency. The Hewitt M2, like most attenuators marketed as &quot;reactive,&quot; uses them to pursue two goals at once:</p>
         <ol class="tut-prose" style="padding-left: 28px;">
-          <li>The transfer function <span class="var">H<sub>M2</sub>(f)</span> into the speaker should track <span class="var">K &middot; H<sub>ref</sub>(f)</span> — preserve the shape.</li>
-          <li>The input impedance <span class="var">Z<sub>in,M2</sub>(f)</span> the amp sees should track <span class="var">Z<sub>spkr</sub>(f)</span> — so the amp &quot;sees&quot; the same load it would normally see.</li>
+          <li>The transfer function <span class="var">H<sub>M2</sub>(f)</span> into the speaker should track <span class="var">K &middot; H<sub>ref</sub>(f)</span> — preserve the shape from Section 3.</li>
+          <li>The input impedance <span class="var">Z<sub>in,M2</sub>(f)</span> the amp sees should track <span class="var">Z<sub>spkr</sub>(f)</span> — so the amp &quot;sees&quot; the same kind of load it would normally see.</li>
         </ol>
-        <p class="tut-prose">Stage 1's L1 + R2B + R1 branch is the main mechanism. As frequency rises, L1's reactance increases, raising the shunt branch's impedance — mimicking how a real speaker's |Z| rises at HF. The series R2A and the cascaded L-pad stages set the overall attenuation level.</p>
+
+        <p class="tut-prose">Before the specific resistor values, here's the roadmap. The M2 is a <strong>four-stage L-pad ladder</strong> — four cascading steps, each one padding the signal down a little further:</p>
+        <div class="tut-roadmap">
+          <div class="tut-stage">
+            <div class="stage-tag">Stage 1<span class="stage-db">&asymp; &minus;7 dB in · 0 dB bypassed</span></div>
+            <div class="stage-desc">The <strong>reactive, compensated stage</strong> — the one with the inductor L1. It has no individual switch among SW1&ndash;3, so it's in circuit whenever the attenuator is engaged, giving the amp's output transformer a safe, speaker-like reactive load. The True Bypass 4PDT switch is what removes it, lifting the whole attenuator out at once (Section 8) — so Stage 1 is either &asymp;&minus;7 dB (engaged) or 0 dB (bypassed), never independently switched. It's both the safety floor and the tone-shaping heart of the unit.</div>
+          </div>
+          <div class="tut-stage">
+            <div class="stage-tag">Stage 2<span class="stage-db">switchable · &asymp; &minus;14 dB</span></div>
+            <div class="stage-desc">The first switchable step, and the biggest single cut — a series-plus-shunt L-pad. On its own it takes you most of the way from gig volume down toward conversation volume.</div>
+          </div>
+          <div class="tut-stage">
+            <div class="stage-tag">Stage 3<span class="stage-db">switchable · &asymp; &minus;7 dB</span></div>
+            <div class="stage-desc">A second switchable resistive step — a smaller L-pad cut. Flip it in to pad down further; flip it out and the signal passes straight through.</div>
+          </div>
+          <div class="tut-stage">
+            <div class="stage-tag">Stage 4<span class="stage-db">switchable · &asymp; &minus;3.5 dB</span></div>
+            <div class="stage-desc">The fine-trim step — a small final cut for dialing in the exact bedroom level. All four stages stacked reach roughly &minus;31.5 dB.</div>
+          </div>
+        </div>
+        <p class="tut-prose">So Stage 1 carries the tone and protects the amp; Stages 2&ndash;4 are the cascading volume steps you switch to reach bedroom levels. The True Bypass switch sits above all of them — engage it and every stage, Stage 1 included, drops out at once.</p>
+
+        <p class="tut-prose">Inside Stage 1, the <span class="var">L1 + R2B + R1</span> branch is the main mechanism. The schematic labels its internal junction <strong>Node M</strong> — the point just after L1, where R2B and the shunt resistor R1 meet. As frequency rises, L1's reactance increases, raising that branch's impedance — mimicking how a real speaker's |Z| rises at HF. R2A and the cascaded L-pad stages set the overall attenuation level.</p>
+
+        <figure class="tut-circuit"><svg viewBox="0 0 380 212" xmlns="http://www.w3.org/2000/svg" class="mini" role="img"><text x="28" y="49" class="lbl">IN</text><line x1="46" y1="46" x2="72" y2="46" class="wire"/><circle cx="72" cy="46" r="2.6" class="node"/><text x="72" y="38" class="lbl mid">A</text><line x1="72" y1="46" x2="121" y2="46" class="wire"/><line x1="121" y1="46" x2="132" y2="46" class="wire"/><rect x="132" y="39.5" width="36" height="13" class="comp" fill="none"/><line x1="168" y1="46" x2="179" y2="46" class="wire"/><line x1="179" y1="46" x2="300" y2="46" class="wire"/><circle cx="300" cy="46" r="2.6" class="node"/><text x="300" y="38" class="lbl mid">B</text><line x1="300" y1="46" x2="334" y2="46" class="wire"/><text x="340" y="49" class="lbl">OUT</text><line x1="72" y1="46" x2="72" y2="57" class="wire"/><line x1="72" y1="57" x2="72" y2="65" class="wire"/><path d="M 72 65 A 7.0 7.0 0 0 0 72 79 A 7.0 7.0 0 0 0 72 93 A 7.0 7.0 0 0 0 72 107 " class="hot" fill="none"/><line x1="72" y1="107" x2="72" y2="115" class="wire"/><line x1="72" y1="115" x2="72" y2="128" class="wire"/><line x1="72" y1="128" x2="196" y2="128" class="wire"/><circle cx="196" cy="128" r="2.6" class="node"/><text x="188" y="124" class="lbl end hotlbl">M</text><line x1="196" y1="128" x2="300" y2="128" class="wire"/><line x1="300" y1="64" x2="300" y2="72" class="wire"/><rect x="293.5" y="72" width="13" height="36" class="comp" fill="none"/><line x1="300" y1="108" x2="300" y2="116" class="wire"/><line x1="300" y1="116" x2="300" y2="128" class="wire"/><line x1="300" y1="64" x2="300" y2="46" class="wire"/><line x1="196" y1="128" x2="196" y2="134" class="wire"/><line x1="196" y1="134" x2="196" y2="142" class="wire"/><rect x="189.5" y="142" width="13" height="36" class="comp" fill="none"/><line x1="196" y1="178" x2="196" y2="186" class="wire"/><line x1="196" y1="186" x2="196" y2="195" class="wire"/><line x1="185" y1="195" x2="207" y2="195" class="wire"/><line x1="189" y1="199" x2="203" y2="199" class="wire"/><line x1="193" y1="203" x2="199" y2="203" class="wire"/><text x="88" y="90" class="lbl hotlbl">L1</text><text x="150" y="32" class="lbl mid">R2A</text><text x="312" y="92" class="lbl">R2B</text><text x="208" y="164" class="lbl">R1</text></svg><figcaption class="circ-cap">Stage 1 of the M2. R2A bridges input <strong>A</strong> to output <strong>B</strong> directly; the reactive branch drops from A through <span class="hot">L1</span> to <span class="hot">node M</span> — the point just after the inductor — where R2B returns up to B and R1 shunts to ground. L1 is what makes the branch frequency-aware.</figcaption></figure>
+        <div class="tut-callout">
+          <span class="callout-label">Why the circuit feels &quot;alive&quot;</span>
+          <p>A volume pedal or a cheap resistive attenuator throws a static blanket over your tone — the same dampening at every frequency. The transfer function here is <strong>dynamic</strong> instead.</p>
+          <p>The reactive components effectively &quot;listen&quot; to the amp: when it pushes a low-end thump or a high-end squeal, L1 and its branch shift their effective resistance on the fly, matching what a real voice coil would have done. That's what keeps the amp feeling alive under your fingers instead of choked.</p>
+        </div>
+
         <div class="tut-plot" id="tutPlot5a"></div>
         <p class="tut-prose">The M2's input impedance tracks the speaker's shape — same resonance peak, similar HF rise. Now compare the transfer function against a pure-resistive L-pad with the same DC attenuation:</p>
         <div class="tut-plot" id="tutPlot5b"></div>
         <p class="tut-prose">The M2 closely follows the K&middot;H<sub>ref</sub> target. The pure-resistive L-pad deviates — it's flatter in absolute response, which is exactly the wrong thing if the goal is preserving the speaker's character.</p>
+
+        <p class="tut-prose">One practical wrinkle: the M2 is built around an 8 &#937; speaker, but a 16 &#937; cabinet can be run with a small modification — a <strong>68 &#937; shunt resistor</strong> (here R10, from Node M to ground, in parallel with R1). It pulls the overall impedance the amp sees back into the expected range, keeping the amp safely matched to the higher-impedance load.</p>
+
         <div class="tut-insight"><strong>Insight:</strong> the reactive components aren't there for marketing. They're load-aware compensation — correcting for the fact that the speaker presents a complex impedance. A purely resistive attenuator hides the speaker; a reactive one preserves it.</div>
       </section>
-
       <section class="tut-section">
-        <h2 class="tut-heading">6 · Your ears</h2>
+        <h2 class="tut-heading">7 · Your ears</h2>
         <p class="tut-prose">There's one final limit even a perfect attenuator can't fix: the listener.</p>
         <p class="tut-prose">Human hearing is not frequency-flat, and worse, its frequency response changes with sound pressure level. Lower-SPL listening makes the ear progressively less sensitive to the frequency extremes — especially bass.</p>
         <p class="tut-prose">The Fletcher-Munson curves (modernized as ISO 226) describe this. Each contour shows the actual SPL needed at each frequency to produce the same perceived loudness, in phons.</p>
         <div class="tut-plot" id="tutPlot6"></div>
         <p class="tut-prose">At 100 phon (&quot;cranked&quot;), the contour is nearly flat — bass, mids, and treble are heard roughly equally. At 40 phon (&quot;quiet bedroom&quot;), the ear is ~30 dB less sensitive at 50 Hz than at 1 kHz. So even with a perfectly transparent attenuator, the same audio at lower SPL sounds bass-and-treble light to the ear.</p>
-        <p class="tut-prose">This is psychoacoustics, not the attenuator. Some attenuators add a mild low-shelf and/or treble boost (&quot;compensation EQ&quot;) to push back against this perceptual rolloff at low SPLs. The M2 doesn't — it leaves that judgment to the player.</p>
+        <p class="tut-prose">This is psychoacoustics, not the attenuator. Some attenuators add a mild low-shelf and/or treble boost (&quot;compensation EQ&quot;) to push back against this perceptual rolloff at low SPLs; others leave that judgment to the player. It's a design choice, separate from the load-matching job the rest of this tutorial is about.</p>
         <div class="tut-insight"><strong>Insight:</strong> &quot;same sound, just quieter&quot; is perceptually impossible. Knowing why helps separate what an attenuator can fix (load matching, transfer function shape) from what it can't (your ears at low SPL).</div>
+      </section>
+      <section class="tut-section">
+        <h2 class="tut-heading">8 · Bypass — the attenuator removed</h2>
+        <p class="tut-prose">It's worth being clear about one limiting case: the signal path with the attenuator taken out entirely. Many attenuators — the M2 among them — include a bypass switch that does exactly this, routing the amp straight to the speaker as if the box weren't there; some DIY builds skip it. Either way, &quot;bypassed&quot; is a useful reference state to understand.</p>
+        <p class="tut-prose">Bypassed, the signal chain is just amp-into-speaker again — so the transfer function <em>is</em> H<sub>ref</sub>(f), the bare reference curve from Section 3. That's what makes it the natural baseline: every attenuated curve in Part Two is really being measured against this one. The analyzer's True Bypass control does the same thing — flip it and the plotted response collapses back to H<sub>ref</sub>.</p>
+        <div class="tut-insight"><strong>Insight:</strong> bypass isn't a setting so much as a frame of reference — the &quot;0 dB, attenuator absent&quot; case that every other curve in this tutorial is compared to.</div>
       </section>
     </article>
   </div>  <!-- /#tutorial-view -->
@@ -1082,7 +1330,7 @@ function updatePlot() {
 }
 
 const RVALUES = [1, 1.5, 2.2, 2.7, 3.3, 3.9, 4.7, 5.6, 6.8, 8, 8.2, 10, 12, 15, 18, 20, 22, 25, 27, 30, 33, 39, 47, 50, 56, 68, 75, 82, 100];
-const DEFAULTS = {R1:15, R2a:22, R2b:18, R3:15, R4:10, R5:4.7, R6:15, R7:33, R8:5.6};
+const DEFAULTS = {R1:15, R2a:22, R2b:18, R3:4.7, R4:15, R5:15, R6:10, R7:33, R8:5.6};
 
 function populate() {
   for (const id of Object.keys(DEFAULTS)) {
@@ -1278,11 +1526,35 @@ function zSpkr_C12N(f) {
   return cAdd(cAdd(C(Re, 0), C(0, w*Le)), Z_m);
 }
 
+// Generalized T/S speaker impedance — same lumped model as zSpkr_C12N, params passed in.
+// p = {Re, Le (henries), fs, RES, Qms}
+function zSpkrModel(f, p) {
+  const w  = 2 * Math.PI * f;
+  const ws = 2 * Math.PI * p.fs;
+  const Cmes = p.Qms / (p.RES * ws);
+  const Lces = 1 / (ws * ws * Cmes);
+  const Y_R = C(1/p.RES, 0);
+  const Y_L = C(0, -1/(w*Lces));
+  const Y_C = C(0, w*Cmes);
+  const Y_m = {re: Y_R.re + Y_L.re + Y_C.re, im: Y_R.im + Y_L.im + Y_C.im};
+  const Z_m = cInv(Y_m);
+  return cAdd(cAdd(C(p.Re, 0), C(0, w*p.Le)), Z_m);
+}
+
+// Tutorial speaker set for the Section 1 impedance plot — Le in henries.
+// Params mirror the analyzer's SPEAKERS table; representative to ~10-15%.
+const TUT_SPEAKERS = {
+  c12n:    { Re: 6.05,  Le: 0.90e-3, fs: 113, RES: 38.5, Qms: 7.52 },  // Jensen C12N, 8 Ω
+  greenbk: { Re: 6.7,   Le: 0.70e-3, fs: 75,  RES: 30,   Qms: 4.0  },  // Celestion Greenback, 8 Ω
+  g10n40:  { Re: 12.05, Le: 1.40e-3, fs: 98,  RES: 50,   Qms: 4.5  },  // Celestion G10N-40, 16 Ω (Blackstar HT-5)
+  v30_16:  { Re: 13.8,  Le: 0.80e-3, fs: 75,  RES: 60,   Qms: 7.0  }   // Celestion Vintage 30, 16 Ω
+};
+
 // Hewitt M2, all SW1-3 engaged, 8 Ω values (no R10/R11)
 function buildM2_allEngaged(f) {
   const w = 2 * Math.PI * f;
   const R2A=22, R2B=18, R1=15, L1=0.9e-3;
-  const R3=15, R4=10, R5=4.7, R6=15, R7=33, R8=5.6;
+  const R3=4.7, R4=15, R5=15, R6=10, R7=33, R8=5.6;
   const stage1 = stage1ABCD(w, R2A, R2B, R1, L1);
   const stage = (Rs, Rsh) => abcdMul(abcdShunt(C(Rsh, 0)), abcdSeries(C(Rs, 0)));
   return abcdCascade([stage1, stage(R4, R3), stage(R6, R5), stage(R8, R7)]);
@@ -1373,16 +1645,48 @@ function buildPlot1() {
   Plotly.newPlot('tutPlot1', traces, tutLayoutDB(-20, 1), TUT_PLOT_CONFIG);
 }
 
-// ---- PLOT 2a: |Z_spkr(f)| Jensen C12N ----
+// ---- PLOT 2a: |Z_spkr(f)| — five real drivers, 8/16/4 Ω ----
 function buildPlot2a() {
   const f = logspace(20, 20000, 400);
-  const Z = f.map(freq => cMag(zSpkr_C12N(freq)));
+  const mag = (p) => f.map(freq => cMag(zSpkrModel(freq, p)));
+  // 4 Ω example: two identical C12N in parallel ⇒ |Z|/2
+  const parC12N = f.map(freq => cMag(zSpkrModel(freq, TUT_SPEAKERS.c12n)) / 2);
+  const flat = (v) => f.map(() => v);
+  const refLine = cssVar('--axis');
   const traces = [
-    {x: f, y: Z, name: '|Z| Jensen C12N', type:'scatter', mode:'lines',
-     line:{color: cssVar('--orange'), width: 2.4},
-     hovertemplate: '%{x:.0f} Hz · %{y:.2f} Ω<extra></extra>'}
+    // nominal-impedance reference lines — drawn first so the speaker curves sit on top
+    {x: f, y: flat(8), name: '8 Ω nominal', type:'scatter', mode:'lines',
+     line:{color: refLine, width: 1, dash: 'dot'}, hoverinfo: 'skip'},
+    {x: f, y: flat(16), name: '16 Ω nominal', type:'scatter', mode:'lines',
+     line:{color: refLine, width: 1, dash: 'dot'}, hoverinfo: 'skip'},
+    {x: f, y: mag(TUT_SPEAKERS.c12n), name: 'Jensen C12N · 8 Ω',
+     type:'scatter', mode:'lines', line:{color: cssVar('--orange'), width: 2.6},
+     hovertemplate: '%{x:.0f} Hz · %{y:.2f} Ω<extra>C12N · 8 Ω</extra>'},
+    {x: f, y: mag(TUT_SPEAKERS.greenbk), name: 'Celestion Greenback · 8 Ω',
+     type:'scatter', mode:'lines', line:{color: cssVar('--accent'), width: 2.0},
+     hovertemplate: '%{x:.0f} Hz · %{y:.2f} Ω<extra>Greenback · 8 Ω</extra>'},
+    {x: f, y: mag(TUT_SPEAKERS.g10n40), name: 'Celestion G10N-40 · 16 Ω (Blackstar HT-5)',
+     type:'scatter', mode:'lines', line:{color: cssVar('--teal'), width: 2.0},
+     hovertemplate: '%{x:.0f} Hz · %{y:.2f} Ω<extra>G10N-40 · 16 Ω</extra>'},
+    {x: f, y: mag(TUT_SPEAKERS.v30_16), name: 'Celestion Vintage 30 · 16 Ω',
+     type:'scatter', mode:'lines', line:{color: cssVar('--amber'), width: 2.0},
+     hovertemplate: '%{x:.0f} Hz · %{y:.2f} Ω<extra>V30 · 16 Ω</extra>'},
+    {x: f, y: parC12N, name: '2× C12N in parallel · 4 Ω',
+     type:'scatter', mode:'lines', line:{color: cssVar('--slate'), width: 1.8, dash: 'dash'},
+     hovertemplate: '%{x:.0f} Hz · %{y:.2f} Ω<extra>2×C12N ∥ · 4 Ω</extra>'}
   ];
-  Plotly.newPlot('tutPlot2a', traces, tutLayoutImpedance(2, 200), TUT_PLOT_CONFIG);
+  const lo = tutLayoutImpedance(2, 320);
+  lo.margin = Object.assign({}, lo.margin, {b: 110});
+  // annotate the reference lines directly on the plot
+  lo.annotations = [
+    {x: Math.log10(20000), y: Math.log10(8), xref: 'x', yref: 'y',
+     text: '8 Ω', showarrow: false, xanchor: 'right', yanchor: 'bottom',
+     font: {color: cssVar('--muted'), size: 9, family: 'IBM Plex Mono'}},
+    {x: Math.log10(20000), y: Math.log10(16), xref: 'x', yref: 'y',
+     text: '16 Ω', showarrow: false, xanchor: 'right', yanchor: 'bottom',
+     font: {color: cssVar('--muted'), size: 9, family: 'IBM Plex Mono'}}
+  ];
+  Plotly.newPlot('tutPlot2a', traces, lo, TUT_PLOT_CONFIG);
 }
 
 // ---- PLOT 2b: H(f) for single series-R into C12N ----
