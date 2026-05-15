@@ -68,6 +68,18 @@
     --slate:           #7b8c9f;
     --grid:            var(--border-subtle);
     --axis:            var(--border-strong);
+
+    /* Multi-config comparison palette — "Live" plus 8 distinguishable hues.
+     * Light-theme values; dark theme overrides below. */
+    --chart-live: #1369b3;
+    --chart-1:    #e8590c;
+    --chart-2:    #2f9e44;
+    --chart-3:    #9c36b5;
+    --chart-4:    #c2255c;
+    --chart-5:    #0c8599;
+    --chart-6:    #b08900;
+    --chart-7:    #5c7cfa;
+    --chart-8:    #e64980;
   }
   [data-theme="dark"] {
     --bg-page:        #18191c;
@@ -91,6 +103,17 @@
     --muted:           var(--text-muted);
     --grid:            var(--border-subtle);
     --axis:            var(--border-strong);
+
+    /* Comparison palette — lifted/desaturated for legibility on dark. */
+    --chart-live: #66a8d1;
+    --chart-1:    #ff922b;
+    --chart-2:    #51cf66;
+    --chart-3:    #cc5de8;
+    --chart-4:    #f06595;
+    --chart-5:    #22b8cf;
+    --chart-6:    #fcc419;
+    --chart-7:    #91a7ff;
+    --chart-8:    #faa2c1;
   }
 
   * { box-sizing: border-box; }
@@ -399,6 +422,12 @@
     grid-template-columns: 340px 1fr;
     gap: 24px;
   }
+  .sidebar-col {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    min-width: 0;
+  }
   .main-content {
     display: flex;
     flex-direction: column;
@@ -409,6 +438,7 @@
   @media (max-width: 980px) {
     .layout { grid-template-columns: 1fr; }
     .main-content { gap: 18px; }
+    .sidebar-col { gap: 18px; }
   }
 
   .panel {
@@ -598,6 +628,131 @@
   /* When master bypass is on, dim the stage controls */
   .stage-block.muted { opacity: 0.4; pointer-events: none; transition: opacity 0.2s; }
   .stage-block { transition: opacity 0.2s; }
+
+  /* ===== Saved-configs panel ===== */
+  .cfg-add {
+    width: 100%;
+    background: var(--accent); color: var(--bg);
+    border: 1px solid var(--accent);
+    font-family: var(--font-mono);
+    font-size: 11px; font-weight: 500;
+    padding: 8px 10px; cursor: pointer;
+    border-radius: 4px; letter-spacing: 0.03em;
+    transition: opacity 0.15s, background 0.15s;
+  }
+  .cfg-add:hover:not(:disabled) { background: var(--accent-hover); }
+  .cfg-add:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .cfg-bp {
+    font-family: var(--font-mono);
+    font-size: 10px; line-height: 1.5;
+    padding: 7px 9px; margin: 10px 0;
+    border-radius: 4px;
+    border-left: 3px solid var(--muted);
+    background: var(--surface-alt);
+    color: var(--muted);
+  }
+  .cfg-bp.ok    { border-left-color: var(--teal);   color: var(--body); }
+  .cfg-bp.warn  { border-left-color: var(--orange); color: var(--body); }
+  .cfg-bp.crowd { border-left-color: var(--error);  color: var(--body); }
+  .cfg-bp .bp-n { font-weight: 600; }
+
+  .cfg-list { display: flex; flex-direction: column; gap: 6px; margin: 10px 0; }
+  .cfg-empty {
+    font-family: var(--font-mono);
+    font-size: 10px; color: var(--muted);
+    text-align: center; padding: 10px 4px;
+    border: 1px dashed var(--border-strong); border-radius: 4px;
+  }
+  .cfg-item {
+    display: grid;
+    grid-template-columns: 14px 14px 1fr auto auto;
+    align-items: center; gap: 7px;
+    padding: 6px 8px;
+    background: var(--bg);
+    border: 1px solid var(--border-strong);
+    border-radius: 4px;
+  }
+  .cfg-item .cfg-swatch {
+    width: 11px; height: 11px; border-radius: 2px;
+    border: 1px solid rgba(0,0,0,0.18);
+  }
+  .cfg-item input[type=checkbox] { margin: 0; cursor: pointer; accent-color: var(--accent); }
+  .cfg-item .cfg-name {
+    font-family: var(--font-mono);
+    font-size: 11px; color: var(--body);
+    background: transparent; border: none;
+    border-bottom: 1px dashed transparent;
+    padding: 1px 2px; min-width: 0; width: 100%;
+  }
+  .cfg-item .cfg-name:hover { border-bottom-color: var(--border-strong); }
+  .cfg-item .cfg-name:focus { outline: none; border-bottom-color: var(--accent); }
+  .cfg-mini-btn {
+    background: transparent;
+    border: 1px solid var(--border-strong);
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 9px; padding: 3px 6px; cursor: pointer;
+    border-radius: 3px; letter-spacing: 0.03em;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .cfg-mini-btn:hover { color: var(--accent); border-color: var(--accent); }
+  .cfg-mini-btn.del:hover { color: var(--error); border-color: var(--error); }
+
+  .cfg-io { display: flex; gap: 6px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); }
+  .cfg-io button {
+    flex: 1;
+    background: var(--bg);
+    border: 1px solid var(--border-strong);
+    color: var(--body);
+    font-family: var(--font-mono);
+    font-size: 10px; padding: 6px 4px; cursor: pointer;
+    border-radius: 4px;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .cfg-io button:hover { color: var(--accent); border-color: var(--accent); }
+
+  /* ===== Stats / legend table ===== */
+  .stats-wrap { border-top: 1px solid var(--border); padding: 4px 8px 10px; overflow-x: auto; }
+  table.stats-table {
+    width: 100%; border-collapse: collapse;
+    font-family: var(--font-mono);
+  }
+  .stats-table th {
+    font-size: 9px; letter-spacing: 0.05em;
+    color: var(--muted); font-weight: 500;
+    text-align: right; padding: 9px 8px 7px;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  .stats-table th.col-vis { text-align: center; cursor: pointer; user-select: none; }
+  .stats-table th.col-vis:hover { color: var(--accent); }
+  .stats-table th.col-name, .stats-table th.col-sw { text-align: left; }
+  .stats-table td {
+    font-size: 11px; color: var(--body);
+    text-align: right; padding: 7px 8px;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  .stats-table tr:last-child td { border-bottom: none; }
+  .stats-table td.col-sw { width: 16px; padding-right: 0; }
+  .stats-table td.col-name { text-align: left; color: var(--heading); font-weight: 500; }
+  .stats-table td.col-vis { text-align: center; }
+  .stats-table td.col-vis input { margin: 0; cursor: pointer; accent-color: var(--accent); }
+  .stats-table .sw-dot {
+    display: inline-block; width: 11px; height: 11px;
+    border-radius: 2px; vertical-align: middle;
+    border: 1px solid rgba(0,0,0,0.18);
+  }
+  .stats-table tr.row-live td.col-name::after {
+    content: 'live'; font-size: 8px; color: var(--muted);
+    margin-left: 6px; letter-spacing: 0.06em;
+    border: 1px solid var(--border-strong); border-radius: 2px;
+    padding: 1px 3px; font-weight: 400;
+  }
+  .stats-table .val-att  { color: var(--accent); }
+  .stats-table .val-zin  { color: var(--orange); }
+  .stats-table .num-dim  { color: var(--muted); }
 </style>
 </head>
 <body>
@@ -622,6 +777,8 @@
   <div id="analyzer-view" class="tab-view active">
 
   <div class="layout">
+
+    <div class="sidebar-col">
 
     <div class="panel">
       <div class="panel-header">
@@ -725,6 +882,28 @@
         </div>
       </div>
     </div>
+
+    <div class="panel" id="savedPanel">
+      <div class="panel-header">
+        <span>Saved configs</span>
+        <span class="meta" id="cfgCount">0 saved</span>
+      </div>
+      <div class="panel-body">
+        <button class="cfg-add" id="addConfig">+ Add current config to comparison</button>
+        <div class="cfg-bp ok" id="cfgBestPractice">1 in comparison — room for more.</div>
+        <div class="cfg-list" id="cfgList"></div>
+        <div class="cfg-io">
+          <button id="exportConfigs">Export JSON</button>
+          <button id="importConfigs">Import JSON</button>
+          <input type="file" id="importFile" accept="application/json,.json" hidden>
+        </div>
+        <div style="font-family: var(--font-mono); font-size: 10px; color: var(--muted); margin-top: 8px; line-height: 1.5;">
+          Saved configs persist in this browser across reloads but are never auto-shown — tick a config to add its curves to the plot. Export to carry the library to another browser or machine.
+        </div>
+      </div>
+    </div>
+
+    </div><!-- /.sidebar-col -->
 
     <div class="main-content">
 
@@ -963,11 +1142,23 @@
         <span class="meta">20 Hz – 20 kHz · |H(f)| · |Z<sub>in</sub>| · |Z<sub>spkr</sub>|</span>
       </div>
       <div class="plot-wrap"><div id="plot"></div></div>
-      <div class="stats">
-        <div class="stat"><div class="stat-label">Att @ 1 kHz</div><div class="stat-value" id="stat-att">—</div></div>
-        <div class="stat"><div class="stat-label">Δ HF (10 k − 1 k)</div><div class="stat-value" id="stat-hf">—</div></div>
-        <div class="stat"><div class="stat-label">Δ LF (100 − 1 k)</div><div class="stat-value" id="stat-lf">—</div></div>
-        <div class="stat"><div class="stat-label">|Z<sub>in</sub>| @ 1 kHz</div><div class="stat-value orange" id="stat-zin">—</div></div>
+      <div class="stats-wrap">
+        <table class="stats-table">
+          <thead>
+            <tr>
+              <th class="col-sw"></th>
+              <th class="col-name">config</th>
+              <th class="col-vis" id="hdrH" title="Toggle H(f) for all configs">H(f)</th>
+              <th class="col-vis" id="hdrZin" title="Toggle Z-in for all configs">Z<sub>in</sub></th>
+              <th class="col-vis" id="hdrZspk" title="Toggle Z-spkr for all configs">Z<sub>spkr</sub></th>
+              <th>Att@1k</th>
+              <th>&Delta;HF</th>
+              <th>&Delta;LF</th>
+              <th>|Z<sub>in</sub>|@1k</th>
+            </tr>
+          </thead>
+          <tbody id="statsBody"></tbody>
+        </table>
       </div>
     </div>
 
@@ -1254,16 +1445,15 @@ function networkResponse(M, ZL) {
   return {H, Zin};
 }
 
-function speakerZ(f) {
-  const presetVal = document.getElementById('speakerPreset')?.value || '';
-  const idealMode = presetVal.startsWith('ideal');
-  const Re_ = +document.getElementById('Re').value;
-  const Le_ = +document.getElementById('Le').value * 1e-3;
+function speakerZ(f, cfg) {
+  const idealMode = (cfg.speakerPreset || '').startsWith('ideal');
+  const Re_ = cfg.Re;
+  const Le_ = cfg.Le * 1e-3;
   const w = 2*Math.PI*f;
   if (idealMode) return cAdd(C(Re_, 0), C(0, w*Le_));
-  const fs = +document.getElementById('fs').value;
-  const RES = +document.getElementById('RES').value;
-  const Qms = +document.getElementById('Qms').value;
+  const fs = cfg.fs;
+  const RES = cfg.RES;
+  const Qms = cfg.Qms;
   const ws = 2*Math.PI*fs;
   const Cmes = Qms/(RES*ws);
   const Lces = 1/(ws*ws*Cmes);
@@ -1275,29 +1465,29 @@ function speakerZ(f) {
   return cAdd(cAdd(C(Re_,0), C(0, w*Le_)), Z_m);
 }
 
-function buildNetwork(f) {
+function buildNetwork(f, cfg) {
   // True bypass — attenuator removed from chain. ABCD identity ⇒ H=1, Zin=Zspkr.
-  if (document.getElementById('masterBypass').classList.contains('engaged')) {
+  if (cfg.bypass) {
     return abcdId();
   }
 
   const w = 2*Math.PI*f;
-  const R2a = +document.getElementById('R2a').value;
-  const R2b = +document.getElementById('R2b').value;
-  const L1  = +document.getElementById('L1').value * 1e-3;
-  const R1  = +document.getElementById('R1').value;
-  const R3  = +document.getElementById('R3').value;
-  const R4  = +document.getElementById('R4').value;
-  const R5  = +document.getElementById('R5').value;
-  const R6  = +document.getElementById('R6').value;
-  const R7  = +document.getElementById('R7').value;
-  const R8  = +document.getElementById('R8').value;
-  const sw1 = document.getElementById('sw1').classList.contains('engaged');
-  const sw2 = document.getElementById('sw2').classList.contains('engaged');
-  const sw3 = document.getElementById('sw3').classList.contains('engaged');
+  const R2a = cfg.R2a;
+  const R2b = cfg.R2b;
+  const L1  = cfg.L1 * 1e-3;
+  const R1  = cfg.R1;
+  const R3  = cfg.R3;
+  const R4  = cfg.R4;
+  const R5  = cfg.R5;
+  const R6  = cfg.R6;
+  const R7  = cfg.R7;
+  const R8  = cfg.R8;
+  const sw1 = cfg.sw1;
+  const sw2 = cfg.sw2;
+  const sw3 = cfg.sw3;
 
   // R10 (extra at node M) sits in parallel with R1 if present.
-  const R10extra = +document.getElementById('mShunt').value;
+  const R10extra = cfg.mShunt;
   const R1eff = (R10extra > 0 && isFinite(R10extra)) ? (R1 * R10extra)/(R1 + R10extra) : R1;
   const stage1 = stage1ABCD(w, R2a, R2b, R1eff, L1);
 
@@ -1315,13 +1505,13 @@ function buildNetwork(f) {
   ];
 
   // R11: series resistor on top rail after R8.
-  const Rtop = +document.getElementById('outSeries').value;
+  const Rtop = cfg.outSeries;
   if (Rtop > 0 && isFinite(Rtop)) {
     mats.push(abcdSeries(C(Rtop, 0)));
   }
 
   // Optional shunt across the speaker terminals (load match for 16 → 8 Ω).
-  const Rload = +document.getElementById('loadMatch').value;
+  const Rload = cfg.loadMatch;
   if (Rload > 0 && isFinite(Rload)) {
     mats.push(abcdShunt(C(Rload, 0)));
   }
@@ -1329,17 +1519,17 @@ function buildNetwork(f) {
   return abcdCascade(mats);
 }
 
-function sweep() {
+function sweep(cfg) {
   const N = 401, fmin = 20, fmax = 20000;
   const freqs = new Array(N), H_db = new Array(N), Zin_mag = new Array(N), Zspk_mag = new Array(N);
-  const Rret = +document.getElementById('outReturn').value;
+  const Rret = cfg.outReturn;
   const hasReturn = (Rret > 0 && isFinite(Rret));
   for (let i=0; i<N; i++) {
     const f = fmin * Math.pow(fmax/fmin, i/(N-1));
     freqs[i] = f;
-    const ZL_speaker = speakerZ(f);
+    const ZL_speaker = speakerZ(f, cfg);
     const ZL = hasReturn ? cAdd(ZL_speaker, C(Rret, 0)) : ZL_speaker;
-    const M = buildNetwork(f);
+    const M = buildNetwork(f, cfg);
     const {H, Zin} = networkResponse(M, ZL);
     H_db[i] = 20*Math.log10(Math.max(cMag(H), 1e-12));
     Zin_mag[i] = cMag(Zin);
@@ -1348,33 +1538,171 @@ function sweep() {
   return {freqs, H_db, Zin_mag, Zspk_mag};
 }
 
+// ===== Multi-config comparison state =====
+// A "config" is a flat plain object mirroring the control IDs — see captureConfig().
+// savedConfigs persists to localStorage; on load every entry is forced show=false
+// so nothing auto-draws (the library survives reload, the selection does not).
+const CFG_STORE_KEY = 'hewitt-m2-saved-configs-v1';
+const CFG_PALETTE = ['--chart-1','--chart-2','--chart-3','--chart-4',
+                     '--chart-5','--chart-6','--chart-7','--chart-8'];
+const CFG_MAX = CFG_PALETTE.length;   // structural soft cap = palette size
+let savedConfigs = [];                // [{id,name,cfg,colorIdx,show,visH,visZin,visZspk}]
+let liveVis = { visH: true, visZin: false, visZspk: false };
+
+function captureConfig() {
+  const num = id => +document.getElementById(id).value;
+  return {
+    R2a:num('R2a'), R2b:num('R2b'), L1:num('L1'), R1:num('R1'), mShunt:num('mShunt'),
+    R3:num('R3'), R4:num('R4'), R5:num('R5'), R6:num('R6'), R7:num('R7'), R8:num('R8'),
+    sw1: document.getElementById('sw1').classList.contains('engaged'),
+    sw2: document.getElementById('sw2').classList.contains('engaged'),
+    sw3: document.getElementById('sw3').classList.contains('engaged'),
+    outSeries:num('outSeries'), loadMatch:num('loadMatch'), outReturn:num('outReturn'),
+    bypass: document.getElementById('masterBypass').classList.contains('engaged'),
+    speakerPreset: document.getElementById('speakerPreset').value,
+    Re:num('Re'), Le:num('Le'), fs:num('fs'), RES:num('RES'), Qms:num('Qms')
+  };
+}
+
+// Visual-sync hook — assigned by populate() once its SVG closures exist.
+// Re-derives every schematic visual (switches, 4PDT bypass, speaker label)
+// from the current DOM control state.
+let _syncVisuals = function () {};
+
+// Push a stored/imported config object into the live controls, then refresh.
+function applyConfigToControls(cfg) {
+  const setVal = (id, v) => { const el = document.getElementById(id); if (el) el.value = v; };
+  ['R2a','R2b','L1','R1','mShunt','R3','R4','R5','R6','R7','R8',
+   'outSeries','loadMatch','outReturn','Re','Le','fs','RES','Qms']
+    .forEach(id => { if (cfg[id] !== undefined) setVal(id, cfg[id]); });
+  if (cfg.speakerPreset !== undefined) setVal('speakerPreset', cfg.speakerPreset);
+
+  // Switches — set class + the In/Bypass label text.
+  ['sw1','sw2','sw3'].forEach(id => {
+    const el = document.getElementById(id);
+    const on = !!cfg[id];
+    el.classList.toggle('engaged', on);
+    el.querySelector('.switch-state').textContent = on ? 'In' : 'Bypass';
+  });
+
+  // Master true-bypass.
+  const masterEl = document.getElementById('masterBypass');
+  const onBp = !!cfg.bypass;
+  masterEl.classList.toggle('engaged', onBp);
+  masterEl.querySelector('.master-toggle-state').textContent = onBp ? 'Bypassed' : 'Off';
+  document.getElementById('stageBlock').classList.toggle('muted', onBp);
+
+  _syncVisuals();
+  updatePlot();
+}
+
+function persistConfigs() {
+  try { localStorage.setItem(CFG_STORE_KEY, JSON.stringify(savedConfigs)); } catch (e) {}
+}
+function loadConfigsFromStore() {
+  let raw = null;
+  try { raw = localStorage.getItem(CFG_STORE_KEY); } catch (e) { raw = null; }
+  if (!raw) { savedConfigs = []; return; }
+  try {
+    const parsed = JSON.parse(raw);
+    savedConfigs = Array.isArray(parsed) ? parsed.map(normalizeSavedConfig) : [];
+  } catch (e) { savedConfigs = []; }
+  // Survive reload, but never auto-show: force selection off on every load.
+  savedConfigs.forEach((sc, i) => { sc.show = false; sc.colorIdx = i % CFG_MAX; });
+}
+function normalizeSavedConfig(sc) {
+  return {
+    id:     sc.id     || ('cfg_' + Math.random().toString(36).slice(2, 9)),
+    name:   sc.name   || 'Config',
+    cfg:    sc.cfg    || {},
+    colorIdx: (typeof sc.colorIdx === 'number') ? sc.colorIdx : 0,
+    show:   false,
+    visH:   sc.visH   !== undefined ? !!sc.visH   : true,
+    visZin: sc.visZin !== undefined ? !!sc.visZin : false,
+    visZspk:sc.visZspk!== undefined ? !!sc.visZspk: false
+  };
+}
+function lowestFreeColorIdx() {
+  const used = new Set(savedConfigs.map(s => s.colorIdx));
+  for (let i = 0; i < CFG_MAX; i++) if (!used.has(i)) return i;
+  return savedConfigs.length % CFG_MAX;
+}
+
+// Assemble the ordered list of configs currently drawn: Live first, then every
+// saved config whose "show in comparison" box is ticked.
+function comparisonEntries() {
+  const entries = [{
+    key: 'live', name: 'Live', isLive: true,
+    cfg: captureConfig(), colorVar: '--chart-live', vis: liveVis
+  }];
+  for (const sc of savedConfigs) {
+    if (sc.show) entries.push({
+      key: sc.id, name: sc.name, isLive: false,
+      cfg: sc.cfg, colorVar: CFG_PALETTE[sc.colorIdx], vis: sc
+    });
+  }
+  return entries;
+}
+
+const nearestIdx = (freqs, target) => {
+  let best = 0, bd = Infinity;
+  for (let i = 0; i < freqs.length; i++) {
+    const d = Math.abs(freqs[i] - target);
+    if (d < bd) { bd = d; best = i; }
+  }
+  return best;
+};
+
 let plotInit = false;
 function updatePlot() {
-  const {freqs, H_db, Zin_mag, Zspk_mag} = sweep();
+  const body  = cssVar('--body');
+  const muted = cssVar('--muted');
+  const grid  = cssVar('--grid');
+  const axis  = cssVar('--axis');
 
-  // Theme tokens read at draw time so plot follows toggle.
-  const accent   = cssVar('--accent');    // chart slot 1 — primary trace
-  const orange   = cssVar('--orange');    // chart slot 2 — Zin
-  const teal     = cssVar('--teal');      // chart slot 3 — Zspkr reference
-  const body     = cssVar('--body');
-  const muted    = cssVar('--muted');
-  const grid     = cssVar('--grid');
-  const axis     = cssVar('--axis');
+  const entries = comparisonEntries();
+  const traces = [];
+  const statsRows = [];
 
-  const traces = [
-    { x: freqs, y: H_db, type: 'scatter', mode: 'lines',
-      name: '|H(f)| · gain (dB)', yaxis: 'y',
-      line: {color: accent, width: 2.2},
-      hovertemplate: '%{x:.0f} Hz · %{y:.2f} dB<extra></extra>' },
-    { x: freqs, y: Zin_mag, type: 'scatter', mode: 'lines',
-      name: '|Z<sub>in</sub>| seen by amp (Ω)', yaxis: 'y2',
-      line: {color: orange, width: 1.8},
-      hovertemplate: '%{x:.0f} Hz · %{y:.2f} Ω<extra></extra>' },
-    { x: freqs, y: Zspk_mag, type: 'scatter', mode: 'lines',
-      name: '|Z<sub>spkr</sub>| (Ω, ref)', yaxis: 'y2',
-      line: {color: teal, width: 1.4, dash: 'dot'},
-      hovertemplate: '%{x:.0f} Hz · %{y:.2f} Ω<extra></extra>' }
-  ];
+  for (const e of entries) {
+    const {freqs, H_db, Zin_mag, Zspk_mag} = sweep(e.cfg);
+    const col = cssVar(e.colorVar);
+
+    // One colour per config: H(f) solid, Z-in dashed, Z-spkr dotted.
+    if (e.vis.visH) {
+      traces.push({
+        x: freqs, y: H_db, type: 'scatter', mode: 'lines',
+        name: e.name + ' · H(f)', yaxis: 'y',
+        line: {color: col, width: 2.2},
+        hovertemplate: '%{x:.0f} Hz · %{y:.2f} dB<extra>' + e.name + ' · H(f)</extra>'
+      });
+    }
+    if (e.vis.visZin) {
+      traces.push({
+        x: freqs, y: Zin_mag, type: 'scatter', mode: 'lines',
+        name: e.name + ' · Z<sub>in</sub>', yaxis: 'y2',
+        line: {color: col, width: 1.7, dash: 'dash'},
+        hovertemplate: '%{x:.0f} Hz · %{y:.2f} Ω<extra>' + e.name + ' · Zin</extra>'
+      });
+    }
+    if (e.vis.visZspk) {
+      traces.push({
+        x: freqs, y: Zspk_mag, type: 'scatter', mode: 'lines',
+        name: e.name + ' · Z<sub>spkr</sub>', yaxis: 'y2',
+        line: {color: col, width: 1.4, dash: 'dot'},
+        hovertemplate: '%{x:.0f} Hz · %{y:.2f} Ω<extra>' + e.name + ' · Zspkr</extra>'
+      });
+    }
+
+    const i1k = nearestIdx(freqs, 1000), i10k = nearestIdx(freqs, 10000), i100 = nearestIdx(freqs, 100);
+    statsRows.push({
+      key: e.key, name: e.name, isLive: e.isLive, color: col, vis: e.vis,
+      att:  H_db[i1k],
+      dHF:  H_db[i10k] - H_db[i1k],
+      dLF:  H_db[i100] - H_db[i1k],
+      zin:  Zin_mag[i1k]
+    });
+  }
 
   const layout = {
     paper_bgcolor: 'rgba(0,0,0,0)',
@@ -1399,7 +1727,7 @@ function updatePlot() {
       ticktext: ['20','50','100','200','500','1k','2k','5k','10k','20k']
     },
     yaxis: {
-      title: {text: 'gain |H(f)| (dB)', font: {color: accent, size: 11, family: 'Geist'}},
+      title: {text: 'gain |H(f)| (dB)', font: {color: muted, size: 11, family: 'Geist'}},
       gridcolor: grid, gridwidth: 0.5, zerolinecolor: grid,
       linecolor: axis, linewidth: 1, showline: true, mirror: false,
       tickfont: {color: muted, size: 10, family: 'Geist Mono'},
@@ -1407,7 +1735,7 @@ function updatePlot() {
       side: 'left'
     },
     yaxis2: {
-      title: {text: 'impedance (Ω, log)', font: {color: orange, size: 11, family: 'Geist'}},
+      title: {text: 'impedance (Ω, log)', font: {color: muted, size: 11, family: 'Geist'}},
       overlaying: 'y', side: 'right',
       linecolor: axis, linewidth: 1, showline: true, mirror: false,
       tickfont: {color: muted, size: 10, family: 'Geist Mono'},
@@ -1425,16 +1753,94 @@ function updatePlot() {
   if (!plotInit) { Plotly.newPlot('plot', traces, layout, config); plotInit = true; }
   else { Plotly.react('plot', traces, layout, config); }
 
-  const idx = (target) => {
-    let best=0, bd=Infinity;
-    for (let i=0; i<freqs.length; i++) { const d = Math.abs(freqs[i]-target); if (d<bd){bd=d;best=i;} }
-    return best;
-  };
-  const i1k = idx(1000), i10k = idx(10000), i100 = idx(100);
-  document.getElementById('stat-att').textContent = H_db[i1k].toFixed(2) + ' dB';
-  document.getElementById('stat-hf').textContent  = (H_db[i10k]-H_db[i1k]).toFixed(2) + ' dB';
-  document.getElementById('stat-lf').textContent  = (H_db[i100]-H_db[i1k]).toFixed(2) + ' dB';
-  document.getElementById('stat-zin').textContent = Zin_mag[i1k].toFixed(2) + ' Ω';
+  renderStatsTable(statsRows);
+  updateBestPractice(entries.length);
+}
+
+// ===== Stats / legend table =====
+function fmtSigned(v, unit) {
+  const s = (v >= 0 ? '+' : '') + v.toFixed(2);
+  return s + ' ' + unit;
+}
+function renderStatsTable(rows) {
+  const tbody = document.getElementById('statsBody');
+  if (!tbody) return;
+  tbody.innerHTML = rows.map(r => {
+    const cb = (visKey) =>
+      '<input type="checkbox" data-key="' + r.key + '" data-vis="' + visKey + '"' +
+      (r.vis[visKey] ? ' checked' : '') + '>';
+    return '<tr class="' + (r.isLive ? 'row-live' : '') + '" data-key="' + r.key + '">' +
+      '<td class="col-sw"><span class="sw-dot" style="background:' + r.color + '"></span></td>' +
+      '<td class="col-name">' + escapeHtml(r.name) + '</td>' +
+      '<td class="col-vis">' + cb('visH') + '</td>' +
+      '<td class="col-vis">' + cb('visZin') + '</td>' +
+      '<td class="col-vis">' + cb('visZspk') + '</td>' +
+      '<td class="val-att">' + r.att.toFixed(2) + ' dB</td>' +
+      '<td class="num-dim">' + fmtSigned(r.dHF, 'dB') + '</td>' +
+      '<td class="num-dim">' + fmtSigned(r.dLF, 'dB') + '</td>' +
+      '<td class="val-zin">' + r.zin.toFixed(2) + ' Ω</td>' +
+    '</tr>';
+  }).join('');
+}
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => (
+    {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]
+  ));
+}
+
+// ===== Best-practice indicator — perceptual, not a storage limit =====
+function updateBestPractice(comparisonCount) {
+  const el = document.getElementById('cfgBestPractice');
+  if (!el) return;
+  let cls, msg;
+  if (comparisonCount <= 5) {
+    cls = 'ok';
+    msg = '<span class="bp-n">' + comparisonCount + '</span> in comparison — room for more.';
+  } else if (comparisonCount <= 8) {
+    cls = 'warn';
+    msg = '<span class="bp-n">' + comparisonCount + '</span> in comparison — colours getting close; trim for clarity.';
+  } else {
+    cls = 'crowd';
+    msg = '<span class="bp-n">' + comparisonCount + '</span> in comparison — palette maxed, curves hard to tell apart.';
+  }
+  el.className = 'cfg-bp ' + cls;
+  el.innerHTML = msg;
+
+  const countEl = document.getElementById('cfgCount');
+  if (countEl) countEl.textContent = savedConfigs.length + '/' + CFG_MAX + ' saved';
+  const addBtn = document.getElementById('addConfig');
+  if (addBtn) {
+    const full = savedConfigs.length >= CFG_MAX;
+    addBtn.disabled = full;
+    addBtn.textContent = full
+      ? 'Saved-config limit reached (' + CFG_MAX + ')'
+      : '+ Add current config to comparison';
+  }
+}
+
+// ===== Saved-configs manager list =====
+function renderConfigList() {
+  const list = document.getElementById('cfgList');
+  if (!list) return;
+  if (savedConfigs.length === 0) {
+    list.innerHTML = '<div class="cfg-empty">No saved configs yet — capture one above.</div>';
+    return;
+  }
+  list.innerHTML = savedConfigs.map(sc =>
+    '<div class="cfg-item" data-id="' + sc.id + '">' +
+      '<input type="checkbox" class="cfg-show"' + (sc.show ? ' checked' : '') +
+        ' title="Show in comparison">' +
+      '<span class="cfg-swatch" style="background:' + cssVar(CFG_PALETTE[sc.colorIdx]) + '"></span>' +
+      '<input class="cfg-name" value="' + escapeHtml(sc.name) + '" spellcheck="false">' +
+      '<button class="cfg-mini-btn cfg-load" title="Load into the live controls">load</button>' +
+      '<button class="cfg-mini-btn del cfg-del" title="Delete this config">&times;</button>' +
+    '</div>'
+  ).join('');
+}
+
+function refreshConfigUI() {
+  renderConfigList();
+  updatePlot();   // also refreshes the count + best-practice indicator
 }
 
 const RVALUES = [1, 1.5, 2.2, 2.7, 3.3, 3.9, 4.7, 5.6, 6.8, 8, 8.2, 10, 12, 15, 18, 20, 22, 25, 27, 30, 33, 39, 47, 50, 56, 68, 75, 82, 100];
@@ -1523,6 +1929,12 @@ function populate() {
     ideal16:     { Re: 16.0,  Le: 0.0, fs: 1,   RES: 1,    Qms: 1    }
   };
 
+  function updateSpeakerMeta(val) {
+    const meta = SPEAKER_META[val];
+    const metaEl = document.getElementById('speakerMeta');
+    if (meta && metaEl) metaEl.textContent = meta;
+  }
+
   function applySpeakerPreset(val) {
     const p = SPEAKERS[val];
     if (!p) return;
@@ -1531,9 +1943,7 @@ function populate() {
     document.getElementById('fs').value  = p.fs;
     document.getElementById('RES').value = p.RES;
     document.getElementById('Qms').value = p.Qms;
-    const meta = SPEAKER_META[val];
-    const metaEl = document.getElementById('speakerMeta');
-    if (meta && metaEl) metaEl.textContent = meta;
+    updateSpeakerMeta(val);
   }
   document.getElementById('speakerPreset').addEventListener('change', (e) => {
     applySpeakerPreset(e.target.value);
@@ -1603,9 +2013,153 @@ function populate() {
   // ===== Initial sync: make sure SVG matches sidebar state on load =====
   for (const id of ['sw1','sw2','sw3']) updateSwitchVisual(id);
   updateBypassVisual(masterEl.classList.contains('engaged'));
+
+  // Expose a single visual-resync entry point for applyConfigToControls():
+  // re-derive every schematic visual from current DOM control state.
+  function syncVisualsToControls() {
+    for (const id of ['sw1','sw2','sw3']) updateSwitchVisual(id);
+    updateBypassVisual(document.getElementById('masterBypass').classList.contains('engaged'));
+    updateSpeakerMeta(document.getElementById('speakerPreset').value);
+  }
+  _syncVisuals = syncVisualsToControls;
+}
+
+// ============================================================================
+// ===== SAVED-CONFIGS PANEL — wiring =====
+// ============================================================================
+function nextConfigName() {
+  let max = 0;
+  for (const sc of savedConfigs) {
+    const m = /^Config (\d+)$/.exec(sc.name || '');
+    if (m) max = Math.max(max, +m[1]);
+  }
+  return 'Config ' + (max + 1);
+}
+
+function wireSavedConfigs() {
+  const addBtn   = document.getElementById('addConfig');
+  const list     = document.getElementById('cfgList');
+  const statsTb  = document.getElementById('statsBody');
+  const expBtn   = document.getElementById('exportConfigs');
+  const impBtn   = document.getElementById('importConfigs');
+  const impFile  = document.getElementById('importFile');
+
+  // --- Add current config to the comparison ---
+  addBtn.addEventListener('click', () => {
+    if (savedConfigs.length >= CFG_MAX) return;
+    savedConfigs.push({
+      id: 'cfg_' + Math.random().toString(36).slice(2, 9),
+      name: nextConfigName(),
+      cfg: captureConfig(),
+      colorIdx: lowestFreeColorIdx(),
+      show: true,            // the button literally says "to comparison"
+      visH: true, visZin: false, visZspk: false
+    });
+    persistConfigs();
+    refreshConfigUI();
+  });
+
+  // --- Manager list: show toggle / rename / load / delete (event-delegated) ---
+  list.addEventListener('change', (ev) => {
+    const item = ev.target.closest('.cfg-item');
+    if (!item) return;
+    const sc = savedConfigs.find(s => s.id === item.dataset.id);
+    if (!sc) return;
+    if (ev.target.classList.contains('cfg-show')) {
+      sc.show = ev.target.checked;
+      persistConfigs();
+      updatePlot();
+    } else if (ev.target.classList.contains('cfg-name')) {
+      sc.name = ev.target.value.trim() || sc.name;
+      persistConfigs();
+      updatePlot();
+    }
+  });
+  list.addEventListener('click', (ev) => {
+    const item = ev.target.closest('.cfg-item');
+    if (!item) return;
+    const idx = savedConfigs.findIndex(s => s.id === item.dataset.id);
+    if (idx < 0) return;
+    if (ev.target.classList.contains('cfg-load')) {
+      applyConfigToControls(savedConfigs[idx].cfg);
+    } else if (ev.target.classList.contains('cfg-del')) {
+      savedConfigs.splice(idx, 1);
+      persistConfigs();
+      refreshConfigUI();
+    }
+  });
+
+  // --- Stats table: per-row visibility checkboxes (event-delegated) ---
+  statsTb.addEventListener('change', (ev) => {
+    const cb = ev.target;
+    if (cb.type !== 'checkbox') return;
+    const key = cb.dataset.key, visKey = cb.dataset.vis;
+    if (key === 'live') {
+      liveVis[visKey] = cb.checked;
+    } else {
+      const sc = savedConfigs.find(s => s.id === key);
+      if (sc) { sc[visKey] = cb.checked; persistConfigs(); }
+    }
+    updatePlot();
+  });
+
+  // --- Column headers: toggle a quantity across every config at once ---
+  const toggleColumn = (visKey) => {
+    const entries = comparisonEntries();
+    const allOn = entries.every(e => e.vis[visKey]);
+    const target = !allOn;
+    liveVis[visKey] = target;
+    savedConfigs.forEach(sc => { if (sc.show) sc[visKey] = target; });
+    persistConfigs();
+    updatePlot();
+  };
+  document.getElementById('hdrH').addEventListener('click',    () => toggleColumn('visH'));
+  document.getElementById('hdrZin').addEventListener('click',  () => toggleColumn('visZin'));
+  document.getElementById('hdrZspk').addEventListener('click', () => toggleColumn('visZspk'));
+
+  // --- Export / Import JSON ---
+  expBtn.addEventListener('click', () => {
+    const blob = new Blob([JSON.stringify(savedConfigs, null, 2)], {type: 'application/json'});
+    const url  = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'hewitt-m2-configs.json';
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+  });
+  impBtn.addEventListener('click', () => impFile.click());
+  impFile.addEventListener('change', () => {
+    const file = impFile.files && impFile.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const parsed = JSON.parse(reader.result);
+        if (!Array.isArray(parsed)) throw new Error('not a config array');
+        if (savedConfigs.length && !confirm(
+          'Replace your ' + savedConfigs.length + ' saved config(s) with ' +
+          parsed.length + ' imported config(s)?')) {
+          impFile.value = ''; return;
+        }
+        savedConfigs = parsed.slice(0, CFG_MAX).map(normalizeSavedConfig);
+        savedConfigs.forEach((sc, i) => { sc.show = false; sc.colorIdx = i % CFG_MAX; });
+        persistConfigs();
+        refreshConfigUI();
+      } catch (e) {
+        alert('Could not import — the file is not a valid config export.');
+      }
+      impFile.value = '';
+    };
+    reader.readAsText(file);
+  });
 }
 
 populate();
+loadConfigsFromStore();
+wireSavedConfigs();
+renderConfigList();
+// Manager-list swatches bake in theme colours at render time — refresh on theme flip.
+// (updatePlot already re-renders the plot + stats table with fresh tokens.)
+themeListeners.push(() => { if (typeof renderConfigList === 'function') renderConfigList(); });
 updatePlot();
 
 // ============================================================================
