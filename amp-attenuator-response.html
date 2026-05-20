@@ -914,8 +914,21 @@
         </div>
         <div class="panel-body schematic-body">
         <svg class="schematic" viewBox="0 -28 460 175" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <line x1="22" y1="22" x2="435" y2="22" stroke="currentColor" stroke-width="0.8" opacity="0.55"/>
-          <line x1="22" y1="92" x2="435" y2="92" stroke="currentColor" stroke-width="0.8" opacity="0.55"/>
+          <!-- Top + bottom rails, split so the segments between each pole and its engaged-throw
+               contact (the bits the bypass wipers overlay in engaged mode) can be hidden in bypass.
+               Without that, the disconnected engaged-throw contacts visually appear "still wired" to
+               the poles via the grey rail. -->
+          <!-- Top rail: network span + post-P2 output span -->
+          <line x1="32"  y1="22" x2="316" y2="22" stroke="currentColor" stroke-width="0.8" opacity="0.55"/>
+          <line x1="320" y1="22" x2="435" y2="22" stroke="currentColor" stroke-width="0.8" opacity="0.55"/>
+          <!-- Top pole-stubs: only visible when engaged (= the path the orange wiper overlays) -->
+          <line id="rail-stub-bp1" x1="22"  y1="22" x2="32"  y2="22" stroke="currentColor" stroke-width="0.8" opacity="0.55"/>
+          <line id="rail-stub-bp2" x1="316" y1="22" x2="320" y2="22" stroke="currentColor" stroke-width="0.8" opacity="0.55"/>
+          <!-- Bottom rail: same split -->
+          <line x1="32"  y1="92" x2="316" y2="92" stroke="currentColor" stroke-width="0.8" opacity="0.55"/>
+          <line x1="320" y1="92" x2="435" y2="92" stroke="currentColor" stroke-width="0.8" opacity="0.55"/>
+          <line id="rail-stub-bp3" x1="22"  y1="92" x2="32"  y2="92" stroke="currentColor" stroke-width="0.8" opacity="0.55"/>
+          <line id="rail-stub-bp4" x1="316" y1="92" x2="320" y2="92" stroke="currentColor" stroke-width="0.8" opacity="0.55"/>
 
           <!-- ===== 4PDT TRUE BYPASS (T-side: P1, P2) ===== -->
           <!-- Bypass wire across the top; in engaged mode this is dim; in bypass it's bright. -->
@@ -1996,6 +2009,15 @@ function populate() {
     const c4b = document.getElementById('contact-bp4-byp');
     if (c4e) { c4e.setAttribute('fill', active ? 'none' : 'var(--orange)'); c4e.setAttribute('stroke', 'var(--orange)'); c4e.setAttribute('stroke-width', active ? '0.8' : '0'); }
     if (c4b) { c4b.setAttribute('fill', active ? 'var(--orange)' : 'none'); c4b.setAttribute('stroke', 'var(--orange)'); c4b.setAttribute('stroke-width', active ? '0' : '0.8'); }
+
+    // Hide the pole-to-rail stubs in bypass — in engaged mode the orange wipers
+    // overlay them, but in bypass the wipers lift away and the bare grey stubs
+    // would falsely imply the poles are still tied to the disconnected throws.
+    const stubOpacity = active ? '0' : '0.55';
+    ['rail-stub-bp1','rail-stub-bp2','rail-stub-bp3','rail-stub-bp4'].forEach(id => {
+      const s = document.getElementById(id);
+      if (s) s.setAttribute('opacity', stubOpacity);
+    });
   }
 
   // Master true-bypass toggle
