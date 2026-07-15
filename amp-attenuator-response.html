@@ -28,13 +28,8 @@
 <style>
   /* ============================================================
    * Aperture design system — local mapping for this artifact.
-   * Canonical tokens (--bg-page, --text-heading, etc.) drive the
-   * legacy local aliases (--bg, --surface, --heading, etc.) used
-   * inline below and in the SVG schematic, so this file stays
-   * one-edit compatible with the design system.
    * ============================================================ */
   :root {
-    /* Aperture foundation — light */
     --bg-page:        #ffffff;
     --bg-subtle:      #f2f4f8;
     --bg-card:        #ffffff;
@@ -54,7 +49,6 @@
     --font-mono:  'Geist Mono', 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
     --font-serif: 'Source Serif 4', Georgia, 'Times New Roman', serif;
 
-    /* Local aliases used by this artifact's CSS + JS plot styling. */
     --bg:              var(--bg-subtle);
     --surface:         var(--bg-card);
     --surface-alt:     #e9ebf0;
@@ -69,8 +63,6 @@
     --grid:            var(--border-subtle);
     --axis:            var(--border-strong);
 
-    /* Multi-config comparison palette — "Live" plus 8 distinguishable hues.
-     * Light-theme values; dark theme overrides below. */
     --chart-live: #1369b3;
     --chart-1:    #e8590c;
     --chart-2:    #2f9e44;
@@ -104,7 +96,6 @@
     --grid:            var(--border-subtle);
     --axis:            var(--border-strong);
 
-    /* Comparison palette — lifted/desaturated for legibility on dark. */
     --chart-live: #66a8d1;
     --chart-1:    #ff922b;
     --chart-2:    #51cf66;
@@ -125,7 +116,6 @@
     font-weight: 400;
     font-size: 14px;
     line-height: 1.6;
-    /* Slashed zero + tabular + lining figures everywhere — Aperture spec. */
     font-variant-numeric: slashed-zero tabular-nums lining-nums;
     -webkit-font-smoothing: antialiased;
     min-height: 100vh;
@@ -254,7 +244,7 @@
     font-size: 12px; color: var(--orange);
   }
 
-  /* ===== Prominent callout — the "EQ Fingerprint" explainer ===== */
+  /* ===== Prominent callout ===== */
   .tut-callout {
     margin: 16px 0;
     padding: 14px 16px 14px 18px;
@@ -276,7 +266,7 @@
   .tut-callout p:last-child { margin-bottom: 0; }
   .tut-callout strong { color: var(--accent); font-weight: 600; }
 
-  /* ===== Roadmap — the 4-stage ladder overview ===== */
+  /* ===== Roadmap ===== */
   .tut-roadmap {
     margin: 14px 0 18px 0;
     display: flex; flex-direction: column; gap: 8px;
@@ -381,9 +371,6 @@
     font-family: var(--font-mono);
     font-size: 11px; color: var(--muted); letter-spacing: 0.04em;
   }
-  /* Three-state segmented theme picker — Light / System / Dark.
-   * Hairline border, no shadow. Active state uses accent border + accent text.
-   */
   .theme-seg {
     display: inline-flex;
     border: 1px solid var(--border-strong);
@@ -432,7 +419,7 @@
     display: flex;
     flex-direction: column;
     gap: 24px;
-    min-width: 0; /* allow content to shrink in grid cell */
+    min-width: 0;
   }
   .schematic-body { padding: 20px 24px; }
   @media (max-width: 980px) {
@@ -461,6 +448,38 @@
   .panel-body { padding: 18px; }
 
   .schematic { width: 100%; height: auto; display: block; margin-bottom: 14px; }
+
+  /* ===== SW4 detail panel ===== */
+  .sw4-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    gap: 22px; align-items: start;
+  }
+  @media (max-width: 1100px) { .sw4-grid { grid-template-columns: 1fr; } }
+  .lugmap { width: 100%; height: auto; display: block; color: var(--body); }
+  table.lug-table {
+    width: 100%; border-collapse: collapse;
+    font-family: var(--font-mono); font-size: 11px;
+  }
+  .lug-table th {
+    font-size: 9px; letter-spacing: 0.06em; color: var(--muted);
+    font-weight: 500; text-align: left;
+    padding: 7px 8px; border-bottom: 1px solid var(--border-strong);
+    white-space: nowrap;
+  }
+  .lug-table td {
+    padding: 6px 8px; border-bottom: 1px solid var(--border);
+    color: var(--body); vertical-align: top;
+  }
+  .lug-table td.sec  { color: var(--heading); font-weight: 500; white-space: nowrap; }
+  .lug-table td.lug  { color: var(--accent); text-align: right; width: 34px; }
+  .lug-table td.term { color: var(--orange); white-space: nowrap; width: 30px; }
+  .lug-table tr.grp-top td { border-top: 1px solid var(--border-strong); }
+  .lug-table tr:last-child td { border-bottom: none; }
+  .lug-note {
+    font-family: var(--font-mono); font-size: 10px; line-height: 1.55;
+    color: var(--muted); margin-top: 10px;
+  }
 
   .ctrl-group { margin-bottom: 18px; }
   .ctrl-group:last-child { margin-bottom: 0; }
@@ -541,47 +560,8 @@
     font-size: 10px; color: var(--muted); margin-top: 8px;
   }
 
-  .preset-row { display: flex; gap: 6px; margin-bottom: 12px; }
-  .preset-btn {
-    flex: 1;
-    background: var(--bg);
-    border: 1px solid var(--border-strong);
-    color: var(--body);
-    font-family: var(--font-mono);
-    font-size: 11px; padding: 6px 4px; cursor: pointer;
-    border-radius: 4px;
-    transition: border-color 0.15s, color 0.15s, background 0.15s;
-  }
-  .preset-btn:hover { border-color: var(--accent); color: var(--accent); }
-  .preset-btn.active {
-    background: var(--accent); color: var(--bg);
-    border-color: var(--accent); font-weight: 500;
-  }
-
   .plot-wrap { padding: 6px 8px 0; }
   #plot { height: 540px; }
-
-  .stats {
-    display: grid; grid-template-columns: repeat(4, 1fr);
-    border-top: 1px solid var(--border);
-  }
-  .stat {
-    padding: 14px 12px; text-align: center;
-    border-right: 1px solid var(--border);
-  }
-  .stat:last-child { border-right: none; }
-  .stat-label {
-    font-family: var(--font-mono);
-    font-size: 10px; letter-spacing: 0.08em;
-    color: var(--muted);
-  }
-  .stat-value {
-    font-family: var(--font-mono);
-    font-size: 18px; font-weight: 500;
-    margin-top: 4px; color: var(--accent);
-  }
-  .stat-value.orange { color: var(--orange); }
-  .stat-value.teal { color: var(--teal); }
 
   .design-note {
     background: var(--surface-alt);
@@ -593,9 +573,10 @@
     line-height: 1.55;
   }
   .design-note .k { color: var(--accent); font-weight: 500; }
+  .design-note .o { color: var(--orange); font-weight: 500; }
   [data-theme="dark"] .design-note { background: rgba(102, 168, 209, 0.05); }
 
-  /* Master true-bypass toggle — Tech Orange when engaged */
+  /* Master true-bypass toggle */
   .master-toggle {
     display: flex; align-items: center; justify-content: space-between;
     padding: 10px 12px;
@@ -625,7 +606,6 @@
   }
   .master-toggle.engaged .master-toggle-state { color: var(--orange); }
 
-  /* When master bypass is on, dim the stage controls */
   .stage-block.muted { opacity: 0.4; pointer-events: none; transition: opacity 0.2s; }
   .stage-block { transition: opacity 0.2s; }
 
@@ -789,7 +769,7 @@
 
 
         <div class="master-toggle" id="masterBypass">
-          <span class="master-toggle-label">True Bypass · PA → Speaker</span>
+          <span class="master-toggle-label">SW4 True Bypass · PA → Speaker</span>
           <span class="master-toggle-state">Off</span>
         </div>
 
@@ -803,7 +783,7 @@
           <div class="row"><label>R1</label><select id="R1"></select><span class="unit">Ω</span></div>
           <div class="row"><label>+ R10</label><input type="number" id="mShunt" value="0" step="1" min="0" placeholder="0 = off"><span class="unit">Ω</span></div>
           <div style="font-family: var(--font-mono); font-size: 10px; color: var(--muted); margin-top: 2px;">
-            R10: extra R from node M to GND (parallel with R1). For 16 Ω cab mod, set 68.
+            R10: extra R from node M to return (parallel with R1). For 16 Ω cab mod, set 68.
           </div>
         </div>
 
@@ -833,7 +813,7 @@
             <div class="switch-box engaged" id="sw2"><div class="switch-label">SW2 · −7 dB</div><div class="switch-state">In</div></div>
             <div class="switch-box engaged" id="sw3"><div class="switch-label">SW3 · −3.5 dB</div><div class="switch-state">In</div></div>
           </div>
-          <div class="switch-footer">Stage 1: −7 dB reactive when engaged · True Bypass (0 dB) overrides all switches · max total ≈ −31.5 dB</div>
+          <div class="switch-footer">In = wiper on T2 (pad in) · Bypass = wiper on T1 (pad shorted). Stage 1: −7 dB reactive when engaged · SW4 True Bypass (0 dB) overrides all switches · max total ≈ −31.5 dB</div>
         </div>
 
         </div><!-- /stage-block -->
@@ -910,242 +890,363 @@
       <div class="panel">
         <div class="panel-header">
           <span>Network</span>
-          <span class="meta">4-stage L-pad ladder</span>
+          <span class="meta">4-stage L-pad ladder · SW4 4PDT true bypass</span>
         </div>
         <div class="panel-body schematic-body">
-        <svg class="schematic" viewBox="0 -28 460 175" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <!-- Top + bottom rails, split so the segments between each pole and its engaged-throw
-               contact (the bits the bypass wipers overlay in engaged mode) can be hidden in bypass.
-               Without that, the disconnected engaged-throw contacts visually appear "still wired" to
-               the poles via the grey rail. -->
-          <!-- Top rail: network span + post-P2 output span -->
-          <line x1="32"  y1="22" x2="316" y2="22" stroke="currentColor" stroke-width="0.8" opacity="0.55"/>
-          <line x1="320" y1="22" x2="435" y2="22" stroke="currentColor" stroke-width="0.8" opacity="0.55"/>
-          <!-- Top pole-stubs: only visible when engaged (= the path the orange wiper overlays) -->
-          <line id="rail-stub-bp1" x1="22"  y1="22" x2="32"  y2="22" stroke="currentColor" stroke-width="0.8" opacity="0.55"/>
-          <line id="rail-stub-bp2" x1="316" y1="22" x2="320" y2="22" stroke="currentColor" stroke-width="0.8" opacity="0.55"/>
-          <!-- Bottom rail: same split -->
-          <line x1="32"  y1="92" x2="316" y2="92" stroke="currentColor" stroke-width="0.8" opacity="0.55"/>
-          <line x1="320" y1="92" x2="435" y2="92" stroke="currentColor" stroke-width="0.8" opacity="0.55"/>
-          <line id="rail-stub-bp3" x1="22"  y1="92" x2="32"  y2="92" stroke="currentColor" stroke-width="0.8" opacity="0.55"/>
-          <line id="rail-stub-bp4" x1="316" y1="92" x2="320" y2="92" stroke="currentColor" stroke-width="0.8" opacity="0.55"/>
+        <svg class="schematic" viewBox="0 -60 720 285" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
 
-          <!-- ===== 4PDT TRUE BYPASS (T-side: P1, P2) ===== -->
-          <!-- Bypass wire across the top; in engaged mode this is dim; in bypass it's bright. -->
-          <line id="bypass-wire" x1="22" y1="-15" x2="432" y2="-15" stroke="var(--orange)" opacity="0.25" stroke-width="1.4"/>
-          <text x="138" y="-18" fill="var(--orange)" opacity="0.7" font-family="Geist Mono, ui-monospace, monospace" font-size="7">4PDT TRUE BYPASS</text>
-          <!-- Mechanical-link indicator: dashed line tying the two poles (ganged) -->
-          <line x1="22" y1="-3" x2="320" y2="-3" stroke="currentColor" opacity="0.25" stroke-dasharray="2,3" stroke-width="0.6"/>
+          <!-- ============ RAILS ============
+               Signal rail y=40, return rail y=130. Drawn in segments so component
+               bodies stay clean (no wire running through a resistor box). The
+               output-side rails are a separate net: they are only live through the
+               SW4c / SW4d commons. -->
+          <line x1="96"  y1="40" x2="100" y2="40" stroke="currentColor" stroke-width="0.9" opacity="0.55"/>
+          <line x1="162" y1="40" x2="240" y2="40" stroke="currentColor" stroke-width="0.9" opacity="0.55"/>
+          <line x1="272" y1="40" x2="332" y2="40" stroke="currentColor" stroke-width="0.9" opacity="0.55"/>
+          <line x1="364" y1="40" x2="424" y2="40" stroke="currentColor" stroke-width="0.9" opacity="0.55"/>
+          <line x1="456" y1="40" x2="466" y2="40" stroke="currentColor" stroke-width="0.9" opacity="0.55"/>
+          <line x1="96"  y1="130" x2="466" y2="130" stroke="currentColor" stroke-width="0.9" opacity="0.55"/>
+          <line x1="512" y1="40"  x2="622" y2="40"  stroke="currentColor" stroke-width="0.9" opacity="0.55"/>
+          <line x1="512" y1="130" x2="664" y2="130" stroke="currentColor" stroke-width="0.9" opacity="0.55"/>
 
-          <!-- Pole 1 (input side, intercepts top rail at x=22) -->
-          <line x1="22" y1="-15" x2="22" y2="-8" stroke="var(--orange)" opacity="0.7"/>
-          <circle id="contact-bp1-byp" cx="22" cy="-8" r="1.4" fill="none" stroke="var(--orange)" stroke-width="0.8"/>
-          <circle id="contact-bp1-eng" cx="32" cy="22" r="1.4" fill="var(--orange)"/>
-          <circle cx="22" cy="22" r="1.5" fill="currentColor" opacity="0.7"/>
-          <line id="wiper-bp1" x1="22" y1="22" x2="32" y2="22" stroke="var(--orange)" stroke-width="1.4"/>
-          <text x="8" y="2" fill="var(--orange)" opacity="0.7" font-family="Geist Mono, ui-monospace, monospace" font-size="7">P1</text>
+          <!-- ============ INPUT JACK ============ -->
+          <text x="6" y="44" fill="currentColor" opacity="0.6" font-family="Geist Mono, ui-monospace, monospace" font-size="10">IN</text>
+          <rect x="6" y="50" width="18" height="36" fill="none" stroke="currentColor" stroke-width="0.7" opacity="0.5"/>
+          <line x1="13" y1="58" x2="24" y2="58" stroke="currentColor" opacity="0.7" stroke-width="1.2"/>
+          <text x="7" y="61" fill="currentColor" opacity="0.5" font-family="Geist Mono, ui-monospace, monospace" font-size="8">T</text>
+          <line x1="13" y1="78" x2="24" y2="78" stroke="currentColor" opacity="0.7" stroke-width="1.2"/>
+          <text x="7" y="81" fill="currentColor" opacity="0.5" font-family="Geist Mono, ui-monospace, monospace" font-size="8">S</text>
+          <line x1="24" y1="58" x2="34" y2="58" stroke="currentColor" opacity="0.55"/>
+          <line x1="34" y1="58" x2="34" y2="40" stroke="currentColor" opacity="0.55"/>
+          <line x1="34" y1="40" x2="46" y2="40" stroke="currentColor" opacity="0.55"/>
+          <line x1="24" y1="78" x2="34" y2="78" stroke="currentColor" opacity="0.55"/>
+          <line x1="34" y1="78" x2="34" y2="130" stroke="currentColor" opacity="0.55"/>
+          <line x1="34" y1="130" x2="46" y2="130" stroke="currentColor" opacity="0.55"/>
 
-          <!-- Pole 2 (output side, intercepts top rail at x=320) -->
-          <line x1="320" y1="-15" x2="320" y2="-8" stroke="var(--orange)" opacity="0.7"/>
-          <circle id="contact-bp2-byp" cx="320" cy="-8" r="1.4" fill="none" stroke="var(--orange)" stroke-width="0.8"/>
-          <circle id="contact-bp2-eng" cx="316" cy="22" r="1.4" fill="var(--orange)"/>
-          <circle cx="320" cy="22" r="1.5" fill="currentColor" opacity="0.7"/>
-          <line id="wiper-bp2" x1="320" y1="22" x2="316" y2="22" stroke="var(--orange)" stroke-width="1.4"/>
-          <text x="306" y="2" fill="var(--orange)" opacity="0.7" font-family="Geist Mono, ui-monospace, monospace" font-size="7">P2</text>
+          <!-- ============ SW4 · 4PDT TRUE BYPASS ============
+               Four ganged SPDT sections, SW4a..SW4d. Each is drawn as a proper
+               single-pole double-throw: the COMMON (pole) carries the jack
+               connection, and the wiper swings between two equidistant throws —
+               T1 = bypass net, T2 = attenuator network. -->
 
-          <!-- ===== R11 BYPASS: extend bypass jumper to Out3 Tip directly =====
-               Engaged: bypass wire floats, drop is a passive stub at Out3 Tip potential (R11 still active).
-               Bypass : bypass wire carries signal, drop puts Out3 Tip at signal level → R11 has both ends
-                        at the same potential, no current/drop. -->
-          <line id="bypass-out3-drop" x1="432" y1="-15" x2="432" y2="46" stroke="var(--orange)" opacity="0.25" stroke-width="1.4"/>
-          <circle id="bypass-out3-junction" cx="432" cy="46" r="1.4" fill="var(--orange)" opacity="0.25"/>
-          <text x="402" y="-18" fill="var(--orange)" opacity="0.7" font-family="Geist Mono, ui-monospace, monospace" font-size="7">&#8594; Out3</text>
+          <!-- tip bypass net : SW4a.T1 (lug 1) <-> SW4c.T1 (lug 7), extended to Out3 tip -->
+          <line id="bypass-wire"  x1="70" y1="-30" x2="663" y2="-30" stroke="var(--orange)" opacity="0.25" stroke-width="1.5"/>
+          <line id="bypass-riseA" x1="70" y1="-30" x2="70"  y2="22"  stroke="var(--orange)" opacity="0.25" stroke-width="1.5"/>
+          <line id="bypass-riseC" x1="488" y1="-30" x2="488" y2="22" stroke="var(--orange)" opacity="0.25" stroke-width="1.5"/>
+          <circle id="bypass-dotC" cx="488" cy="-30" r="2" fill="var(--orange)" opacity="0.25"/>
+          <line id="bypass-out3-drop" x1="663" y1="-30" x2="663" y2="60" stroke="var(--orange)" opacity="0.25" stroke-width="1.5"/>
+          <circle id="bypass-out3-junction" cx="663" cy="60" r="2" fill="var(--orange)" opacity="0.25"/>
+          <text x="598" y="-34" fill="var(--orange)" opacity="0.75" font-family="Geist Mono, ui-monospace, monospace" font-size="9">&#8594; Out3 tip (shunts R11)</text>
+          <text x="240" y="-34" fill="var(--orange)" opacity="0.75" font-family="Geist Mono, ui-monospace, monospace" font-size="10">SW4 &#183; 4PDT TRUE BYPASS &#183; tip net</text>
 
-          <!-- ===== SLEEVE-SIDE BYPASS (P3, P4) — bottom mirror of T-side ===== -->
-          <!-- Bypass wire across the bottom; bright when bypass is active. -->
-          <line id="bypass-wire-s" x1="22" y1="129" x2="320" y2="129" stroke="var(--orange)" opacity="0.25" stroke-width="1.4"/>
-          <!-- Mechanical-link indicator (ganged) for sleeve poles -->
-          <line x1="22" y1="117" x2="320" y2="117" stroke="currentColor" opacity="0.25" stroke-dasharray="2,3" stroke-width="0.6"/>
+          <!-- sleeve bypass net : SW4b.T1 (lug 4) <-> SW4d.T1 (lug 10) -->
+          <line id="bypass-wire-s" x1="70" y1="190" x2="488" y2="190" stroke="var(--orange)" opacity="0.25" stroke-width="1.5"/>
+          <line id="bypass-riseB"  x1="70" y1="148" x2="70"  y2="190" stroke="var(--orange)" opacity="0.25" stroke-width="1.5"/>
+          <line id="bypass-riseD"  x1="488" y1="148" x2="488" y2="190" stroke="var(--orange)" opacity="0.25" stroke-width="1.5"/>
+          <text x="240" y="203" fill="var(--orange)" opacity="0.75" font-family="Geist Mono, ui-monospace, monospace" font-size="10">SW4 &#183; sleeve (return) net</text>
 
-          <!-- Pole 3 (input sleeve side, intercepts bottom rail at x=22) -->
-          <line x1="22" y1="129" x2="22" y2="122" stroke="var(--orange)" opacity="0.7"/>
-          <circle id="contact-bp3-byp" cx="22" cy="122" r="1.4" fill="none" stroke="var(--orange)" stroke-width="0.8"/>
-          <circle id="contact-bp3-eng" cx="32" cy="92" r="1.4" fill="var(--orange)"/>
-          <circle cx="22" cy="92" r="1.5" fill="currentColor" opacity="0.7"/>
-          <line id="wiper-bp3" x1="22" y1="92" x2="32" y2="92" stroke="var(--orange)" stroke-width="1.4"/>
-          <text x="8" y="140" fill="var(--orange)" opacity="0.7" font-family="Geist Mono, ui-monospace, monospace" font-size="7">P3</text>
+          <!-- ganging indicator: dashed mechanical link across each pair of wipers -->
+          <line x1="58"  y1="46" x2="58"  y2="124" stroke="currentColor" opacity="0.3" stroke-dasharray="2,3" stroke-width="0.7"/>
+          <line x1="500" y1="46" x2="500" y2="124" stroke="currentColor" opacity="0.3" stroke-dasharray="2,3" stroke-width="0.7"/>
 
-          <!-- Pole 4 (output sleeve side, intercepts bottom rail at x=320) -->
-          <line x1="320" y1="129" x2="320" y2="122" stroke="var(--orange)" opacity="0.7"/>
-          <circle id="contact-bp4-byp" cx="320" cy="122" r="1.4" fill="none" stroke="var(--orange)" stroke-width="0.8"/>
-          <circle id="contact-bp4-eng" cx="316" cy="92" r="1.4" fill="var(--orange)"/>
-          <circle cx="320" cy="92" r="1.5" fill="currentColor" opacity="0.7"/>
-          <line id="wiper-bp4" x1="320" y1="92" x2="316" y2="92" stroke="var(--orange)" stroke-width="1.4"/>
-          <text x="306" y="140" fill="var(--orange)" opacity="0.7" font-family="Geist Mono, ui-monospace, monospace" font-size="7">P4</text>
+          <!-- SW4a : input tip -->
+          <text x="46" y="16" fill="var(--orange)" font-family="Geist Mono, ui-monospace, monospace" font-size="10" text-anchor="middle">SW4a</text>
+          <circle cx="46" cy="40" r="3" fill="var(--orange)"/>
+          <text x="40" y="54" fill="var(--orange)" opacity="0.75" font-family="Geist Mono, ui-monospace, monospace" font-size="8" text-anchor="end">C&#183;2</text>
+          <circle id="contact-bp1-byp" cx="70" cy="22" r="2.5" fill="none" stroke="var(--orange)" stroke-width="1"/>
+          <text x="78" y="20" fill="var(--orange)" opacity="0.75" font-family="Geist Mono, ui-monospace, monospace" font-size="8">T1&#183;1</text>
+          <circle id="contact-bp1-eng" cx="70" cy="58" r="2.5" fill="var(--orange)"/>
+          <text x="66" y="72" fill="var(--orange)" opacity="0.75" font-family="Geist Mono, ui-monospace, monospace" font-size="8" text-anchor="end">T2&#183;3</text>
+          <line id="wiper-bp1" x1="46" y1="40" x2="70" y2="58" stroke="var(--orange)" stroke-width="1.6"/>
+          <line x1="70" y1="58" x2="84" y2="58" stroke="currentColor" opacity="0.55"/>
+          <line x1="84" y1="58" x2="84" y2="40" stroke="currentColor" opacity="0.55"/>
+          <line x1="84" y1="40" x2="96" y2="40" stroke="currentColor" opacity="0.55"/>
 
-          <!-- ===== Input TS jack ===== -->
-          <text x="2" y="36" fill="currentColor" opacity="0.6" font-family="Geist Mono, ui-monospace, monospace" font-size="7">IN</text>
-          <rect x="2" y="40" width="14" height="28" fill="none" stroke="currentColor" stroke-width="0.6" opacity="0.5"/>
-          <line x1="8" y1="46" x2="14" y2="46" stroke="currentColor" opacity="0.7" stroke-width="1.2"/>
-          <text x="3" y="50" fill="currentColor" opacity="0.5" font-family="Geist Mono, ui-monospace, monospace" font-size="6">T</text>
-          <line x1="8" y1="60" x2="14" y2="60" stroke="currentColor" opacity="0.7" stroke-width="1.2"/>
-          <text x="3" y="64" fill="currentColor" opacity="0.5" font-family="Geist Mono, ui-monospace, monospace" font-size="6">S</text>
-          <line x1="14" y1="46" x2="22" y2="46" stroke="currentColor" opacity="0.55"/>
-          <line x1="22" y1="46" x2="22" y2="22" stroke="currentColor" opacity="0.55"/>
-          <line x1="14" y1="60" x2="22" y2="60" stroke="currentColor" opacity="0.55"/>
-          <line x1="22" y1="60" x2="22" y2="92" stroke="currentColor" opacity="0.55"/>
+          <!-- SW4b : input sleeve -->
+          <text x="46" y="170" fill="var(--orange)" font-family="Geist Mono, ui-monospace, monospace" font-size="10" text-anchor="middle">SW4b</text>
+          <circle cx="46" cy="130" r="3" fill="var(--orange)"/>
+          <text x="40" y="124" fill="var(--orange)" opacity="0.75" font-family="Geist Mono, ui-monospace, monospace" font-size="8" text-anchor="end">C&#183;5</text>
+          <circle id="contact-bp3-byp" cx="70" cy="148" r="2.5" fill="none" stroke="var(--orange)" stroke-width="1"/>
+          <text x="78" y="152" fill="var(--orange)" opacity="0.75" font-family="Geist Mono, ui-monospace, monospace" font-size="8">T1&#183;4</text>
+          <circle id="contact-bp3-eng" cx="70" cy="112" r="2.5" fill="var(--orange)"/>
+          <text x="66" y="104" fill="var(--orange)" opacity="0.75" font-family="Geist Mono, ui-monospace, monospace" font-size="8" text-anchor="end">T2&#183;6</text>
+          <line id="wiper-bp3" x1="46" y1="130" x2="70" y2="112" stroke="var(--orange)" stroke-width="1.6"/>
+          <line x1="70" y1="112" x2="84" y2="112" stroke="currentColor" opacity="0.55"/>
+          <line x1="84" y1="112" x2="84" y2="130" stroke="currentColor" opacity="0.55"/>
+          <line x1="84" y1="130" x2="96" y2="130" stroke="currentColor" opacity="0.55"/>
 
-          <!-- Stage 1: R2A series A→B on top rail; L1+R2B branch below with internal node M; R1 from M down to GND. -->
-          <rect x="32" y="18" width="42" height="8" fill="none" stroke="var(--accent)" stroke-width="1.2"/>
-          <text x="46" y="14" fill="var(--accent)" font-family="Geist Mono, ui-monospace, monospace" font-size="8">R2A</text>
-          <!-- L1+R2B path: A → down → L1 → right → node M → right → R2B → up → B -->
-          <line x1="32" y1="26" x2="32" y2="42" stroke="var(--accent)" stroke-width="1.2"/>
-          <rect x="28" y="42" width="8" height="10" fill="none" stroke="var(--accent)" stroke-width="1.2"/>
-          <text x="38" y="49" fill="var(--accent)" font-family="Geist Mono, ui-monospace, monospace" font-size="8">L1</text>
-          <line x1="32" y1="52" x2="32" y2="62" stroke="var(--accent)" stroke-width="1.2"/>
-          <!-- Node M -->
-          <line x1="32" y1="62" x2="74" y2="62" stroke="var(--accent)" stroke-width="1.2"/>
-          <circle cx="53" cy="62" r="1.2" fill="var(--accent)"/>
-          <text x="46" y="59" fill="var(--accent)" font-family="Geist Mono, ui-monospace, monospace" font-size="7">M</text>
-          <!-- R2B from M to B -->
-          <line x1="74" y1="62" x2="74" y2="52" stroke="var(--accent)" stroke-width="1.2"/>
-          <rect x="70" y="42" width="8" height="10" fill="none" stroke="var(--accent)" stroke-width="1.2"/>
-          <text x="53" y="49" fill="var(--accent)" font-family="Geist Mono, ui-monospace, monospace" font-size="8">R2B</text>
-          <line x1="74" y1="42" x2="74" y2="26" stroke="var(--accent)" stroke-width="1.2"/>
-          <!-- R1 from M to ground -->
-          <line x1="53" y1="62" x2="53" y2="72" stroke="var(--accent)" stroke-width="1.2"/>
-          <rect x="49" y="72" width="8" height="10" fill="none" stroke="var(--accent)" stroke-width="1.2"/>
-          <line x1="53" y1="82" x2="53" y2="92" stroke="var(--accent)" stroke-width="1.2"/>
-          <text x="60" y="79" fill="var(--accent)" font-family="Geist Mono, ui-monospace, monospace" font-size="8">R1</text>
+          <!-- ============ STAGE 1 — compensated (no switch of its own) ============ -->
+          <circle cx="96" cy="40" r="2.2" fill="var(--accent)"/>
+          <text x="92" y="30" fill="var(--accent)" font-family="Geist Mono, ui-monospace, monospace" font-size="9" text-anchor="middle">A</text>
+          <rect x="100" y="34" width="62" height="12" fill="none" stroke="var(--accent)" stroke-width="1.3"/>
+          <text x="131" y="30" fill="var(--accent)" font-family="Geist Mono, ui-monospace, monospace" font-size="11" text-anchor="middle">R2A</text>
+          <circle cx="166" cy="40" r="2.2" fill="var(--accent)"/>
+          <text x="172" y="30" fill="var(--accent)" font-family="Geist Mono, ui-monospace, monospace" font-size="9">B</text>
+          <line x1="96" y1="46" x2="96" y2="52" stroke="var(--accent)" stroke-width="1.3"/>
+          <path d="M 96 52 A 6 6 0 0 0 96 66 A 6 6 0 0 0 96 80" fill="none" stroke="var(--accent)" stroke-width="1.3"/>
+          <line x1="96" y1="80" x2="96" y2="88" stroke="var(--accent)" stroke-width="1.3"/>
+          <text x="108" y="70" fill="var(--accent)" font-family="Geist Mono, ui-monospace, monospace" font-size="11">L1</text>
+          <line x1="96" y1="88" x2="166" y2="88" stroke="var(--accent)" stroke-width="1.3"/>
+          <circle cx="128" cy="88" r="2.6" fill="var(--accent)"/>
+          <text x="128" y="82" fill="var(--accent)" font-family="Geist Mono, ui-monospace, monospace" font-size="9" text-anchor="middle">M</text>
+          <line x1="166" y1="88" x2="166" y2="80" stroke="var(--accent)" stroke-width="1.3"/>
+          <rect x="160" y="56" width="12" height="24" fill="none" stroke="var(--accent)" stroke-width="1.3"/>
+          <text x="176" y="70" fill="var(--accent)" font-family="Geist Mono, ui-monospace, monospace" font-size="11">R2B</text>
+          <line x1="166" y1="56" x2="166" y2="46" stroke="var(--accent)" stroke-width="1.3"/>
+          <line x1="128" y1="88" x2="128" y2="96" stroke="var(--accent)" stroke-width="1.3"/>
+          <rect x="122" y="96" width="12" height="24" fill="none" stroke="var(--accent)" stroke-width="1.3"/>
+          <text x="138" y="112" fill="var(--accent)" font-family="Geist Mono, ui-monospace, monospace" font-size="11">R1</text>
+          <line x1="128" y1="120" x2="128" y2="130" stroke="var(--accent)" stroke-width="1.3"/>
+          <circle cx="128" cy="130" r="2.2" fill="currentColor" opacity="0.7"/>
 
-          <!-- Stages 2-4: SPDT shown in engaged position. Wiper on top rail before R-series.
-               Engaged contact (filled) → through R3/R5/R7 to GND. Bypass contact (open) → wire
-               around R-series to after-R-series node. -->
+          <!-- ============ STAGE 2 : SW1 / R4 series / R3 shunt ============
+               Common sits on the signal rail ahead of the series R. Wiper down-left
+               to T2 = pad in (shunt to return, series R stays in path); down-right
+               to T1 = pad out (jumper shorts the series R, shunt floats). -->
+          <text x="210" y="18" fill="var(--orange)" font-family="Geist Mono, ui-monospace, monospace" font-size="10" text-anchor="middle">SW1</text>
+          <circle cx="210" cy="40" r="3" fill="var(--orange)"/>
+          <text x="216" y="34" fill="var(--orange)" opacity="0.75" font-family="Geist Mono, ui-monospace, monospace" font-size="8">C</text>
+          <line id="wiper-sw1" x1="210" y1="40" x2="196" y2="60" stroke="var(--orange)" stroke-width="1.6"/>
+          <circle id="contact-sw1-eng" cx="196" cy="60" r="2.5" fill="var(--orange)"/>
+          <text x="190" y="56" fill="var(--orange)" opacity="0.75" font-family="Geist Mono, ui-monospace, monospace" font-size="8" text-anchor="end">T2</text>
+          <circle id="contact-sw1-byp" cx="224" cy="60" r="2.5" fill="none" stroke="var(--orange)" stroke-width="1"/>
+          <text x="230" y="66" fill="var(--orange)" opacity="0.75" font-family="Geist Mono, ui-monospace, monospace" font-size="8">T1</text>
+          <line x1="196" y1="60" x2="196" y2="68" stroke="currentColor" opacity="0.55"/>
+          <rect x="190" y="68" width="12" height="24" fill="none" stroke="var(--accent)" stroke-width="1.3"/>
+          <text x="206" y="84" fill="var(--accent)" font-family="Geist Mono, ui-monospace, monospace" font-size="11">R3</text>
+          <line x1="196" y1="92" x2="196" y2="130" stroke="currentColor" opacity="0.55"/>
+          <circle cx="196" cy="130" r="2.2" fill="currentColor" opacity="0.7"/>
+          <rect x="240" y="34" width="32" height="12" fill="none" stroke="var(--accent)" stroke-width="1.3"/>
+          <text x="256" y="30" fill="var(--accent)" font-family="Geist Mono, ui-monospace, monospace" font-size="11" text-anchor="middle">R4</text>
+          <line x1="224" y1="60" x2="224" y2="52" stroke="currentColor" opacity="0.55"/>
+          <line x1="224" y1="52" x2="282" y2="52" stroke="currentColor" opacity="0.55"/>
+          <line x1="282" y1="52" x2="282" y2="40" stroke="currentColor" opacity="0.55"/>
+          <circle cx="282" cy="40" r="2.2" fill="currentColor" opacity="0.7"/>
 
-          <!-- ===== Stage 2: SW1 / R3 / R4 ===== -->
-          <rect x="118" y="18" width="34" height="8" fill="none" stroke="var(--accent)" stroke-width="1.2"/>
-          <text x="128" y="14" fill="var(--accent)" font-family="Geist Mono, ui-monospace, monospace" font-size="8">R4</text>
-          <text x="88" y="14" fill="var(--orange)" font-family="Geist Mono, ui-monospace, monospace" font-size="8">SW1</text>
-          <!-- wiper pivot on top rail -->
-          <circle cx="98" cy="22" r="1.3" fill="currentColor" opacity="0.7"/>
-          <!-- wiper arm — JS rewrites endpoint based on switch state -->
-          <line id="wiper-sw1" x1="98" y1="22" x2="92" y2="40" stroke="var(--orange)" stroke-width="1.4"/>
-          <!-- contacts: filled = active, outline = inactive; JS swaps these -->
-          <circle id="contact-sw1-eng" cx="92" cy="40" r="1.4" fill="var(--orange)"/>
-          <circle id="contact-sw1-byp" cx="104" cy="40" r="1.4" fill="none" stroke="var(--orange)" stroke-width="0.8"/>
-          <!-- R3 path: engaged contact → R3 → GND -->
-          <line x1="92" y1="40" x2="92" y2="48" stroke="currentColor" opacity="0.55"/>
-          <rect x="86" y="48" width="12" height="20" fill="none" stroke="var(--accent)" stroke-width="1.2"/>
-          <line x1="92" y1="68" x2="92" y2="92" stroke="currentColor" opacity="0.55"/>
-          <text x="100" y="60" fill="var(--accent)" font-family="Geist Mono, ui-monospace, monospace" font-size="8">R3</text>
-          <!-- bypass wire: bypass contact → up & right → top rail after R4 -->
-          <line x1="104" y1="40" x2="104" y2="34" stroke="currentColor" opacity="0.55"/>
-          <line x1="104" y1="34" x2="160" y2="34" stroke="currentColor" opacity="0.55"/>
-          <line x1="160" y1="34" x2="160" y2="22" stroke="currentColor" opacity="0.55"/>
-          <circle cx="160" cy="22" r="1.3" fill="currentColor" opacity="0.7"/>
+          <!-- ============ STAGE 3 : SW2 / R6 / R5 ============ -->
+          <text x="302" y="18" fill="var(--orange)" font-family="Geist Mono, ui-monospace, monospace" font-size="10" text-anchor="middle">SW2</text>
+          <circle cx="302" cy="40" r="3" fill="var(--orange)"/>
+          <text x="308" y="34" fill="var(--orange)" opacity="0.75" font-family="Geist Mono, ui-monospace, monospace" font-size="8">C</text>
+          <line id="wiper-sw2" x1="302" y1="40" x2="288" y2="60" stroke="var(--orange)" stroke-width="1.6"/>
+          <circle id="contact-sw2-eng" cx="288" cy="60" r="2.5" fill="var(--orange)"/>
+          <text x="282" y="56" fill="var(--orange)" opacity="0.75" font-family="Geist Mono, ui-monospace, monospace" font-size="8" text-anchor="end">T2</text>
+          <circle id="contact-sw2-byp" cx="316" cy="60" r="2.5" fill="none" stroke="var(--orange)" stroke-width="1"/>
+          <text x="322" y="66" fill="var(--orange)" opacity="0.75" font-family="Geist Mono, ui-monospace, monospace" font-size="8">T1</text>
+          <line x1="288" y1="60" x2="288" y2="68" stroke="currentColor" opacity="0.55"/>
+          <rect x="282" y="68" width="12" height="24" fill="none" stroke="var(--accent)" stroke-width="1.3"/>
+          <text x="298" y="84" fill="var(--accent)" font-family="Geist Mono, ui-monospace, monospace" font-size="11">R5</text>
+          <line x1="288" y1="92" x2="288" y2="130" stroke="currentColor" opacity="0.55"/>
+          <circle cx="288" cy="130" r="2.2" fill="currentColor" opacity="0.7"/>
+          <rect x="332" y="34" width="32" height="12" fill="none" stroke="var(--accent)" stroke-width="1.3"/>
+          <text x="348" y="30" fill="var(--accent)" font-family="Geist Mono, ui-monospace, monospace" font-size="11" text-anchor="middle">R6</text>
+          <line x1="316" y1="60" x2="316" y2="52" stroke="currentColor" opacity="0.55"/>
+          <line x1="316" y1="52" x2="374" y2="52" stroke="currentColor" opacity="0.55"/>
+          <line x1="374" y1="52" x2="374" y2="40" stroke="currentColor" opacity="0.55"/>
+          <circle cx="374" cy="40" r="2.2" fill="currentColor" opacity="0.7"/>
 
-          <!-- ===== Stage 3: SW2 / R5 / R6 ===== -->
-          <rect x="196" y="18" width="34" height="8" fill="none" stroke="var(--accent)" stroke-width="1.2"/>
-          <text x="206" y="14" fill="var(--accent)" font-family="Geist Mono, ui-monospace, monospace" font-size="8">R6</text>
-          <text x="166" y="14" fill="var(--orange)" font-family="Geist Mono, ui-monospace, monospace" font-size="8">SW2</text>
-          <circle cx="176" cy="22" r="1.3" fill="currentColor" opacity="0.7"/>
-          <line id="wiper-sw2" x1="176" y1="22" x2="170" y2="40" stroke="var(--orange)" stroke-width="1.4"/>
-          <circle id="contact-sw2-eng" cx="170" cy="40" r="1.4" fill="var(--orange)"/>
-          <circle id="contact-sw2-byp" cx="182" cy="40" r="1.4" fill="none" stroke="var(--orange)" stroke-width="0.8"/>
-          <line x1="170" y1="40" x2="170" y2="48" stroke="currentColor" opacity="0.55"/>
-          <rect x="164" y="48" width="12" height="20" fill="none" stroke="var(--accent)" stroke-width="1.2"/>
-          <line x1="170" y1="68" x2="170" y2="92" stroke="currentColor" opacity="0.55"/>
-          <text x="178" y="60" fill="var(--accent)" font-family="Geist Mono, ui-monospace, monospace" font-size="8">R5</text>
-          <line x1="182" y1="40" x2="182" y2="34" stroke="currentColor" opacity="0.55"/>
-          <line x1="182" y1="34" x2="238" y2="34" stroke="currentColor" opacity="0.55"/>
-          <line x1="238" y1="34" x2="238" y2="22" stroke="currentColor" opacity="0.55"/>
-          <circle cx="238" cy="22" r="1.3" fill="currentColor" opacity="0.7"/>
+          <!-- ============ STAGE 4 : SW3 / R8 / R7 ============ -->
+          <text x="394" y="18" fill="var(--orange)" font-family="Geist Mono, ui-monospace, monospace" font-size="10" text-anchor="middle">SW3</text>
+          <circle cx="394" cy="40" r="3" fill="var(--orange)"/>
+          <text x="400" y="34" fill="var(--orange)" opacity="0.75" font-family="Geist Mono, ui-monospace, monospace" font-size="8">C</text>
+          <line id="wiper-sw3" x1="394" y1="40" x2="380" y2="60" stroke="var(--orange)" stroke-width="1.6"/>
+          <circle id="contact-sw3-eng" cx="380" cy="60" r="2.5" fill="var(--orange)"/>
+          <text x="374" y="56" fill="var(--orange)" opacity="0.75" font-family="Geist Mono, ui-monospace, monospace" font-size="8" text-anchor="end">T2</text>
+          <circle id="contact-sw3-byp" cx="408" cy="60" r="2.5" fill="none" stroke="var(--orange)" stroke-width="1"/>
+          <text x="414" y="66" fill="var(--orange)" opacity="0.75" font-family="Geist Mono, ui-monospace, monospace" font-size="8">T1</text>
+          <line x1="380" y1="60" x2="380" y2="68" stroke="currentColor" opacity="0.55"/>
+          <rect x="374" y="68" width="12" height="24" fill="none" stroke="var(--accent)" stroke-width="1.3"/>
+          <text x="390" y="84" fill="var(--accent)" font-family="Geist Mono, ui-monospace, monospace" font-size="11">R7</text>
+          <line x1="380" y1="92" x2="380" y2="130" stroke="currentColor" opacity="0.55"/>
+          <circle cx="380" cy="130" r="2.2" fill="currentColor" opacity="0.7"/>
+          <rect x="424" y="34" width="32" height="12" fill="none" stroke="var(--accent)" stroke-width="1.3"/>
+          <text x="440" y="30" fill="var(--accent)" font-family="Geist Mono, ui-monospace, monospace" font-size="11" text-anchor="middle">R8</text>
+          <line x1="408" y1="60" x2="408" y2="52" stroke="currentColor" opacity="0.55"/>
+          <line x1="408" y1="52" x2="466" y2="52" stroke="currentColor" opacity="0.55"/>
+          <line x1="466" y1="52" x2="466" y2="40" stroke="currentColor" opacity="0.55"/>
+          <circle cx="466" cy="40" r="2.2" fill="currentColor" opacity="0.7"/>
 
-          <!-- ===== Stage 4: SW3 / R7 / R8 ===== -->
-          <rect x="274" y="18" width="34" height="8" fill="none" stroke="var(--accent)" stroke-width="1.2"/>
-          <text x="284" y="14" fill="var(--accent)" font-family="Geist Mono, ui-monospace, monospace" font-size="8">R8</text>
-          <text x="244" y="14" fill="var(--orange)" font-family="Geist Mono, ui-monospace, monospace" font-size="8">SW3</text>
-          <circle cx="254" cy="22" r="1.3" fill="currentColor" opacity="0.7"/>
-          <line id="wiper-sw3" x1="254" y1="22" x2="248" y2="40" stroke="var(--orange)" stroke-width="1.4"/>
-          <circle id="contact-sw3-eng" cx="248" cy="40" r="1.4" fill="var(--orange)"/>
-          <circle id="contact-sw3-byp" cx="260" cy="40" r="1.4" fill="none" stroke="var(--orange)" stroke-width="0.8"/>
-          <line x1="248" y1="40" x2="248" y2="48" stroke="currentColor" opacity="0.55"/>
-          <rect x="242" y="48" width="12" height="20" fill="none" stroke="var(--accent)" stroke-width="1.2"/>
-          <line x1="248" y1="68" x2="248" y2="92" stroke="currentColor" opacity="0.55"/>
-          <text x="256" y="60" fill="var(--accent)" font-family="Geist Mono, ui-monospace, monospace" font-size="8">R7</text>
-          <line x1="260" y1="40" x2="260" y2="34" stroke="currentColor" opacity="0.55"/>
-          <line x1="260" y1="34" x2="316" y2="34" stroke="currentColor" opacity="0.55"/>
-          <line x1="316" y1="34" x2="316" y2="22" stroke="currentColor" opacity="0.55"/>
-          <circle cx="316" cy="22" r="1.3" fill="currentColor" opacity="0.7"/>
+          <!-- network out -> SW4c.T2 ; network return -> SW4d.T2 -->
+          <line x1="466" y1="40" x2="466" y2="58" stroke="currentColor" opacity="0.55"/>
+          <line x1="466" y1="58" x2="488" y2="58" stroke="currentColor" opacity="0.55"/>
+          <line x1="466" y1="130" x2="466" y2="112" stroke="currentColor" opacity="0.55"/>
+          <line x1="466" y1="112" x2="488" y2="112" stroke="currentColor" opacity="0.55"/>
 
-          <!-- ===== Out 1 TS jack (8 Ω or 16 Ω cab) ===== -->
-          <text x="343" y="36" fill="currentColor" opacity="0.6" font-family="Geist Mono, ui-monospace, monospace" font-size="7">Out1</text>
-          <rect x="343" y="40" width="14" height="28" fill="none" stroke="currentColor" stroke-width="0.6" opacity="0.5"/>
-          <line x1="349" y1="46" x2="357" y2="46" stroke="currentColor" opacity="0.7" stroke-width="1.2"/>
-          <text x="357" y="50" fill="currentColor" opacity="0.5" font-family="Geist Mono, ui-monospace, monospace" font-size="6">T</text>
-          <line x1="349" y1="60" x2="357" y2="60" stroke="currentColor" opacity="0.7" stroke-width="1.2"/>
-          <text x="357" y="64" fill="currentColor" opacity="0.5" font-family="Geist Mono, ui-monospace, monospace" font-size="6">S</text>
-          <line x1="343" y1="46" x2="338" y2="46" stroke="currentColor" opacity="0.55"/>
-          <line x1="338" y1="46" x2="338" y2="22" stroke="currentColor" opacity="0.55"/>
-          <line x1="343" y1="60" x2="338" y2="60" stroke="currentColor" opacity="0.55"/>
-          <line x1="338" y1="60" x2="338" y2="92" stroke="currentColor" opacity="0.55"/>
-          <circle cx="338" cy="22" r="1.2" fill="currentColor" opacity="0.7"/>
-          <circle cx="338" cy="92" r="1.2" fill="currentColor" opacity="0.7"/>
+          <!-- SW4c : output tip -->
+          <text x="512" y="16" fill="var(--orange)" font-family="Geist Mono, ui-monospace, monospace" font-size="10" text-anchor="middle">SW4c</text>
+          <circle cx="512" cy="40" r="3" fill="var(--orange)"/>
+          <text x="518" y="54" fill="var(--orange)" opacity="0.75" font-family="Geist Mono, ui-monospace, monospace" font-size="8">C&#183;8</text>
+          <circle id="contact-bp2-byp" cx="488" cy="22" r="2.5" fill="none" stroke="var(--orange)" stroke-width="1"/>
+          <text x="482" y="20" fill="var(--orange)" opacity="0.75" font-family="Geist Mono, ui-monospace, monospace" font-size="8" text-anchor="end">T1&#183;7</text>
+          <circle id="contact-bp2-eng" cx="488" cy="58" r="2.5" fill="var(--orange)"/>
+          <text x="492" y="72" fill="var(--orange)" opacity="0.75" font-family="Geist Mono, ui-monospace, monospace" font-size="8">T2&#183;9</text>
+          <line id="wiper-bp2" x1="512" y1="40" x2="488" y2="58" stroke="var(--orange)" stroke-width="1.6"/>
 
-          <!-- ===== Out 2 TS jack (parallel — second cab for two 16 Ω = 8 Ω) ===== -->
-          <text x="375" y="36" fill="currentColor" opacity="0.6" font-family="Geist Mono, ui-monospace, monospace" font-size="7">Out2</text>
-          <rect x="375" y="40" width="14" height="28" fill="none" stroke="currentColor" stroke-width="0.6" opacity="0.5"/>
-          <line x1="381" y1="46" x2="389" y2="46" stroke="currentColor" opacity="0.7" stroke-width="1.2"/>
-          <text x="389" y="50" fill="currentColor" opacity="0.5" font-family="Geist Mono, ui-monospace, monospace" font-size="6">T</text>
-          <line x1="381" y1="60" x2="389" y2="60" stroke="currentColor" opacity="0.7" stroke-width="1.2"/>
-          <text x="389" y="64" fill="currentColor" opacity="0.5" font-family="Geist Mono, ui-monospace, monospace" font-size="6">S</text>
-          <line x1="375" y1="46" x2="370" y2="46" stroke="currentColor" opacity="0.55"/>
-          <line x1="370" y1="46" x2="370" y2="22" stroke="currentColor" opacity="0.55"/>
-          <line x1="375" y1="60" x2="370" y2="60" stroke="currentColor" opacity="0.55"/>
-          <line x1="370" y1="60" x2="370" y2="92" stroke="currentColor" opacity="0.55"/>
-          <circle cx="370" cy="22" r="1.2" fill="currentColor" opacity="0.7"/>
-          <circle cx="370" cy="92" r="1.2" fill="currentColor" opacity="0.7"/>
+          <!-- SW4d : output sleeve -->
+          <text x="512" y="170" fill="var(--orange)" font-family="Geist Mono, ui-monospace, monospace" font-size="10" text-anchor="middle">SW4d</text>
+          <circle cx="512" cy="130" r="3" fill="var(--orange)"/>
+          <text x="518" y="124" fill="var(--orange)" opacity="0.75" font-family="Geist Mono, ui-monospace, monospace" font-size="8">C&#183;11</text>
+          <circle id="contact-bp4-byp" cx="488" cy="148" r="2.5" fill="none" stroke="var(--orange)" stroke-width="1"/>
+          <text x="482" y="152" fill="var(--orange)" opacity="0.75" font-family="Geist Mono, ui-monospace, monospace" font-size="8" text-anchor="end">T1&#183;10</text>
+          <circle id="contact-bp4-eng" cx="488" cy="112" r="2.5" fill="var(--orange)"/>
+          <text x="492" y="106" fill="var(--orange)" opacity="0.75" font-family="Geist Mono, ui-monospace, monospace" font-size="8">T2&#183;12</text>
+          <line id="wiper-bp4" x1="512" y1="130" x2="488" y2="112" stroke="var(--orange)" stroke-width="1.6"/>
 
-          <!-- ===== Out 3 TRS jack (16 Ω cab via R10/R11) ===== -->
-          <text x="436" y="36" fill="var(--orange)" opacity="0.75" font-family="Geist Mono, ui-monospace, monospace" font-size="7">Out3</text>
-          <rect x="435" y="40" width="14" height="36" fill="none" stroke="var(--orange)" stroke-width="0.6" opacity="0.7"/>
-          <line x1="441" y1="46" x2="449" y2="46" stroke="var(--orange)" opacity="0.85" stroke-width="1.2"/>
-          <text x="449" y="50" fill="var(--orange)" opacity="0.7" font-family="Geist Mono, ui-monospace, monospace" font-size="6">T</text>
-          <line x1="441" y1="58" x2="449" y2="58" stroke="var(--orange)" opacity="0.85" stroke-width="1.2"/>
-          <text x="449" y="62" fill="var(--orange)" opacity="0.7" font-family="Geist Mono, ui-monospace, monospace" font-size="6">R</text>
-          <line x1="441" y1="70" x2="449" y2="70" stroke="var(--orange)" opacity="0.85" stroke-width="1.2"/>
-          <text x="449" y="74" fill="var(--orange)" opacity="0.7" font-family="Geist Mono, ui-monospace, monospace" font-size="6">S</text>
+          <!-- ============ OUTPUT JACKS ============ -->
+          <text x="536" y="44" fill="currentColor" opacity="0.6" font-family="Geist Mono, ui-monospace, monospace" font-size="10">Out1</text>
+          <rect x="536" y="50" width="18" height="36" fill="none" stroke="currentColor" stroke-width="0.7" opacity="0.5"/>
+          <line x1="536" y1="58" x2="547" y2="58" stroke="currentColor" opacity="0.7" stroke-width="1.2"/>
+          <text x="548" y="61" fill="currentColor" opacity="0.5" font-family="Geist Mono, ui-monospace, monospace" font-size="8">T</text>
+          <line x1="536" y1="78" x2="547" y2="78" stroke="currentColor" opacity="0.7" stroke-width="1.2"/>
+          <text x="548" y="81" fill="currentColor" opacity="0.5" font-family="Geist Mono, ui-monospace, monospace" font-size="8">S</text>
+          <line x1="536" y1="58" x2="526" y2="58" stroke="currentColor" opacity="0.55"/>
+          <line x1="526" y1="58" x2="526" y2="40" stroke="currentColor" opacity="0.55"/>
+          <circle cx="526" cy="40" r="2.2" fill="currentColor" opacity="0.7"/>
+          <line x1="536" y1="78" x2="526" y2="78" stroke="currentColor" opacity="0.55"/>
+          <line x1="526" y1="78" x2="526" y2="130" stroke="currentColor" opacity="0.55"/>
+          <circle cx="526" cy="130" r="2.2" fill="currentColor" opacity="0.7"/>
 
-          <!-- R11 in series: top rail tap → R11 → Out 3 Tip -->
-          <circle cx="425" cy="22" r="1.2" fill="var(--orange)" opacity="0.75"/>
-          <line x1="425" y1="22" x2="425" y2="30" stroke="var(--orange)" opacity="0.8"/>
-          <rect x="420" y="30" width="10" height="8" fill="none" stroke="var(--orange)" stroke-width="1.2"/>
-          <text x="406" y="36" fill="var(--orange)" font-family="Geist Mono, ui-monospace, monospace" font-size="8">R11</text>
-          <line x1="425" y1="38" x2="425" y2="46" stroke="var(--orange)" opacity="0.8"/>
-          <line x1="425" y1="46" x2="435" y2="46" stroke="var(--orange)" opacity="0.8"/>
+          <text x="582" y="44" fill="currentColor" opacity="0.6" font-family="Geist Mono, ui-monospace, monospace" font-size="10">Out2</text>
+          <rect x="582" y="50" width="18" height="36" fill="none" stroke="currentColor" stroke-width="0.7" opacity="0.5"/>
+          <line x1="582" y1="58" x2="593" y2="58" stroke="currentColor" opacity="0.7" stroke-width="1.2"/>
+          <text x="594" y="61" fill="currentColor" opacity="0.5" font-family="Geist Mono, ui-monospace, monospace" font-size="8">T</text>
+          <line x1="582" y1="78" x2="593" y2="78" stroke="currentColor" opacity="0.7" stroke-width="1.2"/>
+          <text x="594" y="81" fill="currentColor" opacity="0.5" font-family="Geist Mono, ui-monospace, monospace" font-size="8">S</text>
+          <line x1="582" y1="58" x2="572" y2="58" stroke="currentColor" opacity="0.55"/>
+          <line x1="572" y1="58" x2="572" y2="40" stroke="currentColor" opacity="0.55"/>
+          <circle cx="572" cy="40" r="2.2" fill="currentColor" opacity="0.7"/>
+          <line x1="582" y1="78" x2="572" y2="78" stroke="currentColor" opacity="0.55"/>
+          <line x1="572" y1="78" x2="572" y2="130" stroke="currentColor" opacity="0.55"/>
+          <circle cx="572" cy="130" r="2.2" fill="currentColor" opacity="0.7"/>
 
-          <!-- Out 3 Sleeve → ground rail (column x=415, separate from R11 column at x=425) -->
-          <line x1="435" y1="70" x2="415" y2="70" stroke="currentColor" opacity="0.55"/>
-          <line x1="415" y1="70" x2="415" y2="92" stroke="currentColor" opacity="0.55"/>
-          <circle cx="415" cy="92" r="1.2" fill="currentColor" opacity="0.7"/>
+          <text x="676" y="44" fill="var(--orange)" opacity="0.8" font-family="Geist Mono, ui-monospace, monospace" font-size="10">Out3</text>
+          <rect x="676" y="50" width="18" height="46" fill="none" stroke="var(--orange)" stroke-width="0.7" opacity="0.7"/>
+          <line x1="676" y1="60" x2="687" y2="60" stroke="var(--orange)" opacity="0.85" stroke-width="1.2"/>
+          <text x="688" y="63" fill="var(--orange)" opacity="0.7" font-family="Geist Mono, ui-monospace, monospace" font-size="8">T</text>
+          <line x1="676" y1="72" x2="687" y2="72" stroke="var(--orange)" opacity="0.85" stroke-width="1.2"/>
+          <text x="688" y="75" fill="var(--orange)" opacity="0.7" font-family="Geist Mono, ui-monospace, monospace" font-size="8">R</text>
+          <line x1="676" y1="86" x2="687" y2="86" stroke="var(--orange)" opacity="0.85" stroke-width="1.2"/>
+          <text x="688" y="89" fill="var(--orange)" opacity="0.7" font-family="Geist Mono, ui-monospace, monospace" font-size="8">S</text>
+          <circle cx="622" cy="40" r="2.2" fill="var(--orange)" opacity="0.8"/>
+          <line x1="622" y1="40" x2="622" y2="60" stroke="var(--orange)" opacity="0.8"/>
+          <line x1="622" y1="60" x2="630" y2="60" stroke="var(--orange)" opacity="0.8"/>
+          <rect x="630" y="54" width="20" height="12" fill="none" stroke="var(--orange)" stroke-width="1.3"/>
+          <text x="640" y="50" fill="var(--orange)" font-family="Geist Mono, ui-monospace, monospace" font-size="11" text-anchor="middle">R11</text>
+          <line x1="650" y1="60" x2="676" y2="60" stroke="var(--orange)" opacity="0.8"/>
+          <line x1="676" y1="86" x2="664" y2="86" stroke="currentColor" opacity="0.55"/>
+          <line x1="664" y1="86" x2="664" y2="130" stroke="currentColor" opacity="0.55"/>
+          <circle cx="664" cy="130" r="2.2" fill="currentColor" opacity="0.7"/>
 
-          <!-- R10 trace: Out 3 Ring → loop back to node M (dashed orange to distinguish). -->
-          <!-- Path: Ring (435, 58) → left to (405, 58) → down to bottom corridor at y=110, -->
-          <!-- across the schematic to x=84, through R10 body, then up to node M at (53, 62). -->
-          <line x1="435" y1="58" x2="405" y2="58" stroke="var(--orange)" opacity="0.7" stroke-dasharray="3,2"/>
-          <line x1="405" y1="58" x2="405" y2="110" stroke="var(--orange)" opacity="0.7" stroke-dasharray="3,2"/>
-          <line x1="405" y1="110" x2="98" y2="110" stroke="var(--orange)" opacity="0.7" stroke-dasharray="3,2"/>
-          <rect x="84" y="106" width="14" height="8" fill="none" stroke="var(--orange)" stroke-width="1.2"/>
-          <text x="85" y="102" fill="var(--orange)" font-family="Geist Mono, ui-monospace, monospace" font-size="8">R10</text>
-          <line x1="84" y1="110" x2="47" y2="110" stroke="var(--orange)" opacity="0.7" stroke-dasharray="3,2"/>
-          <line x1="47" y1="110" x2="47" y2="62" stroke="var(--orange)" opacity="0.7" stroke-dasharray="3,2"/>
-          <line x1="47" y1="62" x2="53" y2="62" stroke="var(--orange)" opacity="0.7" stroke-dasharray="3,2"/>
+          <!-- R10 : Out3 ring back to node M. Dashed to distinguish; the little hop
+               marks a crossing (no connection) with the sleeve-bypass riser. -->
+          <line x1="676" y1="72" x2="610" y2="72" stroke="var(--orange)" opacity="0.7" stroke-dasharray="3,2"/>
+          <line x1="610" y1="72" x2="610" y2="150" stroke="var(--orange)" opacity="0.7" stroke-dasharray="3,2"/>
+          <path d="M 610 150 L 496 150 Q 488 138 480 150 L 200 150" fill="none" stroke="var(--orange)" opacity="0.7" stroke-dasharray="3,2"/>
+          <rect x="170" y="144" width="30" height="12" fill="none" stroke="var(--orange)" stroke-width="1.3"/>
+          <text x="185" y="140" fill="var(--orange)" font-family="Geist Mono, ui-monospace, monospace" font-size="11" text-anchor="middle">R10</text>
+          <line x1="170" y1="150" x2="112" y2="150" stroke="var(--orange)" opacity="0.7" stroke-dasharray="3,2"/>
+          <line x1="112" y1="150" x2="112" y2="88" stroke="var(--orange)" opacity="0.7" stroke-dasharray="3,2"/>
+          <line x1="112" y1="88" x2="128" y2="88" stroke="var(--orange)" opacity="0.7" stroke-dasharray="3,2"/>
+
+          <!-- ============ LEGEND ============ -->
+          <text x="530" y="176" fill="currentColor" opacity="0.55" font-family="Geist Mono, ui-monospace, monospace" font-size="9">SW4a&#8211;d ganged (one 4PDT)</text>
+          <text x="530" y="188" fill="currentColor" opacity="0.55" font-family="Geist Mono, ui-monospace, monospace" font-size="9">C = common (pole)</text>
+          <text x="530" y="200" fill="currentColor" opacity="0.55" font-family="Geist Mono, ui-monospace, monospace" font-size="9">T1 = bypass &#183; T2 = attenuator</text>
+          <text x="530" y="212" fill="currentColor" opacity="0.55" font-family="Geist Mono, ui-monospace, monospace" font-size="9">C&#183;n = physical lug number</text>
         </svg>
         <div class="design-note">
           <span class="k">Stage 1</span> morphs with frequency: at LF (L1 ≈ short) R1 sits at the input; at HF (L1 ≈ open) R2B+R1 sit as a shunt at the output. Roughly −7 dB at both extremes when loaded by the speaker.<br>
-          <span class="k">Stages 2–4</span>: SPDT wiper sits on the top rail before each R-series. Engaged ⇒ wiper down-left to the R-shunt path (R3/R5/R7 to GND). Bypass ⇒ wiper down-right to the wire shorting R-series. The R-shunt floats in bypass.<br>
-          <span class="k">Outputs</span>: Out1/Out2 (TS) direct-tap for 8 Ω cabs (or two 16 Ω in parallel). Out3 (TRS) uses R11 in series and R10 from node M for a single 16 Ω cab. In bypass, the jumper also taps Out3 Tip directly, shunting R11.
+          <span class="k">Stages 2–4</span>: each SPDT common (C) sits on the signal rail ahead of its series R. Wiper on <span class="o">T2</span> ⇒ pad in: the shunt (R3/R5/R7) is connected to the return rail and the series R stays in the path. Wiper on <span class="o">T1</span> ⇒ pad out: the jumper shorts the series R and the shunt floats.<br>
+          <span class="o">SW4</span> (4PDT true bypass): four ganged SPDT sections. Commons carry the jack tips/sleeves; <span class="o">T2</span> throws go to the attenuator (node A, network out, return rail); <span class="o">T1</span> throws are jumpered pole-to-pole to form the bypass nets. In bypass the whole network — signal <em>and</em> return — is lifted out of the chain.<br>
+          <span class="k">Outputs</span>: Out1/Out2 (TS) direct-tap for 8 Ω cabs (or two 16 Ω in parallel). Out3 (TRS) uses R11 in series and R10 from node M for a single 16 Ω cab. In bypass, the tip net also lands on Out3's tip, shunting R11.
         </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <span>SW4 · 4PDT true bypass — wiring detail</span>
+          <span class="meta" id="sw4State">wiper on T2 · attenuator in</span>
+        </div>
+        <div class="panel-body">
+          <div class="sw4-grid">
+            <div>
+            <svg class="lugmap" viewBox="0 0 460 250" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <line x1="86" y1="72"  x2="430" y2="72"  stroke="currentColor" opacity="0.12" stroke-width="1"/>
+              <line x1="86" y1="132" x2="430" y2="132" stroke="currentColor" opacity="0.12" stroke-width="1"/>
+              <line x1="86" y1="192" x2="430" y2="192" stroke="currentColor" opacity="0.12" stroke-width="1"/>
+
+              <text x="78" y="69"  fill="var(--orange)" font-family="Geist Mono, ui-monospace, monospace" font-size="10" text-anchor="end">T1 &#183; bypass</text>
+              <text x="78" y="81"  fill="currentColor" opacity="0.5" font-family="Geist Mono, ui-monospace, monospace" font-size="8" text-anchor="end">lugs 1 4 7 10</text>
+              <text x="78" y="129" fill="var(--orange)" font-family="Geist Mono, ui-monospace, monospace" font-size="10" text-anchor="end">C &#183; pole</text>
+              <text x="78" y="141" fill="currentColor" opacity="0.5" font-family="Geist Mono, ui-monospace, monospace" font-size="8" text-anchor="end">lugs 2 5 8 11</text>
+              <text x="78" y="189" fill="var(--orange)" font-family="Geist Mono, ui-monospace, monospace" font-size="10" text-anchor="end">T2 &#183; attenuator</text>
+              <text x="78" y="201" fill="currentColor" opacity="0.5" font-family="Geist Mono, ui-monospace, monospace" font-size="8" text-anchor="end">lugs 3 6 9 12</text>
+
+              <text x="120" y="28" fill="var(--heading)" font-family="Geist Mono, ui-monospace, monospace" font-size="11" text-anchor="middle">SW4a</text>
+              <text x="120" y="40" fill="currentColor" opacity="0.55" font-family="Geist Mono, ui-monospace, monospace" font-size="8" text-anchor="middle">in &#183; tip</text>
+              <text x="220" y="28" fill="var(--heading)" font-family="Geist Mono, ui-monospace, monospace" font-size="11" text-anchor="middle">SW4b</text>
+              <text x="220" y="40" fill="currentColor" opacity="0.55" font-family="Geist Mono, ui-monospace, monospace" font-size="8" text-anchor="middle">in &#183; sleeve</text>
+              <text x="320" y="28" fill="var(--heading)" font-family="Geist Mono, ui-monospace, monospace" font-size="11" text-anchor="middle">SW4c</text>
+              <text x="320" y="40" fill="currentColor" opacity="0.55" font-family="Geist Mono, ui-monospace, monospace" font-size="8" text-anchor="middle">out &#183; tip</text>
+              <text x="420" y="28" fill="var(--heading)" font-family="Geist Mono, ui-monospace, monospace" font-size="11" text-anchor="middle">SW4d</text>
+              <text x="420" y="40" fill="currentColor" opacity="0.55" font-family="Geist Mono, ui-monospace, monospace" font-size="8" text-anchor="middle">out &#183; sleeve</text>
+
+              <path id="lug-jump-tip" d="M 120 72 C 160 40 280 40 320 72" fill="none" stroke="var(--orange)" stroke-width="1.8" opacity="0.3"/>
+              <path id="lug-jump-slv" d="M 220 72 C 260 52 380 52 420 72" fill="none" stroke="currentColor" stroke-width="1.8" opacity="0.3"/>
+
+              <line id="lug-wiper-a" x1="120" y1="132" x2="120" y2="192" stroke="var(--orange)" stroke-width="2.2"/>
+              <line id="lug-wiper-b" x1="220" y1="132" x2="220" y2="192" stroke="var(--orange)" stroke-width="2.2"/>
+              <line id="lug-wiper-c" x1="320" y1="132" x2="320" y2="192" stroke="var(--orange)" stroke-width="2.2"/>
+              <line id="lug-wiper-d" x1="420" y1="132" x2="420" y2="192" stroke="var(--orange)" stroke-width="2.2"/>
+
+              <circle cx="120" cy="72" r="9" fill="var(--accent)"/><text x="120" y="76" fill="var(--surface)" font-family="Geist Mono, ui-monospace, monospace" font-size="9" text-anchor="middle">1</text>
+              <circle cx="220" cy="72" r="9" fill="var(--accent)"/><text x="220" y="76" fill="var(--surface)" font-family="Geist Mono, ui-monospace, monospace" font-size="9" text-anchor="middle">4</text>
+              <circle cx="320" cy="72" r="9" fill="var(--accent)"/><text x="320" y="76" fill="var(--surface)" font-family="Geist Mono, ui-monospace, monospace" font-size="9" text-anchor="middle">7</text>
+              <circle cx="420" cy="72" r="9" fill="var(--accent)"/><text x="420" y="76" fill="var(--surface)" font-family="Geist Mono, ui-monospace, monospace" font-size="9" text-anchor="middle">10</text>
+
+              <circle cx="120" cy="132" r="9" fill="var(--orange)"/><text x="120" y="136" fill="var(--surface)" font-family="Geist Mono, ui-monospace, monospace" font-size="9" text-anchor="middle">2</text>
+              <circle cx="220" cy="132" r="9" fill="var(--orange)"/><text x="220" y="136" fill="var(--surface)" font-family="Geist Mono, ui-monospace, monospace" font-size="9" text-anchor="middle">5</text>
+              <circle cx="320" cy="132" r="9" fill="var(--orange)"/><text x="320" y="136" fill="var(--surface)" font-family="Geist Mono, ui-monospace, monospace" font-size="9" text-anchor="middle">8</text>
+              <circle cx="420" cy="132" r="9" fill="var(--orange)"/><text x="420" y="136" fill="var(--surface)" font-family="Geist Mono, ui-monospace, monospace" font-size="9" text-anchor="middle">11</text>
+
+              <circle cx="120" cy="192" r="9" fill="var(--accent)"/><text x="120" y="196" fill="var(--surface)" font-family="Geist Mono, ui-monospace, monospace" font-size="9" text-anchor="middle">3</text>
+              <circle cx="220" cy="192" r="9" fill="var(--accent)"/><text x="220" y="196" fill="var(--surface)" font-family="Geist Mono, ui-monospace, monospace" font-size="9" text-anchor="middle">6</text>
+              <circle cx="320" cy="192" r="9" fill="var(--accent)"/><text x="320" y="196" fill="var(--surface)" font-family="Geist Mono, ui-monospace, monospace" font-size="9" text-anchor="middle">9</text>
+              <circle cx="420" cy="192" r="9" fill="var(--accent)"/><text x="420" y="196" fill="var(--surface)" font-family="Geist Mono, ui-monospace, monospace" font-size="9" text-anchor="middle">12</text>
+
+              <text x="120" y="222" fill="currentColor" opacity="0.55" font-family="Geist Mono, ui-monospace, monospace" font-size="8" text-anchor="middle">node A</text>
+              <text x="220" y="222" fill="currentColor" opacity="0.55" font-family="Geist Mono, ui-monospace, monospace" font-size="8" text-anchor="middle">return rail</text>
+              <text x="320" y="222" fill="currentColor" opacity="0.55" font-family="Geist Mono, ui-monospace, monospace" font-size="8" text-anchor="middle">after R8</text>
+              <text x="420" y="222" fill="currentColor" opacity="0.55" font-family="Geist Mono, ui-monospace, monospace" font-size="8" text-anchor="middle">return rail</text>
+              <text x="240" y="243" fill="currentColor" opacity="0.45" font-family="Geist Mono, ui-monospace, monospace" font-size="8" text-anchor="middle">bold path = live &#183; column = one pole &#183; middle row = commons</text>
+            </svg>
+            </div>
+            <div>
+              <table class="lug-table">
+                <thead>
+                  <tr><th>section</th><th style="text-align:right;">lug</th><th>term</th><th>connects to</th></tr>
+                </thead>
+                <tbody>
+                  <tr class="grp-top"><td class="sec">SW4a</td><td class="lug">2</td><td class="term">C</td><td>Input jack <b>tip</b> (from amp)</td></tr>
+                  <tr><td class="sec"></td><td class="lug">1</td><td class="term">T1</td><td>Tip bypass jumper → lug 7</td></tr>
+                  <tr><td class="sec"></td><td class="lug">3</td><td class="term">T2</td><td>Node A (R2A + L1)</td></tr>
+                  <tr class="grp-top"><td class="sec">SW4b</td><td class="lug">5</td><td class="term">C</td><td>Input jack <b>sleeve</b></td></tr>
+                  <tr><td class="sec"></td><td class="lug">4</td><td class="term">T1</td><td>Sleeve bypass jumper → lug 10</td></tr>
+                  <tr><td class="sec"></td><td class="lug">6</td><td class="term">T2</td><td>Network return rail (R1/R3/R5)</td></tr>
+                  <tr class="grp-top"><td class="sec">SW4c</td><td class="lug">8</td><td class="term">C</td><td>Output jack <b>tips</b> (Out1/2, R11→Out3)</td></tr>
+                  <tr><td class="sec"></td><td class="lug">7</td><td class="term">T1</td><td>Tip bypass jumper → lug 1</td></tr>
+                  <tr><td class="sec"></td><td class="lug">9</td><td class="term">T2</td><td>Network out (after R8)</td></tr>
+                  <tr class="grp-top"><td class="sec">SW4d</td><td class="lug">11</td><td class="term">C</td><td>Output jack <b>sleeves</b></td></tr>
+                  <tr><td class="sec"></td><td class="lug">10</td><td class="term">T1</td><td>Sleeve bypass jumper → lug 4</td></tr>
+                  <tr><td class="sec"></td><td class="lug">12</td><td class="term">T2</td><td>Network return rail (R7)</td></tr>
+                </tbody>
+              </table>
+              <div class="lug-note">
+                Naming: one designator <b>SW4</b> for the whole switch; its four ganged sections are <b>SW4a–SW4d</b> (schematic convention for ganged poles). Each section has three terminals: <b>C</b> = common/pole, <b>T1</b> and <b>T2</b> = throws. A unique point is then <b>SW4a.T1</b> — shorter than P1T1 and it survives being scattered across the schematic.<br><br>
+                Lug numbers are the physical stomp-switch pinout: 12 lugs, 4 columns (one per pole) × 3 rows, commons in the middle row (2, 5, 8, 11). Column-major numbering is the common convention but is not universal — buzz out your switch before soldering.
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -1293,7 +1394,7 @@
         <div class="tut-roadmap">
           <div class="tut-stage">
             <div class="stage-tag">Stage 1<span class="stage-db">&asymp; &minus;7 dB in · 0 dB bypassed</span></div>
-            <div class="stage-desc">The <strong>reactive, compensated stage</strong> — the one with the inductor L1. It has no individual switch among SW1&ndash;3, so it's in circuit whenever the attenuator is engaged, giving the amp's output transformer a safe, speaker-like reactive load. The True Bypass 4PDT switch is what removes it, lifting the whole attenuator out at once (Section 8) — so Stage 1 is either &asymp;&minus;7 dB (engaged) or 0 dB (bypassed), never independently switched. It's both the safety floor and the tone-shaping heart of the unit.</div>
+            <div class="stage-desc">The <strong>reactive, compensated stage</strong> — the one with the inductor L1. It has no individual switch among SW1&ndash;3, so it's in circuit whenever the attenuator is engaged, giving the amp's output transformer a safe, speaker-like reactive load. The True Bypass 4PDT switch (SW4) is what removes it, lifting the whole attenuator out at once (Section 8) — so Stage 1 is either &asymp;&minus;7 dB (engaged) or 0 dB (bypassed), never independently switched. It's both the safety floor and the tone-shaping heart of the unit.</div>
           </div>
           <div class="tut-stage">
             <div class="stage-tag">Stage 2<span class="stage-db">switchable · &asymp; &minus;14 dB</span></div>
@@ -1341,6 +1442,7 @@
       <section class="tut-section">
         <h2 class="tut-heading">8 · Bypass — the attenuator removed</h2>
         <p class="tut-prose">It's worth being clear about one limiting case: the signal path with the attenuator taken out entirely. Many attenuators — the M2 among them — include a bypass switch that does exactly this, routing the amp straight to the speaker as if the box weren't there; some DIY builds skip it. Either way, &quot;bypassed&quot; is a useful reference state to understand.</p>
+        <p class="tut-prose">Doing it properly takes a <strong>4PDT</strong> switch, drawn as SW4 on the schematic. Two of its four ganged sections (SW4a, SW4c) handle the tip / hot side — input and output — and the other two (SW4b, SW4d) handle the sleeve / return side. Each section's <em>common</em> stays wired to its jack; its <em>T2</em> throw goes into the attenuator and its <em>T1</em> throw is jumpered straight across to the other side. Flip to T1 and both the signal path and the return path are lifted out at once, so no part of the network is left hanging off the speaker line.</p>
         <p class="tut-prose">Bypassed, the signal chain is just amp-into-speaker again — so the transfer function <em>is</em> H<sub>ref</sub>(f), the bare reference curve from Section 3. That's what makes it the natural baseline: every attenuated curve in Part Two is really being measured against this one. The analyzer's True Bypass control does the same thing — flip it and the plotted response collapses back to H<sub>ref</sub>.</p>
         <div class="tut-insight"><strong>Insight:</strong> bypass isn't a setting so much as a frame of reference — the &quot;0 dB, attenuator absent&quot; case that every other curve in this tutorial is compared to.</div>
       </section>
@@ -1377,20 +1479,14 @@ function applyTheme(pref, { notify = true } = {}) {
   });
   if (notify) themeListeners.forEach(fn => fn(resolved));
 }
-// Hook for plot redraw — invoked on subsequent theme changes, not the initial sync
-// (helpers like `C` aren't declared yet at boot time).
 themeListeners.push(() => { if (typeof updatePlot === 'function') updatePlot(); });
 
 themeSeg.querySelectorAll('button').forEach(b => {
   b.addEventListener('click', () => applyTheme(b.dataset.mode));
 });
-// React live to OS theme changes while in 'system'
 mqlDark.addEventListener('change', () => {
   if (readPref() === 'system') applyTheme('system');
 });
-// Initial sync — boot script already set data-theme; mirror the buttons + persist,
-// but DON'T fire listeners (the script's own `updatePlot()` at the bottom handles
-// the first render, and downstream helpers aren't initialized yet).
 applyTheme(readPref(), { notify: false });
 
 function cssVar(name) { return getComputedStyle(html).getPropertyValue(name).trim(); }
@@ -1419,28 +1515,23 @@ function abcdMul(M1, M2) {
 const abcdCascade = (mats) => mats.reduce((acc,m) => abcdMul(acc,m), abcdId());
 
 // Stage 1 — 3 nodes (A=input, M=internal, B=output) with R1 from M to GND.
-// Components: R2A (A-B), L1 (A-M), R2B (M-B), R1 (M-GND).
-// Build the 3x3 nodal admittance, eliminate node M, get 2-port Y, convert to ABCD.
 function stage1ABCD(w, R2A, R2B, R1, L1) {
   const yR2A = C(1/R2A, 0);
   const yR2B = C(1/R2B, 0);
   const yR1  = C(1/R1, 0);
   const yL1  = (L1 > 0 && w > 0)
-                 ? cInv(C(0, w*L1))   // 1/(jωL) = -j/(ωL)
-                 : C(1e12, 0);        // L1=0 ⇒ short (large admittance)
-  // Nodal admittances:
+                 ? cInv(C(0, w*L1))
+                 : C(1e12, 0);
   const Y_AA = cAdd(yR2A, yL1);
   const Y_MM = cAdd(cAdd(yL1, yR2B), yR1);
   const Y_BB = cAdd(yR2A, yR2B);
   const Y_AM = cNeg(yL1);
   const Y_AB = cNeg(yR2A);
   const Y_MB = cNeg(yR2B);
-  // Eliminate internal node M: Y2(i,j) = Y(i,j) − Y(i,M)·Y(M,j)/Y(M,M)
   const Y11 = cSub(Y_AA, cDiv(cMul(Y_AM, Y_AM), Y_MM));
   const Y12 = cSub(Y_AB, cDiv(cMul(Y_AM, Y_MB), Y_MM));
-  const Y21 = Y12;   // reciprocal passive network
+  const Y21 = Y12;
   const Y22 = cSub(Y_BB, cDiv(cMul(Y_MB, Y_MB), Y_MM));
-  // ABCD from Y: A=−Y22/Y21, B=−1/Y21, C=−det(Y)/Y21, D=−Y11/Y21
   const negY21 = cNeg(Y21);
   const A = cDiv(Y22, negY21);
   const B = cDiv(C(1,0), negY21);
@@ -1479,7 +1570,8 @@ function speakerZ(f, cfg) {
 }
 
 function buildNetwork(f, cfg) {
-  // True bypass — attenuator removed from chain. ABCD identity ⇒ H=1, Zin=Zspkr.
+  // SW4 on T1 — attenuator lifted out of the chain (signal AND return).
+  // ABCD identity => H=1, Zin=Zspkr.
   if (cfg.bypass) {
     return abcdId();
   }
@@ -1499,13 +1591,12 @@ function buildNetwork(f, cfg) {
   const sw2 = cfg.sw2;
   const sw3 = cfg.sw3;
 
-  // R10 (extra at node M) sits in parallel with R1 if present.
   const R10extra = cfg.mShunt;
   const R1eff = (R10extra > 0 && isFinite(R10extra)) ? (R1 * R10extra)/(R1 + R10extra) : R1;
   const stage1 = stage1ABCD(w, R2a, R2b, R1eff, L1);
 
-  // Stages 2-4: SPDT engages a full L-pad (input shunt + series).
-  // When bypassed, both shunt and series drop out — stage becomes identity.
+  // Stages 2-4: wiper on T2 engages a full L-pad (input shunt + series).
+  // Wiper on T1 shorts the series R and floats the shunt => identity.
   const stage = (engaged, Rseries, Rshunt) =>
     engaged ? abcdMul(abcdShunt(C(Rshunt, 0)), abcdSeries(C(Rseries, 0)))
             : abcdId();
@@ -1517,13 +1608,11 @@ function buildNetwork(f, cfg) {
     stage(sw3, R8, R7)
   ];
 
-  // R11: series resistor on top rail after R8.
   const Rtop = cfg.outSeries;
   if (Rtop > 0 && isFinite(Rtop)) {
     mats.push(abcdSeries(C(Rtop, 0)));
   }
 
-  // Optional shunt across the speaker terminals (load match for 16 → 8 Ω).
   const Rload = cfg.loadMatch;
   if (Rload > 0 && isFinite(Rload)) {
     mats.push(abcdShunt(C(Rload, 0)));
@@ -1552,14 +1641,11 @@ function sweep(cfg) {
 }
 
 // ===== Multi-config comparison state =====
-// A "config" is a flat plain object mirroring the control IDs — see captureConfig().
-// savedConfigs persists to localStorage; on load every entry is forced show=false
-// so nothing auto-draws (the library survives reload, the selection does not).
 const CFG_STORE_KEY = 'hewitt-m2-saved-configs-v1';
 const CFG_PALETTE = ['--chart-1','--chart-2','--chart-3','--chart-4',
                      '--chart-5','--chart-6','--chart-7','--chart-8'];
-const CFG_MAX = CFG_PALETTE.length;   // structural soft cap = palette size
-let savedConfigs = [];                // [{id,name,cfg,colorIdx,show,visH,visZin,visZspk}]
+const CFG_MAX = CFG_PALETTE.length;
+let savedConfigs = [];
 let liveVis = { visH: true, visZin: false, visZspk: false };
 
 function captureConfig() {
@@ -1577,12 +1663,8 @@ function captureConfig() {
   };
 }
 
-// Visual-sync hook — assigned by populate() once its SVG closures exist.
-// Re-derives every schematic visual (switches, 4PDT bypass, speaker label)
-// from the current DOM control state.
 let _syncVisuals = function () {};
 
-// Push a stored/imported config object into the live controls, then refresh.
 function applyConfigToControls(cfg) {
   const setVal = (id, v) => { const el = document.getElementById(id); if (el) el.value = v; };
   ['R2a','R2b','L1','R1','mShunt','R3','R4','R5','R6','R7','R8',
@@ -1590,7 +1672,6 @@ function applyConfigToControls(cfg) {
     .forEach(id => { if (cfg[id] !== undefined) setVal(id, cfg[id]); });
   if (cfg.speakerPreset !== undefined) setVal('speakerPreset', cfg.speakerPreset);
 
-  // Switches — set class + the In/Bypass label text.
   ['sw1','sw2','sw3'].forEach(id => {
     const el = document.getElementById(id);
     const on = !!cfg[id];
@@ -1598,7 +1679,6 @@ function applyConfigToControls(cfg) {
     el.querySelector('.switch-state').textContent = on ? 'In' : 'Bypass';
   });
 
-  // Master true-bypass.
   const masterEl = document.getElementById('masterBypass');
   const onBp = !!cfg.bypass;
   masterEl.classList.toggle('engaged', onBp);
@@ -1620,7 +1700,6 @@ function loadConfigsFromStore() {
     const parsed = JSON.parse(raw);
     savedConfigs = Array.isArray(parsed) ? parsed.map(normalizeSavedConfig) : [];
   } catch (e) { savedConfigs = []; }
-  // Survive reload, but never auto-show: force selection off on every load.
   savedConfigs.forEach((sc, i) => { sc.show = false; sc.colorIdx = i % CFG_MAX; });
 }
 function normalizeSavedConfig(sc) {
@@ -1641,8 +1720,6 @@ function lowestFreeColorIdx() {
   return savedConfigs.length % CFG_MAX;
 }
 
-// Assemble the ordered list of configs currently drawn: Live first, then every
-// saved config whose "show in comparison" box is ticked.
 function comparisonEntries() {
   const entries = [{
     key: 'live', name: 'Live', isLive: true,
@@ -1681,7 +1758,6 @@ function updatePlot() {
     const {freqs, H_db, Zin_mag, Zspk_mag} = sweep(e.cfg);
     const col = cssVar(e.colorVar);
 
-    // One colour per config: H(f) solid, Z-in dashed, Z-spkr dotted.
     if (e.vis.visH) {
       traces.push({
         x: freqs, y: H_db, type: 'scatter', mode: 'lines',
@@ -1801,7 +1877,6 @@ function escapeHtml(s) {
   ));
 }
 
-// ===== Best-practice indicator — perceptual, not a storage limit =====
 function updateBestPractice(comparisonCount) {
   const el = document.getElementById('cfgBestPractice');
   if (!el) return;
@@ -1831,7 +1906,6 @@ function updateBestPractice(comparisonCount) {
   }
 }
 
-// ===== Saved-configs manager list =====
 function renderConfigList() {
   const list = document.getElementById('cfgList');
   if (!list) return;
@@ -1853,7 +1927,7 @@ function renderConfigList() {
 
 function refreshConfigUI() {
   renderConfigList();
-  updatePlot();   // also refreshes the count + best-practice indicator
+  updatePlot();
 }
 
 const RVALUES = [1, 1.5, 2.2, 2.7, 3.3, 3.9, 4.7, 5, 5.6, 6.8, 8, 8.2, 10, 12, 15, 18, 20, 22, 25, 27, 30, 33, 39, 47, 50, 56, 68, 75, 82, 100];
@@ -1873,28 +1947,30 @@ function populate() {
   for (const id of ['L1','Re','Le','fs','RES','Qms','loadMatch','outSeries','outReturn','mShunt']) {
     document.getElementById(id).addEventListener('input', updatePlot);
   }
-  // Schematic wiper coordinates per switch — engaged = down-left, bypass = down-right
+
+  // ===== SW1-3 (stage SPDTs) — schematic geometry =====
+  // Common (C) sits on the signal rail at pivotX; the wiper swings down-left to
+  // T2 (pad in) or down-right to T1 (pad bypassed). Both throws are equidistant
+  // from the pivot, so the drawn position always reads as a real switch state.
   const WIPER_GEOM = {
-    sw1: { pivotX: 98,  engX: 92,  bypX: 104 },
-    sw2: { pivotX: 176, engX: 170, bypX: 182 },
-    sw3: { pivotX: 254, engX: 248, bypX: 260 }
+    sw1: { pivotX: 210, t2X: 196, t1X: 224 },
+    sw2: { pivotX: 302, t2X: 288, t1X: 316 },
+    sw3: { pivotX: 394, t2X: 380, t1X: 408 }
   };
   function updateSwitchVisual(swId) {
     const g = WIPER_GEOM[swId];
     if (!g) return;
     const engaged = document.getElementById(swId).classList.contains('engaged');
     const wiper = document.getElementById('wiper-' + swId);
-    const cEng  = document.getElementById('contact-' + swId + '-eng');
-    const cByp  = document.getElementById('contact-' + swId + '-byp');
-    // Wiper endpoint follows the touched contact
-    wiper.setAttribute('x2', engaged ? g.engX : g.bypX);
-    // Active contact filled, inactive contact outlined only
+    const cEng  = document.getElementById('contact-' + swId + '-eng');   // T2
+    const cByp  = document.getElementById('contact-' + swId + '-byp');   // T1
+    wiper.setAttribute('x2', engaged ? g.t2X : g.t1X);
     cEng.setAttribute('fill',   engaged ? 'var(--orange)' : 'none');
-    cEng.setAttribute('stroke', engaged ? 'var(--orange)' : 'var(--orange)');
-    cEng.setAttribute('stroke-width', engaged ? '0' : '0.8');
+    cEng.setAttribute('stroke', 'var(--orange)');
+    cEng.setAttribute('stroke-width', engaged ? '0' : '1');
     cByp.setAttribute('fill',   engaged ? 'none' : 'var(--orange)');
-    cByp.setAttribute('stroke', engaged ? 'var(--orange)' : 'var(--orange)');
-    cByp.setAttribute('stroke-width', engaged ? '0.8' : '0');
+    cByp.setAttribute('stroke', 'var(--orange)');
+    cByp.setAttribute('stroke-width', engaged ? '1' : '0');
   }
 
   for (const id of ['sw1','sw2','sw3']) {
@@ -1906,7 +1982,7 @@ function populate() {
       updatePlot();
     });
   }
-  // Display labels for the subtitle — "Amp · Speaker · Z"
+
   const SPEAKER_META = {
     c12n:        "Blues Jr IV Tweed · Jensen C12N · 8 Ω",
     ctype:       "Blues Jr IV · Celestion A-Type · 8 Ω",
@@ -1923,8 +1999,6 @@ function populate() {
     ideal16:     "Reference · Ideal · 16 Ω"
   };
 
-  // Speaker preset table — published Re/Fs where available; Qms/Le/RES are community/derived.
-  // Representative to ~10-15% — edit fields for spec-grade work.
   const SPEAKERS = {
     c12n:        { Re: 6.05, Le: 0.90, fs: 113, RES: 38.5, Qms: 7.52 },
     ctype:       { Re: 6.4,  Le: 0.7,  fs: 90,  RES: 37.3, Qms: 3.5  },
@@ -1935,7 +2009,6 @@ function populate() {
     c12k:        { Re: 5.5,  Le: 0.65, fs: 120, RES: 28,   Qms: 4.0  },
     canrex:      { Re: 5.95, Le: 0.6,  fs: 90,  RES: 25,   Qms: 2.6  },
     ideal:       { Re: 8.0,  Le: 0.0,  fs: 1,   RES: 1,    Qms: 1    },
-    // 16 Ω drivers — Re·Fs from manufacturer; Qms, Le, RES from community measurements of equivalent drivers
     g10n40_16:   { Re: 12.05, Le: 1.4, fs: 98,  RES: 50,   Qms: 4.5  },
     greenback16: { Re: 13.5,  Le: 1.4, fs: 75,  RES: 60,   Qms: 4.0  },
     v30_16:      { Re: 13.8,  Le: 0.8, fs: 75,  RES: 60,   Qms: 7.0  },
@@ -1963,64 +2036,65 @@ function populate() {
     updatePlot();
   });
 
-  // ===== 4PDT bypass visual updater =====
-  // active=true means master bypass is engaged (signal goes around the network).
+  // ===== SW4 (4PDT true bypass) — schematic geometry =====
+  // Each section is a real SPDT: pole (common) at (cx,cy) with the two throws
+  // symmetric about it. T2 = attenuator, T1 = bypass. "active" = wiper on T1.
+  const BP_GEOM = {
+    bp1: { cx: 46,  cy: 40,  t2X: 70,  t2Y: 58,  t1X: 70,  t1Y: 22  },  // SW4a  in tip
+    bp2: { cx: 512, cy: 40,  t2X: 488, t2Y: 58,  t1X: 488, t1Y: 22  },  // SW4c  out tip
+    bp3: { cx: 46,  cy: 130, t2X: 70,  t2Y: 112, t1X: 70,  t1Y: 148 },  // SW4b  in sleeve
+    bp4: { cx: 512, cy: 130, t2X: 488, t2Y: 112, t1X: 488, t1Y: 148 }   // SW4d  out sleeve
+  };
+  const BYPASS_NET_IDS = [
+    'bypass-wire', 'bypass-riseA', 'bypass-riseC', 'bypass-dotC',
+    'bypass-out3-drop', 'bypass-out3-junction',
+    'bypass-wire-s', 'bypass-riseB', 'bypass-riseD'
+  ];
+
   function updateBypassVisual(active) {
-    const wire = document.getElementById('bypass-wire');
-    if (wire) wire.setAttribute('opacity', active ? '0.85' : '0.25');
-    // R11 bypass extension to Out3 Tip — tracks the same active state as the bypass wire
-    const dropO3 = document.getElementById('bypass-out3-drop');
-    const juncO3 = document.getElementById('bypass-out3-junction');
-    if (dropO3) dropO3.setAttribute('opacity', active ? '0.85' : '0.25');
-    if (juncO3) juncO3.setAttribute('opacity', active ? '0.85' : '0.25');
-
-    // Pole 1: wiper between (22,22) and either (32,22) [engaged, right along rail] or (22,-8) [bypass, up]
-    const w1 = document.getElementById('wiper-bp1');
-    if (w1) { w1.setAttribute('x2', active ? '22' : '32'); w1.setAttribute('y2', active ? '-8' : '22'); }
-    const c1e = document.getElementById('contact-bp1-eng');
-    const c1b = document.getElementById('contact-bp1-byp');
-    if (c1e) { c1e.setAttribute('fill', active ? 'none' : 'var(--orange)'); c1e.setAttribute('stroke', 'var(--orange)'); c1e.setAttribute('stroke-width', active ? '0.8' : '0'); }
-    if (c1b) { c1b.setAttribute('fill', active ? 'var(--orange)' : 'none'); c1b.setAttribute('stroke', 'var(--orange)'); c1b.setAttribute('stroke-width', active ? '0' : '0.8'); }
-
-    // Pole 2: wiper between (320,22) and either (316,22) [engaged, left to network out] or (320,-8) [bypass, up]
-    const w2 = document.getElementById('wiper-bp2');
-    if (w2) { w2.setAttribute('x2', active ? '320' : '316'); w2.setAttribute('y2', active ? '-8' : '22'); }
-    const c2e = document.getElementById('contact-bp2-eng');
-    const c2b = document.getElementById('contact-bp2-byp');
-    if (c2e) { c2e.setAttribute('fill', active ? 'none' : 'var(--orange)'); c2e.setAttribute('stroke', 'var(--orange)'); c2e.setAttribute('stroke-width', active ? '0.8' : '0'); }
-    if (c2b) { c2b.setAttribute('fill', active ? 'var(--orange)' : 'none'); c2b.setAttribute('stroke', 'var(--orange)'); c2b.setAttribute('stroke-width', active ? '0' : '0.8'); }
-
-    // Sleeve-side bypass wire opacity
-    const wireS = document.getElementById('bypass-wire-s');
-    if (wireS) wireS.setAttribute('opacity', active ? '0.85' : '0.25');
-
-    // Pole 3: wiper between (22,92) and either (32,92) [engaged, right along bottom rail] or (22,122) [bypass, down]
-    const w3 = document.getElementById('wiper-bp3');
-    if (w3) { w3.setAttribute('x2', active ? '22' : '32'); w3.setAttribute('y2', active ? '122' : '92'); }
-    const c3e = document.getElementById('contact-bp3-eng');
-    const c3b = document.getElementById('contact-bp3-byp');
-    if (c3e) { c3e.setAttribute('fill', active ? 'none' : 'var(--orange)'); c3e.setAttribute('stroke', 'var(--orange)'); c3e.setAttribute('stroke-width', active ? '0.8' : '0'); }
-    if (c3b) { c3b.setAttribute('fill', active ? 'var(--orange)' : 'none'); c3b.setAttribute('stroke', 'var(--orange)'); c3b.setAttribute('stroke-width', active ? '0' : '0.8'); }
-
-    // Pole 4: wiper between (320,92) and either (316,92) [engaged, left along rail] or (320,122) [bypass, down]
-    const w4 = document.getElementById('wiper-bp4');
-    if (w4) { w4.setAttribute('x2', active ? '320' : '316'); w4.setAttribute('y2', active ? '122' : '92'); }
-    const c4e = document.getElementById('contact-bp4-eng');
-    const c4b = document.getElementById('contact-bp4-byp');
-    if (c4e) { c4e.setAttribute('fill', active ? 'none' : 'var(--orange)'); c4e.setAttribute('stroke', 'var(--orange)'); c4e.setAttribute('stroke-width', active ? '0.8' : '0'); }
-    if (c4b) { c4b.setAttribute('fill', active ? 'var(--orange)' : 'none'); c4b.setAttribute('stroke', 'var(--orange)'); c4b.setAttribute('stroke-width', active ? '0' : '0.8'); }
-
-    // Hide the pole-to-rail stubs in bypass — in engaged mode the orange wipers
-    // overlay them, but in bypass the wipers lift away and the bare grey stubs
-    // would falsely imply the poles are still tied to the disconnected throws.
-    const stubOpacity = active ? '0' : '0.55';
-    ['rail-stub-bp1','rail-stub-bp2','rail-stub-bp3','rail-stub-bp4'].forEach(id => {
-      const s = document.getElementById(id);
-      if (s) s.setAttribute('opacity', stubOpacity);
+    // bypass nets glow when the wipers are actually sitting on T1
+    BYPASS_NET_IDS.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.setAttribute('opacity', active ? '0.85' : '0.25');
     });
+
+    // four ganged wipers + their throw contacts
+    for (const key of Object.keys(BP_GEOM)) {
+      const g = BP_GEOM[key];
+      const w = document.getElementById('wiper-' + key);
+      if (w) {
+        w.setAttribute('x2', active ? g.t1X : g.t2X);
+        w.setAttribute('y2', active ? g.t1Y : g.t2Y);
+      }
+      const cEng = document.getElementById('contact-' + key + '-eng');   // T2
+      const cByp = document.getElementById('contact-' + key + '-byp');   // T1
+      if (cEng) {
+        cEng.setAttribute('fill',   active ? 'none' : 'var(--orange)');
+        cEng.setAttribute('stroke', 'var(--orange)');
+        cEng.setAttribute('stroke-width', active ? '1' : '0');
+      }
+      if (cByp) {
+        cByp.setAttribute('fill',   active ? 'var(--orange)' : 'none');
+        cByp.setAttribute('stroke', 'var(--orange)');
+        cByp.setAttribute('stroke-width', active ? '0' : '1');
+      }
+    }
+
+    // lug-map detail panel mirrors the same state
+    ['a','b','c','d'].forEach(s => {
+      const lw = document.getElementById('lug-wiper-' + s);
+      if (lw) lw.setAttribute('y2', active ? '72' : '192');
+    });
+    const jt = document.getElementById('lug-jump-tip');
+    const js = document.getElementById('lug-jump-slv');
+    if (jt) jt.setAttribute('opacity', active ? '0.9' : '0.25');
+    if (js) js.setAttribute('opacity', active ? '0.7' : '0.25');
+    const st = document.getElementById('sw4State');
+    if (st) st.textContent = active
+      ? 'wiper on T1 · attenuator bypassed'
+      : 'wiper on T2 · attenuator in';
   }
 
-  // Master true-bypass toggle
   const masterEl = document.getElementById('masterBypass');
   const stageBlock = document.getElementById('stageBlock');
   masterEl.addEventListener('click', () => {
@@ -2032,12 +2106,10 @@ function populate() {
     updatePlot();
   });
 
-  // ===== Initial sync: make sure SVG matches sidebar state on load =====
+  // ===== Initial sync: make sure the SVGs match the sidebar state on load =====
   for (const id of ['sw1','sw2','sw3']) updateSwitchVisual(id);
   updateBypassVisual(masterEl.classList.contains('engaged'));
 
-  // Expose a single visual-resync entry point for applyConfigToControls():
-  // re-derive every schematic visual from current DOM control state.
   function syncVisualsToControls() {
     for (const id of ['sw1','sw2','sw3']) updateSwitchVisual(id);
     updateBypassVisual(document.getElementById('masterBypass').classList.contains('engaged'));
@@ -2066,7 +2138,6 @@ function wireSavedConfigs() {
   const impBtn   = document.getElementById('importConfigs');
   const impFile  = document.getElementById('importFile');
 
-  // --- Add current config to the comparison ---
   addBtn.addEventListener('click', () => {
     if (savedConfigs.length >= CFG_MAX) return;
     savedConfigs.push({
@@ -2074,14 +2145,13 @@ function wireSavedConfigs() {
       name: nextConfigName(),
       cfg: captureConfig(),
       colorIdx: lowestFreeColorIdx(),
-      show: true,            // the button literally says "to comparison"
+      show: true,
       visH: true, visZin: false, visZspk: false
     });
     persistConfigs();
     refreshConfigUI();
   });
 
-  // --- Manager list: show toggle / rename / load / delete (event-delegated) ---
   list.addEventListener('change', (ev) => {
     const item = ev.target.closest('.cfg-item');
     if (!item) return;
@@ -2111,7 +2181,6 @@ function wireSavedConfigs() {
     }
   });
 
-  // --- Stats table: per-row visibility checkboxes (event-delegated) ---
   statsTb.addEventListener('change', (ev) => {
     const cb = ev.target;
     if (cb.type !== 'checkbox') return;
@@ -2125,7 +2194,6 @@ function wireSavedConfigs() {
     updatePlot();
   });
 
-  // --- Column headers: toggle a quantity across every config at once ---
   const toggleColumn = (visKey) => {
     const entries = comparisonEntries();
     const allOn = entries.every(e => e.vis[visKey]);
@@ -2139,7 +2207,6 @@ function wireSavedConfigs() {
   document.getElementById('hdrZin').addEventListener('click',  () => toggleColumn('visZin'));
   document.getElementById('hdrZspk').addEventListener('click', () => toggleColumn('visZspk'));
 
-  // --- Export / Import JSON ---
   expBtn.addEventListener('click', () => {
     const blob = new Blob([JSON.stringify(savedConfigs, null, 2)], {type: 'application/json'});
     const url  = URL.createObjectURL(blob);
@@ -2179,8 +2246,6 @@ populate();
 loadConfigsFromStore();
 wireSavedConfigs();
 renderConfigList();
-// Manager-list swatches bake in theme colours at render time — refresh on theme flip.
-// (updatePlot already re-renders the plot + stats table with fresh tokens.)
 themeListeners.push(() => { if (typeof renderConfigList === 'function') renderConfigList(); });
 updatePlot();
 
@@ -2195,7 +2260,6 @@ function logspace(min, max, n) {
   return out;
 }
 
-// Hardcoded Jensen C12N speaker model — matches main analyzer's speakerZ()
 function zSpkr_C12N(f) {
   const Re = 6.05, Le = 0.90e-3, fs = 113, RES = 38.5, Qms = 7.52;
   const w  = 2 * Math.PI * f;
@@ -2210,8 +2274,6 @@ function zSpkr_C12N(f) {
   return cAdd(cAdd(C(Re, 0), C(0, w*Le)), Z_m);
 }
 
-// Generalized T/S speaker impedance — same lumped model as zSpkr_C12N, params passed in.
-// p = {Re, Le (henries), fs, RES, Qms}
 function zSpkrModel(f, p) {
   const w  = 2 * Math.PI * f;
   const ws = 2 * Math.PI * p.fs;
@@ -2225,16 +2287,13 @@ function zSpkrModel(f, p) {
   return cAdd(cAdd(C(p.Re, 0), C(0, w*p.Le)), Z_m);
 }
 
-// Tutorial speaker set for the Section 1 impedance plot — Le in henries.
-// Params mirror the analyzer's SPEAKERS table; representative to ~10-15%.
 const TUT_SPEAKERS = {
-  c12n:    { Re: 6.05,  Le: 0.90e-3, fs: 113, RES: 38.5, Qms: 7.52 },  // Jensen C12N, 8 Ω
-  greenbk: { Re: 6.7,   Le: 0.70e-3, fs: 75,  RES: 30,   Qms: 4.0  },  // Celestion Greenback, 8 Ω
-  g10n40:  { Re: 12.05, Le: 1.40e-3, fs: 98,  RES: 50,   Qms: 4.5  },  // Celestion G10N-40, 16 Ω (Blackstar HT-5)
-  v30_16:  { Re: 13.8,  Le: 0.80e-3, fs: 75,  RES: 60,   Qms: 7.0  }   // Celestion Vintage 30, 16 Ω
+  c12n:    { Re: 6.05,  Le: 0.90e-3, fs: 113, RES: 38.5, Qms: 7.52 },
+  greenbk: { Re: 6.7,   Le: 0.70e-3, fs: 75,  RES: 30,   Qms: 4.0  },
+  g10n40:  { Re: 12.05, Le: 1.40e-3, fs: 98,  RES: 50,   Qms: 4.5  },
+  v30_16:  { Re: 13.8,  Le: 0.80e-3, fs: 75,  RES: 60,   Qms: 7.0  }
 };
 
-// Hewitt M2, all SW1-3 engaged, 8 Ω values (no R10/R11)
 function buildM2_allEngaged(f) {
   const w = 2 * Math.PI * f;
   const R2A=22, R2B=18, R1=15, L1=0.9e-3;
@@ -2244,7 +2303,6 @@ function buildM2_allEngaged(f) {
   return abcdCascade([stage1, stage(R4, R3), stage(R6, R5), stage(R8, R7)]);
 }
 
-// Standard matched resistive L-pad: series-then-shunt-across-load. K = linear attenuation factor.
 function buildResistiveLpad(K, R_L) {
   R_L = R_L || 8;
   const Rs = R_L * (1 - K);
@@ -2252,7 +2310,6 @@ function buildResistiveLpad(K, R_L) {
   return abcdMul(abcdSeries(C(Rs, 0)), abcdShunt(C(Rp, 0)));
 }
 
-// H_total = V_speaker / V_source — accounts for amp source impedance R_amp
 function totalTransfer(ABCD, ZL, Ramp) {
   const A = ABCD[0][0], B = ABCD[0][1], C_ = ABCD[1][0], D = ABCD[1][1];
   const num = cAdd(cMul(A, ZL), B);
@@ -2263,12 +2320,10 @@ function totalTransfer(ABCD, ZL, Ramp) {
   return cMul(V_in_frac, H_att);
 }
 
-// Reference: no attenuator, source through R_amp into load Z_L
 function refTransfer(ZL, Ramp) {
   return cDiv(ZL, cAdd(C(Ramp, 0), ZL));
 }
 
-// Plotly layout factory matching the analyzer's style
 function tutLayoutDB(yMin, yMax) {
   const body = cssVar('--body'), muted = cssVar('--muted');
   const grid = cssVar('--grid'), axis = cssVar('--axis');
@@ -2314,7 +2369,6 @@ function tutLayoutImpedance(yMin, yMax) {
 
 const TUT_PLOT_CONFIG = {responsive: true, displayModeBar: false};
 
-// ---- PLOT 1: Textbook (flat lines at fixed attenuation) ----
 function buildPlot1() {
   const f = logspace(20, 20000, 100);
   const flat = (db) => f.map(() => db);
@@ -2329,16 +2383,13 @@ function buildPlot1() {
   Plotly.newPlot('tutPlot1', traces, tutLayoutDB(-20, 1), TUT_PLOT_CONFIG);
 }
 
-// ---- PLOT 2a: |Z_spkr(f)| — five real drivers, 8/16/4 Ω ----
 function buildPlot2a() {
   const f = logspace(20, 20000, 400);
   const mag = (p) => f.map(freq => cMag(zSpkrModel(freq, p)));
-  // 4 Ω example: two identical C12N in parallel ⇒ |Z|/2
   const parC12N = f.map(freq => cMag(zSpkrModel(freq, TUT_SPEAKERS.c12n)) / 2);
   const flat = (v) => f.map(() => v);
   const refLine = cssVar('--axis');
   const traces = [
-    // nominal-impedance reference lines — drawn first so the speaker curves sit on top
     {x: f, y: flat(8), name: '8 Ω nominal', type:'scatter', mode:'lines',
      line:{color: refLine, width: 1, dash: 'dot'}, hoverinfo: 'skip'},
     {x: f, y: flat(16), name: '16 Ω nominal', type:'scatter', mode:'lines',
@@ -2361,7 +2412,6 @@ function buildPlot2a() {
   ];
   const lo = tutLayoutImpedance(2, 320);
   lo.margin = Object.assign({}, lo.margin, {b: 110});
-  // annotate the reference lines directly on the plot
   lo.annotations = [
     {x: Math.log10(20000), y: Math.log10(8), xref: 'x', yref: 'y',
      text: '8 Ω', showarrow: false, xanchor: 'right', yanchor: 'bottom',
@@ -2373,7 +2423,6 @@ function buildPlot2a() {
   Plotly.newPlot('tutPlot2a', traces, lo, TUT_PLOT_CONFIG);
 }
 
-// ---- PLOT 2b: H(f) for single series-R into C12N ----
 function buildPlot2b() {
   const f = logspace(20, 20000, 400);
   const colors = [cssVar('--orange'), cssVar('--accent'), cssVar('--teal')];
@@ -2389,7 +2438,6 @@ function buildPlot2b() {
   Plotly.newPlot('tutPlot2b', traces, tutLayoutDB(-20, 1), TUT_PLOT_CONFIG);
 }
 
-// ---- PLOT 3: H(f) of bare speaker, varying R_amp ----
 function buildPlot3() {
   const f = logspace(20, 20000, 400);
   const cases = [
@@ -2409,7 +2457,6 @@ function buildPlot3() {
   Plotly.newPlot('tutPlot3', traces, tutLayoutDB(-9, 3), TUT_PLOT_CONFIG);
 }
 
-// ---- PLOT 4: H_ref vs K · H_ref (same shape, vertical shift) ----
 function buildPlot4() {
   const f = logspace(20, 20000, 400);
   const Ramp = 5, Kdb = -12;
@@ -2427,7 +2474,6 @@ function buildPlot4() {
   Plotly.newPlot('tutPlot4', traces, tutLayoutDB(-18, 3), TUT_PLOT_CONFIG);
 }
 
-// ---- PLOT 5a: |Z_in_M2| vs |Z_spkr| (same-shape goal) ----
 function buildPlot5a() {
   const f = logspace(20, 20000, 400);
   const Z_spkr = f.map(zSpkr_C12N);
@@ -2445,17 +2491,13 @@ function buildPlot5a() {
   Plotly.newPlot('tutPlot5a', traces, tutLayoutImpedance(2, 200), TUT_PLOT_CONFIG);
 }
 
-// ---- PLOT 5b: H_total — target vs M2 vs pure-resistive L-pad ----
 function buildPlot5b() {
   const f = logspace(20, 20000, 400);
   const Ramp = 5;
-  // Reference K so target K·H_ref aligns with M2 actual at 1 kHz
   const Z_1k     = zSpkr_C12N(1000);
   const H_M2_1k  = totalTransfer(buildM2_allEngaged(1000), Z_1k, Ramp);
   const H_ref_1k = refTransfer(Z_1k, Ramp);
   const K_target = cMag(H_M2_1k) / cMag(H_ref_1k);
-  // Build a resistive L-pad whose nominal (8 Ω resistive) attenuation matches K_target
-  // Note: into a real (reactive) speaker it'll deliver a frequency-dependent response
   const Lpad = buildResistiveLpad(K_target);
 
   const H_target_db = f.map(freq => {
@@ -2482,9 +2524,7 @@ function buildPlot5b() {
   Plotly.newPlot('tutPlot5b', traces, tutLayoutDB(-50, -20), TUT_PLOT_CONFIG);
 }
 
-// ---- PLOT 6: ISO 226 equal-loudness contours ----
 function buildPlot6() {
-  // Approximate ISO 226:2003 — SPL (dB) at ~1/3-octave centers
   const f_iso = [20, 31.5, 50, 80, 125, 200, 315, 500, 800, 1000, 1600, 2500, 4000, 6300, 10000, 12500];
   const data = {
      '40 phon':  [99, 88, 78, 68, 60, 53, 47, 43, 41, 40, 39, 36, 37, 41, 54, 53],
@@ -2508,7 +2548,6 @@ function buildPlot6() {
   Plotly.newPlot('tutPlot6', traces, lo, TUT_PLOT_CONFIG);
 }
 
-// ---- Build all tutorial plots (lazy, on first tab visit) ----
 let _tutorialBuilt = false;
 function buildTutorialPlots() {
   if (_tutorialBuilt) return;
@@ -2521,7 +2560,6 @@ function buildTutorialPlots() {
   _tutorialBuilt = true;
 }
 
-// ---- Tab switching ----
 document.querySelectorAll('.tab-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     const tab = btn.dataset.tab;
@@ -2531,7 +2569,6 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
   });
 });
 
-// ---- Theme change: rebuild tutorial plots with new theme colors ----
 themeListeners.push(() => {
   if (_tutorialBuilt) {
     _tutorialBuilt = false;
