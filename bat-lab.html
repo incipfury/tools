@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bat Lab — swing weight vs. how it hits</title>
+<style>
+:root{
+  --ink:#163960; --soft:#5a7086; --paper:#f7f7f4; --panel:#fff;
+  --line:#dcdfd9; --line2:#eceee9;
+  --wood:#7a5230; --bbcor:#163960; --usssa:#ff8a3d; --usa:#2ba1a1;
+  --tee:#94a3ad; --heritage:#6b4c9a; --accent:#1369b3; --field:#14301f;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--paper);color:var(--ink);
+  font-family:'Geist','Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1120px;margin:0 auto;padding:26px 18px 80px}
+h1{font-size:clamp(26px,4.2vw,40px);line-height:1.05;letter-spacing:-.025em;margin:0 0 8px;font-weight:700}
+.lede{max-width:66ch;color:var(--soft);margin:0}
+.mono{font-family:'Geist Mono','SF Mono',Consolas,'Liberation Mono',monospace}
+
+section{margin-top:26px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:16px 18px}
+h2{font-size:19px;letter-spacing:-.015em;margin:0 0 4px}
+.note{font-size:13px;color:var(--soft);margin:0 0 14px;max-width:70ch}
+
+/* batter bar */
+.batter{display:grid;grid-template-columns:repeat(3,1fr);gap:14px 24px}
+.ctl label{display:block;font-size:13px;margin-bottom:4px}
+.ctl b{font-family:'Geist Mono','SF Mono',Consolas,monospace}
+input[type=range]{width:100%;accent-color:var(--accent);height:20px}
+select{font:inherit;font-size:14px;padding:6px 8px;border:1px solid var(--line);border-radius:2px;background:#fff;color:var(--ink);width:100%}
+.hint{font-size:12px;color:var(--soft);margin-top:2px}
+
+/* bat pickers */
+.duel{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.bat{border:1px solid var(--line);border-radius:3px;background:var(--panel);padding:14px 16px}
+.bat.A{border-top:3px solid var(--accent)}
+.bat.B{border-top:3px solid var(--usssa)}
+.bat h3{margin:0 0 10px;font-size:16px;display:flex;justify-content:space-between;align-items:baseline}
+.bat h3 em{font-style:normal;font-size:12px;color:var(--soft)}
+.picks{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.picks .full{grid-column:1/-1}
+.stat{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--line2);font-size:13.5px}
+.stat:last-child{border:0}
+.stat span{color:var(--soft)}
+.stat b{font-family:'Geist Mono','SF Mono',Consolas,monospace;font-size:14.5px}
+.hero{font-size:28px;letter-spacing:-.02em}
+
+.verdict{margin-top:16px;border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:3px;background:var(--panel);padding:16px 18px}
+.verdict p{margin:0 0 8px;max-width:74ch}
+.verdict p:last-child{margin:0}
+.decomp{margin-top:12px}
+.dbar{display:grid;grid-template-columns:150px 1fr 74px;align-items:center;gap:10px;padding:3px 0;font-size:13.5px}
+.dtrack{position:relative;height:16px;background:#f1f3ef;border-radius:2px}
+.dfill{position:absolute;top:0;height:16px;border-radius:2px}
+.dzero{position:absolute;top:-3px;bottom:-3px;width:1px;background:#c3c8c0}
+.dval{text-align:right;font-family:'Geist Mono','SF Mono',Consolas,monospace;font-size:13.5px}
+
+.presets{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.presets button{font:inherit;font-size:13px;font-weight:600;background:#eef1ec;color:var(--ink);
+  border:1px solid var(--line);border-radius:2px;padding:6px 11px;cursor:pointer}
+.presets button:hover{background:#e3e8e1}
+.presets button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+canvas{display:block;width:100%;height:auto}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:12.5px;color:var(--soft);margin-top:10px}
+.legend label{display:flex;gap:6px;align-items:center;cursor:pointer}
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block}
+
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{padding:6px 8px;text-align:right;border-bottom:1px solid var(--line2)}
+th{font-weight:600;color:var(--soft);font-size:12px}
+td.lab,th.lab{text-align:left}
+td.num{font-family:'Geist Mono','SF Mono',Consolas,monospace}
+tr.mark td{background:#eaf2f9}
+.grid2{display:grid;grid-template-columns:1.15fr .85fr;gap:16px}
+.scroll{overflow-x:auto}
+td.cell{font-family:'Geist Mono','SF Mono',Consolas,monospace;text-align:center;border:1px solid #fff}
+td.cellA{outline:2px solid var(--accent);outline-offset:-2px}
+td.cellB{outline:2px solid var(--usssa);outline-offset:-2px}
+
+.explain p{max-width:72ch;margin:0 0 10px}
+.explain ul{max-width:72ch;padding-left:20px;margin:0 0 10px}
+.explain li{margin-bottom:5px}
+code{font-family:'Geist Mono','SF Mono',Consolas,monospace;font-size:13px;background:#eef0ec;padding:1px 5px;border-radius:2px}
+footer{margin-top:30px;padding-top:14px;border-top:1px solid var(--line);font-size:12.5px;color:var(--soft);max-width:78ch}
+@media(max-width:860px){.duel,.grid2{grid-template-columns:1fr}.batter{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){.batter,.picks{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>Bat Lab</h1>
+  <p class="lede">Every bat is a trade: swing weight buys energy transfer and costs bat speed. This puts real bat geometry — certification, length, weight, and barrel profile — on both sides of that trade and tells you which way it came out.</p>
+</header>
+
+<section class="panel">
+  <h2>The batter</h2>
+  <p class="note">Everything is anchored to your measured bat speed with Bat A. The sensitivity slider is the one thing worth calibrating from real data.</p>
+  <div class="batter">
+    <div class="ctl">
+      <label for="vref">Your bat speed with Bat A — <b id="vrefV"></b></label>
+      <input type="range" id="vref" min="30" max="85" step="1" value="70">
+      <div class="hint">Youth 40–55, high school 60–70, pro 70–80 mph at the sweet spot.</div>
+    </div>
+    <div class="ctl">
+      <label for="kstr">Swing weight sensitivity — <b id="kstrV"></b></label>
+      <input type="range" id="kstr" min="0" max="1" step="0.02" value="0.53">
+      <div class="hint">How much a heavier-swinging bat slows you down. Right = the weight really costs you.</div>
+    </div>
+    <div class="ctl">
+      <label for="vp">Pitch speed — <b id="vpV"></b></label>
+      <input type="range" id="vp" min="0" max="100" step="1" value="75">
+      <div class="hint">0 for a tee.</div>
+    </div>
+    <div class="ctl">
+      <label for="ang">Launch angle — <b id="angV"></b></label>
+      <input type="range" id="ang" min="10" max="45" step="1" value="27">
+    </div>
+    <div class="ctl">
+      <label for="imp">Contact point from barrel end — <b id="impV"></b></label>
+      <input type="range" id="imp" min="3" max="10" step="0.5" value="6">
+    </div>
+    <div class="ctl">
+      <label for="era">Ball</label>
+      <select id="era">
+        <option value="modern">Modern ball</option>
+        <option value="dead">Dead-ball era (pre-1920)</option>
+      </select>
+      <div class="hint">The old ball was softer and got mushy. It costs roughly 4 points of COR.</div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="presets">
+    <button data-preset="shape">271 vs C243, 33/30</button>
+    <button data-preset="size">33/30 vs 34/31</button>
+    <button data-preset="size2">34/31 vs 34/32</button>
+    <button data-preset="shapevssize">Easier shape vs bigger bat</button>
+    <button data-preset="ruth">Ruth's club vs a modern 34/31</button>
+    <button data-preset="youth">USA vs USSSA, 30/20</button>
+    <button data-preset="metal">BBCOR balanced vs end-loaded</button>
+  </div>
+  <div class="duel">
+    <div class="bat A">
+      <h3>Bat A <em id="tagA"></em></h3>
+      <div class="picks">
+        <div class="full"><select id="certA"></select></div>
+        <select id="lenA"></select>
+        <select id="wtA"></select>
+        <div class="full"><select id="profA"></select></div>
+      </div>
+      <div class="stat"><span>Swing weight (MOI, 6 in pivot)</span><b id="moiA"></b></div>
+      <div class="stat"><span>Balance point from knob</span><b id="balA"></b></div>
+      <div class="stat"><span>Effective mass at contact</span><b id="meA"></b></div>
+      <div class="stat"><span>Bat speed</span><b id="vA"></b></div>
+      <div class="stat"><span>Exit velocity</span><b id="bbsA"></b></div>
+      <div class="stat"><span>Distance</span><b class="hero" id="dA"></b></div>
+    </div>
+    <div class="bat B">
+      <h3>Bat B <em id="tagB"></em></h3>
+      <div class="picks">
+        <div class="full"><select id="certB"></select></div>
+        <select id="lenB"></select>
+        <select id="wtB"></select>
+        <div class="full"><select id="profB"></select></div>
+      </div>
+      <div class="stat"><span>Swing weight (MOI, 6 in pivot)</span><b id="moiB"></b></div>
+      <div class="stat"><span>Balance point from knob</span><b id="balB"></b></div>
+      <div class="stat"><span>Effective mass at contact</span><b id="meB"></b></div>
+      <div class="stat"><span>Bat speed</span><b id="vB"></b></div>
+      <div class="stat"><span>Exit velocity</span><b id="bbsB"></b></div>
+      <div class="stat"><span>Distance</span><b class="hero" id="dB"></b></div>
+    </div>
+  </div>
+
+  <div class="verdict">
+    <p id="v1"></p>
+    <p id="v2"></p>
+    <div class="decomp" id="decomp"></div>
+  </div>
+</section>
+
+<section class="panel">
+  <h2>The whole landscape</h2>
+  <p class="note">Every legal bat in the certifications you have switched on, plotted by what it costs to swing against what it does to the ball. The ridge line is where the trade turns over. Bats to the right of the peak are more bat than you can pay for.</p>
+  <canvas id="scatter" width="1060" height="470"></canvas>
+  <div class="legend" id="certToggles"></div>
+</section>
+
+<div class="grid2">
+  <section class="panel">
+    <h2>Same size, different profile</h2>
+    <p class="note" id="shapeNote"></p>
+    <div class="scroll"><table id="shapeTable"></table></div>
+  </section>
+  <section class="panel">
+    <h2>Same profile, different size</h2>
+    <p class="note" id="sizeNote"></p>
+    <div class="scroll"><table id="sizeTable"></table></div>
+  </section>
+</div>
+
+<section class="panel">
+  <h2>The old kings</h2>
+  <p class="note">Reported game bats, run through the same batter. Weights from this era come from club records and museum pieces and vary by source, so treat them as approximate. Switch the ball to dead-ball era to see the other half of the story.</p>
+  <div class="scroll"><table id="histTable"></table></div>
+</section>
+
+<section class="panel explain">
+  <h2>How to read this</h2>
+  <p><b>Swing weight is the real currency, not weight.</b> Two 33/30 bats can differ by 600 oz·in² in moment of inertia depending on where the wood sits. That is why a 271 and a C243 stamped with the same number feel nothing alike. Weight is what the scale says; swing weight is what your hands say.</p>
+  <p><b>Profile moves swing weight less than size does.</b> Across the wood profiles at a fixed length and weight, the spread is usually 6–9%. One inch and one ounce is typically 12–15%. So switching from a C243 to a 271 is a real change, but it is roughly half of what going up a size does — and in the opposite direction.</p>
+  <p><b>Certification is a separate lever entirely.</b> BBCOR, USA Baseball, and wood are all capped at the same 0.50 performance ceiling on purpose. USSSA bats are not, which is why a USSSA bat outhits a USA bat of identical dimensions by a margin no shape change can touch. If you are comparing across certifications, that term usually dominates everything else.</p>
+  <p><b>Distance is not the whole decision.</b> The bar chart shows what each change costs in the time it takes to get the barrel to the ball. A few milliseconds sounds like nothing, but a pitch travels about 4 inches in 3 ms, and that is roughly the difference between fair and foul. Most hitters are better off a size under their maximum-distance bat.</p>
+  <p>The collision itself is <code>exit = q·v_pitch + [(1+e)/(1+r)]·v_bat</code>, with <code>r = ball mass / effective mass at contact</code> and <code>e</code> set by the certification. Effective mass comes from the bat's own geometry: <code>1/M_eff = 1/M + d²/I_cm</code>, where <code>d</code> is the distance from the balance point to where you hit it.</p>
+</section>
+
+<footer>
+  Bats are modeled as solids of revolution (wood) or thin shells (metal) built from published profile dimensions — handle diameter, taper length, barrel length and diameter, knob, end cup, end load — then scaled to the selected weight, exactly as a manufacturer picks billet density or wall thickness. Moments of inertia are integrated from that geometry, not looked up, so absolute swing weights land within a few percent of published values rather than exactly on them. Differences between bats are far more trustworthy than the absolute numbers. Bat speed vs. swing weight uses a force-velocity curve anchored to your Bat A speed. Trajectories include drag and Magnus lift, calibrated so 100 mph at 28° carries about 395 ft.
+</footer>
+
+</div>
+
+<script>
+(function(){
+"use strict";
+var OZ=0.0283495, IN=0.0254, MPH=0.44704, G=9.80665, FT=0.3048;
+var R_B=0.0366, A_B=Math.PI*R_B*R_B, RHO=1.19, CD=0.40, CLK=1.5, CLMAX=0.30;
+var M_BALL_OZ=5.125, SPIN=1800, H0=3.2;
+var $=function(i){return document.getElementById(i);};
+
+/* ---------- profiles ---------- */
+/* wood: dimensions at 34 in; barrel and taper scale gently with length, the rest goes to the handle */
+var WOOD={
+ '271' :{n:"271 — the standard",             knobDia:1.92,knobLen:1.2,handleDia:0.96,taperLen:11,  barrelLen:11.5,barrelDia:2.50},
+ '110' :{n:"110 — thick handle, balanced",   knobDia:2.06,knobLen:1.4,handleDia:1.02,taperLen:12,  barrelLen:10.5,barrelDia:2.44},
+ 'CU26':{n:"CU26 — flared knob, balanced",   knobDia:2.18,knobLen:1.5,handleDia:0.95,taperLen:11.5,barrelLen:11,  barrelDia:2.50},
+ 'AP5' :{n:"AP5 — thin handle, balanced",    knobDia:1.92,knobLen:1.2,handleDia:0.93,taperLen:11.5,barrelLen:11,  barrelDia:2.48},
+ 'I13' :{n:"I13 — long barrel, slight load", knobDia:1.96,knobLen:1.2,handleDia:0.95,taperLen:10,  barrelLen:12,  barrelDia:2.52},
+ '141' :{n:"141 — thin handle, medium",      knobDia:1.88,knobLen:1.1,handleDia:0.91,taperLen:10.5,barrelLen:11.5,barrelDia:2.50},
+ '73'  :{n:"73 — big barrel, end loaded",    knobDia:1.90,knobLen:1.1,handleDia:0.92,taperLen:9,   barrelLen:12,  barrelDia:2.61},
+ 'C243':{n:"C243 — big barrel, end loaded",  knobDia:1.86,knobLen:1.1,handleDia:0.90,taperLen:9.5, barrelLen:11.5,barrelDia:2.58},
+ 'club':{n:"Heritage club — thick handle",   knobDia:1.95,knobLen:1.0,handleDia:1.12,taperLen:12,  barrelLen:11,  barrelDia:2.70}
+};
+/* metal: barrel diameter comes from the certification, load comes from the profile */
+var METAL={
+ 'bal' :{n:"Balanced",        load:0.000, taperLen:6.0, barrelFrac:0.42},
+ 'slt' :{n:"Slight end load", load:0.020, taperLen:5.5, barrelFrac:0.44},
+ 'end' :{n:"End loaded",      load:0.045, taperLen:5.0, barrelFrac:0.46},
+ 'bal27':{n:"Balanced, 2¾ barrel",   load:0.000, taperLen:6.0, barrelFrac:0.42, dia:2.75},
+ 'end27':{n:"End loaded, 2¾ barrel", load:0.045, taperLen:5.0, barrelFrac:0.46, dia:2.75}
+};
+
+var CERTS={
+ wood:{n:"Wood — MLB, college, adult leagues", kind:"wood", e:0.500, col:"#7a5230",
+       lens:[29,30,31,32,33,34,35,36], drops:[-2,-3,-4,-5],
+       profs:['271','110','CU26','AP5','I13','141','73','C243']},
+ bbcor:{n:"BBCOR .50 — high school, NCAA", kind:"metal", e:0.500, col:"#163960", dia:2.625,
+       lens:[31,32,33,34], drops:[-3], profs:['bal','slt','end']},
+ usssa:{n:"USSSA 1.15 BPF — travel ball", kind:"metal", e:0.565, col:"#ff8a3d", dia:2.625,
+       lens:[26,27,28,29,30,31,32,33,34], drops:[-5,-8,-10,-12], profs:['bal','slt','end','bal27','end27']},
+ usa:{n:"USA Baseball — Little League, Cal Ripken, PONY", kind:"metal", e:0.500, col:"#2ba1a1", dia:2.625,
+       lens:[26,27,28,29,30,31,32], drops:[-5,-8,-10,-11,-12,-13], profs:['bal','slt','end']},
+ tee:{n:"USA Tee Ball", kind:"metal", e:0.490, col:"#94a3ad", dia:2.25,
+       lens:[24,25,26], drops:[-11,-12,-13], profs:['bal','slt']},
+ heritage:{n:"Heritage wood — pre-1950 game bats", kind:"wood", e:0.500, col:"#6b4c9a",
+       lens:[34,34.5,35,35.5,36,37], weights:[34,36,38,40,42,44,46,48,50,54],
+       profs:['club','271','110']}
+};
+var CERT_ORDER=['wood','bbcor','usssa','usa','tee','heritage'];
+
+function weightsFor(ck,L){
+  var c=CERTS[ck];
+  if(c.weights) return c.weights.filter(function(w){return w>=L-6;});
+  var out=[]; c.drops.forEach(function(d){var w=Math.round(L)+d; if(w>=8&&out.indexOf(w)<0) out.push(w);});
+  return out.sort(function(a,b){return a-b;});
+}
+function profsFor(ck){ return CERTS[ck].profs; }
+function profName(ck,p){ return CERTS[ck].kind==="wood" ? WOOD[p].n : METAL[p].n; }
+
+/* ---------- geometry ---------- */
+var NSEG=1400;
+function geom(ck,pk,L){
+  var c=CERTS[ck], g;
+  if(c.kind==="wood"){
+    var w=WOOD[pk], s=Math.pow(L/34,0.5);
+    g={knobDia:w.knobDia,knobLen:w.knobLen,handleDia:w.handleDia,
+       taperLen:w.taperLen*s,barrelLen:w.barrelLen*s,barrelDia:w.barrelDia,
+       hollow:false,load:0,cup:(L>=31?0.9:0.6)};
+    if(ck==="heritage") g.cup=0;
+  } else {
+    var m=METAL[pk];
+    g={knobDia:1.85,knobLen:1.0,handleDia:Math.min(1.02,0.86+L*0.005),
+       taperLen:m.taperLen*Math.min(1,L/34+0.15),barrelLen:L*m.barrelFrac,
+       barrelDia:(m.dia||c.dia),hollow:true,load:m.load,cup:0};
+  }
+  var minH=Math.max(3.0,L*0.14);
+  var over=(g.knobLen+g.taperLen+g.barrelLen)-(L-minH);
+  if(over>0){ var f=1-over/(g.taperLen+g.barrelLen); g.taperLen*=f; g.barrelLen*=f; }
+  return g;
+}
+function radiusFn(g,L){
+  var hL=L-g.knobLen-g.taperLen-g.barrelLen;
+  return function(x){
+    if(x<g.knobLen){var f=x/g.knobLen;return (g.knobDia/2)*(1-f*f)+(g.handleDia/2)*f*f;}
+    var xs=x-g.knobLen; if(xs<hL) return g.handleDia/2;
+    var xt=xs-hL;
+    if(xt<g.taperLen){var f=xt/g.taperLen,s=(1-Math.cos(Math.PI*f))/2;
+      return (g.handleDia/2)*(1-s)+(g.barrelDia/2)*s;}
+    var f2=(xt-g.taperLen)/g.barrelLen;
+    return (g.barrelDia/2)*(1-0.035*f2*f2);
+  };
+}
+var geomCache={};
+function buildBat(ck,pk,L,Woz){
+  var key=ck+"|"+pk+"|"+L+"|"+Woz;
+  if(geomCache[key]) return geomCache[key];
+  var g=geom(ck,pk,L), R=radiusFn(g,L), dx=L/NSEG, wt=[], xs=[], tot=0;
+  for(var i=0;i<NSEG;i++){var x=(i+0.5)*dx, r=R(x);
+    var dm=g.hollow?2*Math.PI*r:Math.PI*r*r; wt.push(dm); xs.push(x); tot+=dm;}
+  var load=g.load*Woz, cup=g.cup;
+  var sc=(Woz-load+cup)/(tot*dx), M=0, S=0;
+  for(var i=0;i<NSEG;i++){var m=wt[i]*dx*sc; M+=m; S+=m*xs[i];}
+  var lx=0.93*L, cx=0.985*L;
+  M+=load-cup; S+=load*lx-cup*cx;
+  var B=S/M, Icm=0;
+  for(var i=0;i<NSEG;i++){var m=wt[i]*dx*sc; Icm+=m*Math.pow(xs[i]-B,2);}
+  Icm+=load*Math.pow(lx-B,2)-cup*Math.pow(cx-B,2);
+  var out={cert:ck,prof:pk,L:L,W:Woz,M:M,bal:B,Icm:Icm,
+           MOI6:Icm+M*Math.pow(B-6,2), barrelDia:g.barrelDia};
+  geomCache[key]=out; return out;
+}
+function effMassOz(b,impFromEnd){
+  var d=(b.L-impFromEnd)-b.bal;
+  return 1/(1/b.M + d*d/b.Icm);
+}
+
+/* ---------- flight ---------- */
+var flyCache={};
+function fly(vMph,angDeg){
+  var key=Math.round(vMph*4)+"|"+angDeg;
+  if(flyCache[key]!==undefined) return flyCache[key];
+  var m=M_BALL_OZ*OZ, th=angDeg*Math.PI/180;
+  var x=0,y=H0*FT,vx=vMph*MPH*Math.cos(th),vy=vMph*MPH*Math.sin(th);
+  var w=SPIN*Math.PI/30, dt=0.002, t=0;
+  function acc(vx,vy){
+    var s=Math.hypot(vx,vy); if(s<1e-6) return [0,-G];
+    var fd=0.5*RHO*CD*A_B*s*s, S=R_B*w/s, Cl=Math.min(CLMAX,CLK*S), fl=0.5*RHO*Cl*A_B*s*s;
+    var ux=vx/s, uy=vy/s;
+    return [(-fd*ux-fl*uy)/m, (-fd*uy+fl*ux)/m-G];
+  }
+  while(y>0&&t<12){var a=acc(vx,vy),mx=vx+a[0]*dt*0.5,my=vy+a[1]*dt*0.5,am=acc(mx,my);
+    vx+=am[0]*dt; vy+=am[1]*dt; x+=mx*dt; y+=my*dt; t+=dt;}
+  var d=Math.max(0,x/FT); flyCache[key]=d; return d;
+}
+
+/* ---------- batter ---------- */
+function P(){
+  var era=$("era").value;
+  return {vref:+$("vref").value, k:0.7+11.3*Math.pow(1-(+$("kstr").value),2.2),
+          vp:+$("vp").value, ang:+$("ang").value, imp:+$("imp").value,
+          eAdj: era==="dead" ? -0.040 : 0, dead: era==="dead"};
+}
+function evaluate(b,p,ref){
+  var v=p.vref*(p.k+1)/(p.k + b.MOI6/ref.MOI6);
+  var e=Math.max(0.30,CERTS[b.cert].e + p.eAdj);
+  var me=effMassOz(b,p.imp);
+  var r=M_BALL_OZ/me, T=(1+e)/(1+r), q=T-1;
+  var bbs=q*p.vp + T*v;
+  return {bat:b, v:v, e:e, me:me, r:r, T:T, q:q, bbs:bbs,
+          dist:fly(bbs,p.ang), moi:b.MOI6, bal:b.bal,
+          ms:150*(p.vref/v)};
+}
+
+/* ---------- selects ---------- */
+function fillSel(id,items,val){
+  var s=$(id); s.innerHTML="";
+  items.forEach(function(it){
+    var o=document.createElement("option");
+    o.value=it[0]; o.textContent=it[1]; s.appendChild(o);
+  });
+  if(val!==undefined && items.some(function(i){return String(i[0])===String(val);})) s.value=val;
+}
+function initCerts(side){
+  fillSel("cert"+side, CERT_ORDER.map(function(c){return [c,CERTS[c].n];}), side==="A"?"wood":"wood");
+}
+function refreshSide(side,keep){
+  var ck=$("cert"+side).value, c=CERTS[ck];
+  var curL=keep?$("len"+side).value:null;
+  fillSel("len"+side, c.lens.map(function(L){return [L,L+" in"];}), curL);
+  var L=+$("len"+side).value;
+  var curW=keep?$("wt"+side).value:null;
+  var ws=weightsFor(ck,L);
+  fillSel("wt"+side, ws.map(function(w){
+    var drop=Math.round(w-L); return [w, w+" oz ("+(drop>0?"+":"")+drop+")"];}), curW);
+  var curP=keep?$("prof"+side).value:null;
+  fillSel("prof"+side, profsFor(ck).map(function(p){return [p,profName(ck,p)];}), curP);
+}
+function readSide(side){
+  var ck=$("cert"+side).value;
+  return buildBat(ck, $("prof"+side).value, +$("len"+side).value, +$("wt"+side).value);
+}
+function setSide(side,ck,L,W,pk){
+  $("cert"+side).value=ck; refreshSide(side,false);
+  $("len"+side).value=L; refreshSide(side,true);
+  $("wt"+side).value=W; $("prof"+side).value=pk;
+  refreshSide(side,true);
+  $("wt"+side).value=W; $("prof"+side).value=pk;
+}
+
+/* ---------- canvas helpers ---------- */
+function hidpi(cv,w,h){
+  var dpr=window.devicePixelRatio||1, ctx=cv.getContext("2d");
+  cv.width=w*dpr; cv.height=h*dpr; cv.style.height=h+"px";
+  ctx.setTransform(dpr,0,0,dpr,0,0); ctx.clearRect(0,0,w,h);
+  return ctx;
+}
+var certOn={wood:true,bbcor:true,usssa:false,usa:false,tee:false,heritage:false};
+
+function libraryFor(ck){
+  var c=CERTS[ck], out=[];
+  c.lens.forEach(function(L){
+    weightsFor(ck,L).forEach(function(W){
+      c.profs.forEach(function(pk){ out.push(buildBat(ck,pk,L,W)); });
+    });
+  });
+  return out;
+}
+
+function drawScatter(p,ref,A,B){
+  var W=1060,H=470, ctx=hidpi($("scatter"),W,H);
+  var pts=[];
+  CERT_ORDER.forEach(function(ck){ if(!certOn[ck]) return;
+    libraryFor(ck).forEach(function(b){ pts.push(evaluate(b,p,ref)); }); });
+  var rA=evaluate(A,p,ref), rB=evaluate(B,p,ref);
+  pts.push(rA,rB);
+  if(!pts.length) return;
+  var xs=pts.map(function(o){return o.moi;}), ys=pts.map(function(o){return o.dist;});
+  var x0=Math.min.apply(null,xs), x1=Math.max.apply(null,xs);
+  var y0=Math.min.apply(null,ys), y1=Math.max.apply(null,ys);
+  var xr=Math.max(1,x1-x0), yr=Math.max(1,y1-y0);
+  x0-=xr*0.06; x1+=xr*0.06; y0-=yr*0.12; y1+=yr*0.10;
+  var pl=64,pr=18,pt=16,pb=44;
+  function X(v){return pl+(v-x0)/(x1-x0)*(W-pl-pr);}
+  function Y(v){return H-pb-(v-y0)/(y1-y0)*(H-pt-pb);}
+  ctx.font="11.5px 'Geist Mono','SF Mono',Consolas,monospace";
+  ctx.strokeStyle="#e9ebe6"; ctx.lineWidth=1; ctx.fillStyle="#8a97a3";
+  for(var i=0;i<=5;i++){
+    var yv=y0+(y1-y0)*i/5;
+    ctx.beginPath();ctx.moveTo(pl,Y(yv));ctx.lineTo(W-pr,Y(yv));ctx.stroke();
+    ctx.fillText(Math.round(yv)+" ft",8,Y(yv)+4);
+  }
+  for(var i=0;i<=5;i++){
+    var xv=x0+(x1-x0)*i/5;
+    ctx.beginPath();ctx.moveTo(X(xv),pt);ctx.lineTo(X(xv),H-pb);ctx.stroke();
+    ctx.fillText(Math.round(xv/100)/10+"k",X(xv)-11,H-pb+18);
+  }
+  ctx.fillStyle="#5a7086"; ctx.font="12px 'Geist','Inter',system-ui,sans-serif";
+  ctx.fillText("swing weight — moment of inertia about a point 6 in from the knob (oz·in²)",pl,H-8);
+  ctx.save(); ctx.translate(16,Y((y0+y1)/2)+95); ctx.rotate(-Math.PI/2);
+  ctx.fillText("distance (ft)",0,0); ctx.restore();
+
+  pts.forEach(function(o){
+    if(o===rA||o===rB) return;
+    ctx.fillStyle=CERTS[o.bat.cert].col; ctx.globalAlpha=0.42;
+    ctx.beginPath(); ctx.arc(X(o.moi),Y(o.dist),3.1,0,6.284); ctx.fill();
+  });
+  ctx.globalAlpha=1;
+  [[rA,"#1369b3","A"],[rB,"#ff8a3d","B"]].forEach(function(m){
+    var o=m[0];
+    ctx.strokeStyle="#fff"; ctx.lineWidth=2.5;
+    ctx.beginPath(); ctx.arc(X(o.moi),Y(o.dist),7.5,0,6.284); ctx.stroke();
+    ctx.fillStyle=m[1];
+    ctx.beginPath(); ctx.arc(X(o.moi),Y(o.dist),6.5,0,6.284); ctx.fill();
+    ctx.fillStyle=m[1]; ctx.font="700 13px 'Geist','Inter',system-ui,sans-serif";
+    ctx.fillText(m[2],X(o.moi)-3.5,Y(o.dist)-13);
+  });
+}
+
+/* ---------- tables ---------- */
+function fmt(n,d){return n.toFixed(d===undefined?1:d);}
+function sgn(n,d){var s=fmt(Math.abs(n),d); return (n>=0?"+":"−")+s;}
+
+function shapeTable(p,ref,A){
+  var ck=A.cert, c=CERTS[ck];
+  $("shapeNote").textContent="All "+(c.kind==="wood"?"profiles":"barrel loads")+" available at "+A.L+" in / "+A.W+" oz in "+ck.toUpperCase()+", ranked by distance. Your Bat A is highlighted.";
+  var rows=c.profs.map(function(pk){return evaluate(buildBat(ck,pk,A.L,A.W),p,ref);});
+  var base=rows.filter(function(r){return r.bat.prof===A.prof;})[0];
+  rows.sort(function(a,b){return b.dist-a.dist;});
+  var h="<tr><th class='lab'>Profile</th><th>Swing wt</th><th>Bat speed</th><th>Exit</th><th>Distance</th><th>vs A</th><th>Time</th></tr>";
+  rows.forEach(function(r){
+    var mk=r.bat.prof===A.prof?" class='mark'":"";
+    h+="<tr"+mk+"><td class='lab'>"+profName(ck,r.bat.prof)+"</td>"+
+       "<td class='num'>"+Math.round(r.moi)+"</td>"+
+       "<td class='num'>"+fmt(r.v)+"</td>"+
+       "<td class='num'>"+fmt(r.bbs)+"</td>"+
+       "<td class='num'>"+Math.round(r.dist)+" ft</td>"+
+       "<td class='num'>"+(r===base?"—":sgn(r.dist-base.dist,0)+" ft")+"</td>"+
+       "<td class='num'>"+(r===base?"—":sgn(r.ms-base.ms,1)+" ms")+"</td></tr>";
+  });
+  $("shapeTable").innerHTML=h;
+}
+
+function sizeTable(p,ref,A,B){
+  var ck=A.cert, c=CERTS[ck];
+  $("sizeNote").textContent="Every legal length and weight for a "+profName(ck,A.prof)+" in "+ck.toUpperCase()+". Numbers are feet. A and B are outlined.";
+  var lens=c.lens, wsAll=[];
+  lens.forEach(function(L){ weightsFor(ck,L).forEach(function(w){ if(wsAll.indexOf(w)<0) wsAll.push(w); }); });
+  wsAll.sort(function(a,b){return a-b;});
+  var cells=[], vals=[];
+  lens.forEach(function(L){
+    var row=[];
+    wsAll.forEach(function(W){
+      if(weightsFor(ck,L).indexOf(W)<0){ row.push(null); return; }
+      var r=evaluate(buildBat(ck,A.prof,L,W),p,ref);
+      row.push(r); vals.push(r.dist);
+    });
+    cells.push(row);
+  });
+  var lo=Math.min.apply(null,vals), hi=Math.max.apply(null,vals);
+  var h="<tr><th class='lab'>Length</th>";
+  wsAll.forEach(function(W){h+="<th>"+W+" oz</th>";}); h+="</tr>";
+  cells.forEach(function(row,i){
+    h+="<tr><td class='lab'>"+lens[i]+" in</td>";
+    row.forEach(function(r,j){
+      if(!r){h+="<td class='cell' style='background:#fafbf9'></td>";return;}
+      var t=hi>lo?(r.dist-lo)/(hi-lo):0.5;
+      var bg="rgba(19,105,179,"+(0.06+0.42*t).toFixed(3)+")";
+      var cls="cell";
+      if(lens[i]===A.L && wsAll[j]===A.W && A.prof===r.bat.prof) cls+=" cellA";
+      if(B.cert===ck && B.prof===A.prof && lens[i]===B.L && wsAll[j]===B.W) cls+=" cellB";
+      h+="<td class='"+cls+"' style='background:"+bg+"'>"+Math.round(r.dist)+"</td>";
+    });
+    h+="</tr>";
+  });
+  $("sizeTable").innerHTML=h;
+}
+
+var HIST=[
+ {n:"Babe Ruth (reported game bat)", ck:"heritage", pk:"club", L:36, W:40},
+ {n:"Babe Ruth (heaviest ordered)",  ck:"heritage", pk:"club", L:36, W:54},
+ {n:"Ty Cobb",                       ck:"heritage", pk:"club", L:34.5, W:40},
+ {n:"Edd Roush (heaviest on record)",ck:"heritage", pk:"club", L:35, W:48},
+ {n:"Hank Aaron",                    ck:"wood",     pk:"271",  L:34, W:32},
+ {n:"Typical MLB today",             ck:"wood",     pk:"271",  L:34, W:31},
+ {n:"Contact-first MLB today",       ck:"wood",     pk:"110",  L:33, W:30}
+];
+function histTable(p,ref){
+  var rows=HIST.map(function(x){return {n:x.n,r:evaluate(buildBat(x.ck,x.pk,x.L,x.W),p,ref)};});
+  var mod=rows[rows.length-2].r;
+  var h="<tr><th class='lab'>Bat</th><th>Size</th><th>Swing wt</th><th>Bat speed</th><th>Exit</th><th>Distance</th><th>vs today</th></tr>";
+  rows.forEach(function(o){
+    h+="<tr><td class='lab'>"+o.n+"</td>"+
+       "<td class='num'>"+o.r.bat.L+"/"+o.r.bat.W+"</td>"+
+       "<td class='num'>"+Math.round(o.r.moi)+"</td>"+
+       "<td class='num'>"+fmt(o.r.v)+"</td>"+
+       "<td class='num'>"+fmt(o.r.bbs)+"</td>"+
+       "<td class='num'>"+Math.round(o.r.dist)+" ft</td>"+
+       "<td class='num'>"+(o.r===mod?"—":sgn(o.r.dist-mod.dist,0)+" ft")+"</td></tr>";
+  });
+  $("histTable").innerHTML=h;
+}
+
+/* ---------- verdict ---------- */
+function decomp(p,rA,rB){
+  var speed = rA.T*(rB.v-rA.v);
+  var Tmass = (1+rA.e)/(1+rB.r);
+  var mass  = (Tmass-rA.T)*(p.vp+rB.v);
+  var cor   = (rB.T-Tmass)*(p.vp+rB.v);
+  var total = rB.bbs-rA.bbs;
+  var mx=Math.max(0.05,Math.max(Math.abs(speed),Math.abs(mass),Math.abs(cor),Math.abs(total)));
+  var items=[["Bat speed change",speed,"#1369b3"],
+             ["Effective mass at contact",mass,"#2ba1a1"],
+             ["Certification (COR)",cor,"#ff8a3d"],
+             ["Net exit velocity",total,"#163960"]];
+  var h="";
+  items.forEach(function(it,i){
+    var f=Math.abs(it[1])/mx*50, left=it[1]>=0?50:50-f;
+    h+="<div class='dbar'><div>"+it[0]+"</div>"+
+       "<div class='dtrack'><div class='dzero' style='left:50%'></div>"+
+       "<div class='dfill' style='left:"+left+"%;width:"+f+"%;background:"+it[2]+";opacity:"+(i===3?1:0.75)+"'></div></div>"+
+       "<div class='dval'>"+sgn(it[1],2)+"</div></div>";
+  });
+  return h;
+}
+
+function update(){
+  var p=P();
+  $("vrefV").textContent=$("vref").value+" mph";
+  $("vpV").textContent=(+$("vp").value===0?"off a tee":$("vp").value+" mph");
+  $("angV").textContent=$("ang").value+"\u00B0";
+  $("impV").textContent=$("imp").value+" in";
+  $("kstrV").textContent="each +10% swing weight costs "+fmt(10/(p.k+1),1)+"% bat speed";
+
+  var A=readSide("A"), B=readSide("B");
+  var ref=A;
+  var rA=evaluate(A,p,ref), rB=evaluate(B,p,ref);
+
+  [["A",rA],["B",rB]].forEach(function(pair){
+    var s=pair[0], r=pair[1], b=r.bat;
+    $("tag"+s).textContent=b.L+"/"+b.W+"  ·  drop "+(b.W-b.L>0?"+":"")+Math.round(b.W-b.L);
+    $("moi"+s).textContent=Math.round(r.moi).toLocaleString()+" oz·in²";
+    $("bal"+s).textContent=fmt(r.bal)+" in  ("+fmt(b.L-r.bal)+" from end)";
+    $("me"+s).textContent=fmt(r.me,2)+" oz";
+    $("v"+s).textContent=fmt(r.v)+" mph";
+    $("bbs"+s).textContent=fmt(r.bbs)+" mph";
+    $("d"+s).textContent=Math.round(r.dist)+" ft";
+  });
+
+  var dd=rB.dist-rA.dist, dv=rB.bbs-rA.bbs, dm=rB.ms-rA.ms;
+  var dmoi=(rB.moi/rA.moi-1)*100;
+  var s1;
+  if(Math.abs(dd)<1.5){
+    s1="Effectively a tie — under two feet apart. Bat B swings "+fmt(Math.abs(dmoi),1)+"% "+(dmoi>0?"heavier":"lighter")+", and the exit velocity difference of "+sgn(dv,2)+" mph is inside the noise of your own swing.";
+  } else if(dd>0){
+    s1="<b>Bat B carries "+Math.round(dd)+" ft farther.</b> It swings "+fmt(Math.abs(dmoi),1)+"% "+(dmoi>0?"heavier":"lighter")+" and puts "+sgn(dv,2)+" mph more on the ball.";
+  } else {
+    s1="<b>Bat A carries "+Math.round(-dd)+" ft farther.</b> Bat B swings "+fmt(Math.abs(dmoi),1)+"% "+(dmoi>0?"heavier":"lighter")+" and gives up "+fmt(-dv,2)+" mph of exit velocity.";
+  }
+  var s2;
+  if(Math.abs(dm)<0.5){
+    s2="Both bats get to the ball at about the same moment, so there is no timing cost either way.";
+  } else if(dm>0){
+    s2="Bat B also takes about "+fmt(dm,1)+" ms longer to get around. A pitch covers roughly "+fmt(dm*p.vp*17.6/1000,1)+" inches in that time — that is the control you are paying with, and it does not show up in the distance number.";
+  } else {
+    s2="Bat B gets around about "+fmt(-dm,1)+" ms sooner, worth roughly "+fmt(-dm*p.vp*17.6/1000,1)+" inches of extra decision time on the pitch. That is real value the distance number does not capture.";
+  }
+  $("v1").innerHTML=s1;
+  $("v2").innerHTML=s2;
+  $("decomp").innerHTML=decomp(p,rA,rB);
+
+  drawScatter(p,ref,A,B);
+  shapeTable(p,ref,A);
+  sizeTable(p,ref,A,B);
+  histTable(p,ref);
+}
+
+/* ---------- wiring ---------- */
+["A","B"].forEach(function(s){
+  initCerts(s);
+  $("cert"+s).addEventListener("change",function(){refreshSide(s,false);update();});
+  $("len"+s).addEventListener("change",function(){refreshSide(s,true);update();});
+  ["wt"+s,"prof"+s].forEach(function(id){$(id).addEventListener("change",update);});
+});
+["vref","kstr","vp","ang","imp"].forEach(function(id){$(id).addEventListener("input",update);});
+$("era").addEventListener("change",update);
+
+var tg=$("certToggles");
+CERT_ORDER.forEach(function(ck){
+  var l=document.createElement("label");
+  l.innerHTML="<input type='checkbox' "+(certOn[ck]?"checked":"")+"><span class='dot' style='background:"+CERTS[ck].col+"'></span>"+CERTS[ck].n;
+  l.querySelector("input").addEventListener("change",function(e){certOn[ck]=e.target.checked;update();});
+  tg.appendChild(l);
+});
+
+var PRESETS={
+ shape:[["wood",33,30,"271"],["wood",33,30,"C243"]],
+ size:[["wood",33,30,"271"],["wood",34,31,"271"]],
+ size2:[["wood",34,31,"271"],["wood",34,32,"271"]],
+ shapevssize:[["wood",34,31,"C243"],["wood",33,30,"110"]],
+ ruth:[["wood",34,31,"271"],["heritage",36,40,"club"]],
+ youth:[["usa",30,20,"bal"],["usssa",30,20,"bal"]],
+ metal:[["bbcor",33,30,"bal"],["bbcor",33,30,"end"]]
+};
+document.querySelectorAll(".presets button").forEach(function(btn){
+  btn.addEventListener("click",function(){
+    var pr=PRESETS[btn.dataset.preset];
+    setSide("A",pr[0][0],pr[0][1],pr[0][2],pr[0][3]);
+    setSide("B",pr[1][0],pr[1][1],pr[1][2],pr[1][3]);
+    if(btn.dataset.preset==="youth"){certOn.usa=true;certOn.usssa=true;$("vref").value=48;$("vp").value=45;}
+    if(btn.dataset.preset==="ruth"){certOn.heritage=true;}
+    if(btn.dataset.preset==="metal"){certOn.bbcor=true;}
+    tg.querySelectorAll("input").forEach(function(inp,i){inp.checked=certOn[CERT_ORDER[i]];});
+    update();
+  });
+});
+window.addEventListener("resize",update);
+
+setSide("A","wood",33,30,"271");
+setSide("B","wood",33,30,"C243");
+update();
+})();
+</script>
+</body>
+</html>
