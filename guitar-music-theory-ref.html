@@ -160,7 +160,7 @@ ul.tight{margin:6px 0;padding-left:20px} ul.tight li{margin:3px 0}
 }
 </style>
 </head>
-<body class="clean">
+<body class="sketch">
 <div id="defs" aria-hidden="true">
 <svg xmlns="http://www.w3.org/2000/svg">
  <filter id="roughen">
@@ -188,6 +188,8 @@ ul.tight{margin:6px 0;padding-left:20px} ul.tight li{margin:3px 0}
   <button role="tab" data-tab="fretboard" aria-selected="false">Fretboard &amp; CAGED</button>
   <button role="tab" data-tab="notation" aria-selected="false">Notation</button>
   <button role="tab" data-tab="rhythm" aria-selected="false">Rhythm &amp; Time</button>
+  <button role="tab" data-tab="detective" aria-selected="false">Key Detective</button>
+  <button role="tab" data-tab="modulate" aria-selected="false">Modulate</button>
   <button role="tab" data-tab="reference" aria-selected="false">Reference</button>
 </nav>
 </div>
@@ -200,6 +202,8 @@ ul.tight{margin:6px 0;padding-left:20px} ul.tight li{margin:3px 0}
   <section role="tabpanel" id="panel-fretboard" aria-label="Fretboard and CAGED" hidden></section>
   <section role="tabpanel" id="panel-notation" aria-label="Notation" hidden></section>
   <section role="tabpanel" id="panel-rhythm" aria-label="Rhythm and time" hidden></section>
+  <section role="tabpanel" id="panel-detective" aria-label="Key Detective" hidden></section>
+  <section role="tabpanel" id="panel-modulate" aria-label="Modulate" hidden></section>
   <section role="tabpanel" id="panel-reference" aria-label="Reference" hidden></section>
   <div class="foot">Single file, no network, no dependencies. Everything here is generated from interval math, so any key you pick is spelled correctly &mdash; double flats and all.</div>
 </main>
@@ -551,6 +555,7 @@ const state={
   scaleRoot:"C", scaleType:"major", scalePattern:0, scaleLabel:"name",
   pentRoot:"A", pentType:"minor_pent", pentBox:0, pentLabel:"name",
   fbNote:"C", fbInterval:"all", cagedShape:0,
+  keyMapLabel:"name", keyMapFocus:"all", modKey:"", modMinor:false,
   sig:"4/4", tempo:90, sub:1
 };
 const RENDER={};
@@ -683,6 +688,31 @@ RENDER.keys=function(){
   });
   h+='</tbody></table></div>';
 
+  h+='<h3>'+esc(state.key)+(minor?" minor":" major")+' across the neck</h3>';
+  h+='<p class="small muted">Every note that belongs to the key, all fifteen frets. This is the map the chords and scales are cut out of.</p>';
+  h+='<div class="controls">'
+   +'<div class="field"><label>Dots show</label><div class="chips" id="kMapLab">'
+   +[["name","Note names"],["deg","Degrees"],["both","Both"]].map(function(x){
+      return '<button class="chip" data-kml="'+x[0]+'" aria-pressed="'+(state.keyMapLabel===x[0])+'">'+x[1]+'</button>';}).join("")
+   +'</div></div>'
+   +'<div class="field"><label>Narrow it to</label><div class="chips" id="kMapFoc">'
+   +[["all","Whole key"],["triad","Tonic triad"],["seventh","Tonic 7th"],["pent","Pentatonic core"]].map(function(x){
+      return '<button class="chip" data-kmf="'+x[0]+'" aria-pressed="'+(state.keyMapFocus===x[0])+'">'+x[1]+'</button>';}).join("")
+   +'</div></div></div>';
+  const keepSets={all:null,triad:["1","3","5"],seventh:["1","3","5","7"],
+                  pent:(minor?["1","3","4","5","7"]:["1","2","3","5","6"])};
+  const keepSet=keepSets[state.keyMapFocus];
+  const mapNotes=wholeNeck(state.key,minor?"natural_minor":"major",15).map(function(n){
+    const d=String(n.deg).replace(/[^0-9]/g,"");
+    n.dim=keepSet?keepSet.indexOf(d)<0:false;
+    return n;
+  });
+  h+='<div class="legend"><span><i class="sw-root"></i>root</span><span><i class="sw-third"></i>3rd</span>'
+   +'<span><i class="sw-fifth"></i>5th</span><span><i class="sw-seventh"></i>7th</span><span><i class="sw-other"></i>2nd, 4th, 6th</span></div>';
+  h+=fretboardSVG(mapNotes,{lo:0,hi:15,label:state.keyMapLabel,sp:46,alt:"key map across the neck"});
+  h+='<p class="small muted">Switch to <em>Tonic triad</em> and the faded notes are the ones that need care; the solid ones are safe to land on. '
+   +'<em>Pentatonic core</em> drops the two notes most likely to clash, which is the whole reason the pentatonic exists.</p>';
+
   h+='<div class="grid g2">';
   h+='<div class="card tint"><h4 style="margin-top:0">Roman numerals</h4>'
    +'<ul class="tight small"><li>Uppercase = major triad (<span class="rn">I IV V</span>), lowercase = minor (<span class="rn">ii iii vi</span>).</li>'
@@ -726,6 +756,8 @@ RENDER.keys=function(){
     state.key=state.keyMinor?t.dataset.min:t.dataset.maj; render("keys");
   });
   delegate(p,"tr[data-jump]","click",function(t){state.key=t.dataset.jump;render("keys");});
+  delegate(p,"#kMapLab .chip","click",function(t){state.keyMapLabel=t.dataset.kml;render("keys");});
+  delegate(p,"#kMapFoc .chip","click",function(t){state.keyMapFocus=t.dataset.kmf;render("keys");});
   delegate(p,"[data-play-deg]","click",function(t){
     const c=ch[+t.dataset.playDeg];
     playMidis(pcsToMidis(c.sevNotes.map(function(n){return n.pc;}),48),0.09,2.2);
@@ -1660,6 +1692,559 @@ RENDER.rhythm=function(){
     this.textContent="Stop"; this.classList.add("on");
   };
 };
+
+/* ============================================================
+   10b. KEY DETECTIVE
+   ============================================================ */
+const KEY_TONICS_MAJ=["C","D\u266d","D","E\u266d","E","F","F\u266f","G","A\u266d","A","B\u266d","B"];
+const KEY_TONICS_MIN=["C","C\u266f","D","E\u266d","E","F","F\u266f","G","G\u266f","A","B\u266d","B"];
+/* Krumhansl-Schmuckler tonal hierarchy profiles */
+const KS_MAJ=[6.35,2.23,3.48,2.33,4.38,4.09,2.52,5.19,2.39,3.66,2.29,2.88];
+const KS_MIN=[6.33,2.68,3.52,5.38,2.60,3.53,2.54,4.75,3.98,2.69,3.34,3.17];
+const ROMAN_BASE=["I","\u266dII","II","\u266dIII","III","IV","\u266fIV","V","\u266dVI","VI","\u266dVII","VII"];
+
+const SUFFIX_MAP={
+ "":"maj","maj":"maj","major":"maj","ma":"maj",
+ "m":"min","min":"min","mi":"min","minor":"min","-":"min",
+ "dim":"dim","aug":"aug","+":"aug",
+ "sus":"sus4","sus4":"sus4","sus2":"sus2","5":"5","no3":"5",
+ "6":"6","m6":"m6","min6":"m6","69":"69","6/9":"69","6add9":"69",
+ "maj7":"maj7","ma7":"maj7","major7":"maj7","j7":"maj7",
+ "7":"7","dom7":"7","m7":"m7","min7":"m7","mi7":"m7",
+ "mmaj7":"mMaj7","mimaj7":"mMaj7","minmaj7":"mMaj7","m#7":"mMaj7",
+ "m7b5":"m7b5","min7b5":"m7b5","halfdim":"m7b5",
+ "dim7":"dim7","7sus4":"7sus4","7sus":"7sus4","7sus2":"7sus4",
+ "add9":"add9","add2":"add9","2":"add9","madd9":"madd9","madd2":"madd9",
+ "9":"9","maj9":"maj9","ma9":"maj9","m9":"m9","min9":"m9",
+ "11":"11","m11":"m11","13":"13","maj13":"maj13","m13":"m13",
+ "7b9":"7b9","7#9":"7s9","7+9":"7s9","7#11":"7s11","7b13":"7b13",
+ "7b5":"7b5","7#5":"7s5","7+5":"7s5","7alt":"7s9","alt":"7s9"
+};
+function parseChordToken(tok){
+  if(!tok)return null;
+  let t=tok.replace(/[\u266f]/g,"#").replace(/[\u266d]/g,"b").replace(/[\u0394\u2206]/g,"maj7")
+          .replace(/[\u00f8]/g,"m7b5").replace(/[\u00b0\u00ba\u25e6]/g,"dim").replace(/[()]/g,"").trim();
+  if(!t)return null;
+  const letter=t[0].toUpperCase();
+  if(LETTERS.indexOf(letter)<0)return null;
+  let i=1,acc=0;
+  while(i<t.length&&(t[i]==="#"||t[i]==="b")){ if(t[i]==="#")acc++; else acc--; i++; }
+  let rest=t.slice(i), bass=null;
+  const slash=rest.lastIndexOf("/");
+  if(slash>=0){
+    const tail=rest.slice(slash+1);
+    if(/^[A-Ga-g][#b]?$/.test(tail)){ bass=tail[0].toUpperCase()+(tail[1]==="#"?"\u266f":tail[1]==="b"?"\u266d":""); rest=rest.slice(0,slash); }
+  }
+  rest=rest.replace(/^M(?=7|9|11|13|aj)/,"maj").replace(/^M$/,"maj").replace(/^-/,"m");
+  const key=rest.toLowerCase();
+  let type=SUFFIX_MAP[key], guessed=false;
+  if(!type){
+    guessed=true;
+    if(/^m(?!aj)/.test(key))type=/7|9|11|13/.test(key)?"m7":"min";
+    else if(/^maj/.test(key))type="maj7";
+    else if(/dim/.test(key))type="dim7";
+    else if(/sus/.test(key))type="sus4";
+    else if(/7|9|11|13/.test(key))type="7";
+    else type="maj";
+  }
+  const rootName=letter+accStr(acc);
+  return {pc:mod(LETTER_PC[letter]+acc,12),root:rootName,type:type,bass:bass,guessed:guessed,
+          text:rootName+CHORD_BY_ID[type].sym+(bass?"/"+bass:"")};
+}
+function parseChordLine(text){
+  const out=[];
+  String(text||"").split(/[\s,|]+/).forEach(function(tok){
+    const c=parseChordToken(tok); if(c)out.push(c);
+  });
+  return out;
+}
+function chordPcs(pc,type){
+  return CHORD_BY_ID[type].deg.map(function(d){return mod(pc+d[1],12);});
+}
+function keyProfile(name,minor){
+  const tonic=parseNote(name), d=diatonic(name,minor);
+  const scalePcs=buildScale(name,minor?"natural_minor":"major").map(function(n){return n.pc;});
+  const chords=[];
+  d.forEach(function(c){
+    chords.push({pc:c.root.pc,type:c.tri,rn:c.rn,name:c.triName,tri:true});
+    chords.push({pc:c.root.pc,type:c.sev,rn:c.rn+"7",name:c.sevName,tri:false});
+  });
+  const extra=[];
+  if(minor){
+    const v=mod(tonic.pc+7,12), lead=mod(tonic.pc+11,12);
+    extra.push(lead,mod(tonic.pc+9,12));   /* harmonic + melodic minor raises */
+    chords.push({pc:v,type:"maj",rn:"V",name:spell(tonic,5,7).name,tri:true});
+    chords.push({pc:v,type:"7",rn:"V7",name:spell(tonic,5,7).name+"7",tri:false});
+    chords.push({pc:lead,type:"dim7",rn:"vii\u00b07",name:spell(tonic,7,11).name+"\u00b07",tri:false});
+  }
+  return {name:tonic.name,label:tonic.name+(minor?" minor":" major"),minor:minor,tonicPc:tonic.pc,
+          scalePcs:scalePcs,extra:extra,chords:chords};
+}
+function allKeyProfiles(){
+  const out=[];
+  for(let pc=0;pc<12;pc++){out.push(keyProfile(KEY_TONICS_MAJ[pc],false));}
+  for(let pc=0;pc<12;pc++){out.push(keyProfile(KEY_TONICS_MIN[pc],true));}
+  return out;
+}
+const KEY_PROFILES=allKeyProfiles();
+function romanFor(prof,pc,type){
+  const semi=mod(pc-prof.tonicPc,12);
+  let num=ROMAN_BASE[semi];
+  const pcs=chordPcs(pc,type);
+  const minorish=pcs.indexOf(mod(pc+3,12))>=0&&pcs.indexOf(mod(pc+4,12))<0;
+  if(minorish)num=num.toLowerCase();
+  let suf=CHORD_BY_ID[type].sym.replace(/^m(?!aj)/,"");
+  if(type==="m7b5")suf="\u00f87";
+  if(type==="dim")suf="\u00b0";
+  return num+suf;
+}
+function scoreChords(chords,prof){
+  let s=0,dia=0;
+  const allowed=prof.scalePcs.concat(prof.extra);
+  chords.forEach(function(c,i){
+    const pcs=chordPcs(c.pc,c.type);
+    const out=pcs.filter(function(x){return allowed.indexOf(x)<0;}).length;
+    const exact=prof.chords.filter(function(d){return d.pc===c.pc&&d.type===c.type;})[0];
+    let v;
+    if(exact){v=3;dia++;}
+    else if(out===0){v=prof.scalePcs.indexOf(c.pc)>=0?2:1.2;dia++;}
+    else v=-1.3*out;
+    const has3=pcs.indexOf(mod(c.pc+4,12))>=0, hasb3=pcs.indexOf(mod(c.pc+3,12))>=0;
+    if(c.pc===prof.tonicPc&&(prof.minor?hasb3:has3)){
+      v+=0.9;
+      if(i===0)v+=0.8;
+      if(i===chords.length-1)v+=1.3;
+    }
+    if(c.type==="7"&&c.pc===mod(prof.tonicPc+7,12))v+=1.4;
+    if(c.type==="m7b5"&&c.pc===mod(prof.tonicPc+2,12)&&prof.minor)v+=0.8;
+    s+=v;
+  });
+  return {raw:s,dia:dia};
+}
+function pearson(a,b){
+  const n=a.length; let ma=0,mb=0;
+  for(let i=0;i<n;i++){ma+=a[i];mb+=b[i];}
+  ma/=n;mb/=n;
+  let num=0,da=0,db=0;
+  for(let i=0;i<n;i++){const x=a[i]-ma,y=b[i]-mb;num+=x*y;da+=x*x;db+=y*y;}
+  return (da&&db)?num/Math.sqrt(da*db):0;
+}
+function scoreNotes(weights,prof){
+  const prof0=prof.minor?KS_MIN:KS_MAJ, rot=[];
+  for(let i=0;i<12;i++)rot.push(prof0[mod(i-prof.tonicPc,12)]);
+  return pearson(weights,rot);
+}
+function analyseKey(chords,weights){
+  const hasN=weights&&weights.some(function(w){return w>0;});
+  const cs=KEY_PROFILES.map(function(p){return chords.length?scoreChords(chords,p):{raw:0,dia:0};});
+  const ns=KEY_PROFILES.map(function(p){return hasN?scoreNotes(weights,p):0;});
+  /* confidence falls off from the leader, so a clear winner reads as one */
+  const drop=function(arr,k){
+    const mx=Math.max.apply(null,arr);
+    return arr.map(function(v){return Math.exp(k*(v-mx));});
+  };
+  const cN=drop(cs.map(function(x){return x.raw;}),0.55), nN=drop(ns,6);
+  let wc=chords.length?0.68:0, wn=hasN?0.32:0;
+  if(!wc&&!wn)return [];
+  if(!wc)wn=1; if(!wn)wc=1;
+  const tot=wc+wn;
+  const res=KEY_PROFILES.map(function(p,i){
+    return {prof:p,score:Math.pow(cN[i],wc/tot)*Math.pow(nN[i],wn/tot),dia:cs[i].dia,corr:ns[i]};
+  });
+  res.sort(function(a,b){return b.score-a.score;});
+  return res;
+}
+/* ---------- microphone pitch tracking ---------- */
+const mic={on:false,stream:null,an:null,buf:null,timer:null,weights:new Array(12).fill(0),
+           last:-1,stable:0,note:"",freq:0,frames:0};
+function autoCorrelate(buf,rate){
+  const SIZE=buf.length;
+  let rms=0; for(let i=0;i<SIZE;i++)rms+=buf[i]*buf[i];
+  rms=Math.sqrt(rms/SIZE);
+  if(rms<0.012)return -1;
+  let r1=0,r2=SIZE-1;
+  for(let i=0;i<SIZE/2;i++)if(Math.abs(buf[i])<0.2){r1=i;break;}
+  for(let i=1;i<SIZE/2;i++)if(Math.abs(buf[SIZE-i])<0.2){r2=SIZE-i;break;}
+  const b=buf.slice(r1,r2), S=b.length;
+  if(S<256)return -1;
+  const c=new Array(S).fill(0);
+  for(let i=0;i<S;i++)for(let j=0;j<S-i;j++)c[i]+=b[j]*b[j+i];
+  let d=0; while(d<S-1&&c[d]>c[d+1])d++;
+  let maxv=-1,maxp=-1;
+  for(let i=d;i<S;i++){if(c[i]>maxv){maxv=c[i];maxp=i;}}
+  if(maxp<=0||c[0]<=0||maxv/c[0]<0.35)return -1;
+  let T0=maxp;
+  const x1=c[T0-1],x2=c[T0],x3=c[T0+1];
+  const a=(x1+x3-2*x2)/2, bb=(x3-x1)/2;
+  if(a)T0=T0-bb/(2*a);
+  return rate/T0;
+}
+function micTick(){
+  if(!mic.on||!mic.an)return;
+  mic.an.getFloatTimeDomainData(mic.buf);
+  const f=autoCorrelate(mic.buf,AC.sampleRate);
+  if(f>70&&f<1600){
+    const midi=Math.round(69+12*Math.log2(f/440)), pc=mod(midi,12);
+    if(pc===mic.last)mic.stable++; else {mic.last=pc;mic.stable=1;}
+    if(mic.stable>=2){mic.weights[pc]+=1;mic.frames++;}
+    mic.freq=f; mic.note=SHARP_NAMES[pc]+(Math.floor(midi/12)-1);
+  }else{mic.stable=0;mic.last=-1;mic.note="";}
+  micPaint();
+}
+function micPaint(){
+  const live=el("dLive"); if(!live)return;
+  live.innerHTML='<span style="font-family:var(--hand);font-size:26px;color:var(--orange)">'
+   +(mic.note||"\u2014")+'</span> <span class="small muted">'
+   +(mic.freq?Math.round(mic.freq)+" Hz \u00b7 ":"")+mic.frames+' notes counted</span>';
+  const bars=el("dBars");
+  if(bars){
+    const mx=Math.max.apply(null,mic.weights.concat([1]));
+    bars.innerHTML=mic.weights.map(function(w,pc){
+      const hgt=Math.round(4+56*w/mx);
+      return '<div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:3px">'
+       +'<div style="width:100%;height:'+hgt+'px;background:'+(w>=mx*0.75?"var(--orange)":"var(--blue)")+';opacity:'+(w?0.85:0.15)+';border:1.5px solid var(--ink);border-radius:3px 3px 0 0"></div>'
+       +'<div class="small muted" style="font-size:10px">'+SHARP_NAMES[pc]+'</div></div>';
+    }).join("");
+  }
+  if(mic.frames>6&&mic.frames%4===0)dAnalyse(true);
+}
+function stopListen(){
+  mic.on=false;
+  if(mic.timer)clearInterval(mic.timer); mic.timer=null;
+  if(mic.stream){mic.stream.getTracks().forEach(function(t){t.stop();});mic.stream=null;}
+  mic.an=null;
+  const b=el("dListen"); if(b){b.textContent="Start listening";b.classList.remove("on");}
+}
+function startListen(){
+  const c=actx();
+  if(!c||!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){
+    el("dMicMsg").innerHTML='<span style="color:var(--red)">This browser will not give the page a microphone. Use the chord or note entry instead.</span>';
+    return;
+  }
+  navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}})
+  .then(function(stream){
+    mic.stream=stream; mic.on=true;
+    const src=c.createMediaStreamSource(stream);
+    mic.an=c.createAnalyser(); mic.an.fftSize=2048;
+    mic.buf=new Float32Array(mic.an.fftSize);
+    src.connect(mic.an);
+    mic.timer=setInterval(micTick,70);
+    const b=el("dListen"); if(b){b.textContent="Stop listening";b.classList.add("on");}
+    el("dMicMsg").innerHTML='<span class="small muted">Listening. Play slowly and let notes ring \u2014 single notes track better than strummed chords.</span>';
+  })
+  .catch(function(err){
+    el("dMicMsg").innerHTML='<span style="color:var(--red)">Microphone blocked ('+esc(err.name||"error")+').</span> '
+     +'<span class="small muted">Opening this file straight from disk blocks the mic in some browsers. Serving it from a local web server, or using the chord entry above, both work.</span>';
+  });
+}
+/* ---------- detective UI ---------- */
+const det={chords:"",notes:[]};
+function detWeights(){
+  const w=new Array(12).fill(0);
+  det.notes.forEach(function(pc){w[pc]+=3;});
+  const mx=Math.max.apply(null,mic.weights.concat([0]));
+  if(mx>0)mic.weights.forEach(function(v,pc){w[pc]+=6*v/mx;});
+  return w;
+}
+function dAnalyse(quiet){
+  const box=el("dResults"); if(!box)return;
+  const chords=parseChordLine(det.chords), weights=detWeights();
+  const res=analyseKey(chords,weights);
+  if(!res.length){
+    box.innerHTML='<div class="card"><p class="small muted" style="margin:0">Type some chords, tap some notes, or start listening. Anything from two chords upward is usually enough.</p></div>';
+    return;
+  }
+  const top=res[0], prof=top.prof;
+  const gap=Math.round(100*(top.score-res[1].score));
+  let h='<div class="card"><div class="row" style="align-items:baseline">'
+   +'<div class="big" style="color:var(--orange)">'+esc(prof.label)+'</div>'
+   +'<span class="pill">'+(gap>=40?"clear":gap>=18?"likely":"close call with "+esc(res[1].prof.label))+'</span>'
+   +'<div class="spacer"></div>'
+   +'<button class="btn play" id="dPlayKey">Play the scale</button>'
+   +'<button class="btn" id="dUseKey">Load this key</button></div>';
+  if(chords.length){
+    h+='<div class="scroll" style="margin-top:10px"><table><thead><tr><th class="n">Chord</th>'
+     +chords.map(function(c){return '<th class="n note">'+esc(c.text)+'</th>';}).join("")+'</tr></thead><tbody>'
+     +'<tr><td class="n small muted">as numeral</td>'+chords.map(function(c){
+        return '<td class="n"><span class="rn">'+esc(romanFor(prof,c.pc,c.type))+'</span></td>';}).join("")+'</tr>'
+     +'<tr><td class="n small muted">status</td>'+chords.map(function(c){
+        const exact=prof.chords.filter(function(d){return d.pc===c.pc&&d.type===c.type;})[0];
+        if(exact)return '<td class="n small" style="color:var(--teal)">in key</td>';
+        const pcs=chordPcs(c.pc,c.type);
+        const allowed=prof.scalePcs.concat(prof.extra);
+        const outn=pcs.filter(function(x){return allowed.indexOf(x)<0;}).length;
+        if(!outn)return '<td class="n small" style="color:var(--blue)">fits</td>';
+        const target=mod(c.pc+5,12);
+        const t=prof.chords.filter(function(d){return d.pc===target&&d.tri;})[0];
+        if((c.type==="7"||c.type==="maj")&&t)
+          return '<td class="n small" style="color:var(--violet)">V/'+esc(t.rn)+'</td>';
+        return '<td class="n small" style="color:var(--orange)">borrowed</td>';
+      }).join("")+'</tr></tbody></table></div>';
+    h+='<p class="small muted" style="margin-bottom:0">'+top.dia+' of '+chords.length+' chords sit inside the key. '
+     +(gap<18?'Second place is close behind \u2014 add the chord you actually finish on, or tap in a few melody notes. That usually settles it.':'')+'</p>';
+    /* modal centre check */
+    const first=chords[0], last=chords[chords.length-1];
+    if(first.pc===last.pc&&last.pc!==prof.tonicPc){
+      const parentPc=prof.minor?mod(prof.tonicPc+3,12):prof.tonicPc;
+      const parentScale=[0,2,4,5,7,9,11].map(function(s){return mod(parentPc+s,12);});
+      const idx=parentScale.indexOf(last.pc);
+      if(idx>=0){
+        h+='<div class="card tint" style="margin-bottom:0"><strong>Modal reading:</strong> you start and end on '
+         +esc(last.text)+', not on '+esc(prof.name)+'. The notes are '+esc(KEY_TONICS_MAJ[parentPc])+' major, '
+         +'but the tonal centre sounds like <strong>'+esc(SHARP_NAMES[last.pc])+' '+MODE_ORDER[idx]+'</strong>. '
+         +'Write it as a mode, not a key change.</div>';
+      }
+    }
+  }else{
+    h+='<p class="small muted" style="margin-bottom:0">Ranked from the notes alone, using the tonal-hierarchy profile. '
+     +'Notes tell you the <em>scale</em>; chords tell you the <em>key</em>. Add a chord or two to sharpen this.</p>';
+  }
+  h+='</div>';
+  h+='<div class="scroll"><table><thead><tr><th class="n">Match</th><th>Key</th><th class="n">Chords in key</th>'
+   +'<th>Its 1 4 5</th><th class="n">Hear</th></tr></thead><tbody>';
+  res.slice(0,8).forEach(function(r,i){
+    const d=diatonic(r.prof.name,r.prof.minor);
+    const pct=Math.round(100*r.score);
+    h+='<tr'+(i===0?' style="background:rgba(255,138,61,.16)"':'')+'>'
+     +'<td class="n" style="min-width:110px"><div style="display:flex;align-items:center;gap:6px">'
+     +'<div style="flex:1;height:9px;background:rgba(22,57,96,.12);border-radius:5px;overflow:hidden">'
+     +'<div style="width:'+pct+'%;height:100%;background:'+(i===0?"var(--orange)":"var(--blue)")+'"></div></div>'
+     +'<span class="small">'+pct+'</span></div></td>'
+     +'<td class="note">'+esc(r.prof.label)+'</td>'
+     +'<td class="n">'+(chords.length?r.dia+"/"+chords.length:"\u2014")+'</td>'
+     +'<td class="small">'+esc(d[0].triName)+" \u00b7 "+esc(d[3].triName)+" \u00b7 "+esc(d[4].triName)+'</td>'
+     +'<td class="n"><button class="btn" data-dkey="'+esc(r.prof.name)+':'+r.prof.minor+'">\u25b6</button></td></tr>';
+  });
+  h+='</tbody></table></div>';
+  box.innerHTML=h;
+  const pk=el("dPlayKey");
+  if(pk)pk.onclick=function(){
+    const sc=buildScale(prof.name,prof.minor?"natural_minor":"major").map(function(n){return n.pc;});
+    sc.push(sc[0]); playMidis(pcsToMidis(sc,52),0.26,0.9);
+  };
+  const uk=el("dUseKey");
+  if(uk)uk.onclick=function(){
+    state.key=prof.name; state.keyMinor=prof.minor;
+    state.scaleRoot=prof.name; state.scaleType=prof.minor?"natural_minor":"major"; state.scalePattern=0;
+    state.pentRoot=prof.name; state.pentType=prof.minor?"minor_pent":"major_pent"; state.pentBox=0;
+    state.modKey=prof.name; state.modMinor=prof.minor;
+    selectTab("keys");
+  };
+}
+RENDER.detective=function(){
+  const p=el("panel-detective");
+  let h='<h2>What key am I in?</h2>'
+   +'<p class="lede">Give it the chords you are playing, tap in the notes you are hearing, or let it listen through the microphone. '
+   +'It ranks all twenty-four keys, shows the reading as Roman numerals, and flags anything borrowed from outside.</p>';
+
+  h+='<div class="card"><h4 style="margin-top:0">1. Chords you are playing</h4>'
+   +'<input type="text" id="dChords" value="'+esc(det.chords)+'" placeholder="C G Am F   \u00b7   Em7 A7 Dmaj7   \u00b7   Bb F/A Gm Eb" '
+   +'style="width:100%;font-family:var(--mono);font-size:16px">'
+   +'<div class="row" style="margin-top:8px">'
+   +'<span class="small muted">Try:</span>'
+   +[["C G Am F","pop"],["Am F C G","minor pop"],["Dm7 G7 Cmaj7","ii V I"],["E A B7","blues"],
+     ["G D Em C","folk"],["Am G F E7","andalusian"],["Dm G C Am","modal"]].map(function(x){
+      return '<button class="chip" data-ex="'+esc(x[0])+'">'+esc(x[0])+'</button>';}).join("")
+   +'<div class="spacer"></div><button class="btn" id="dClear">Clear all</button></div>'
+   +'<p class="small muted" style="margin-bottom:0">Understands most spellings: <code>Cmaj7</code>, <code>CM7</code>, <code>C\u0394</code>, '
+   +'<code>F#m7b5</code>, <code>F#\u00f8</code>, <code>Bb7#9</code>, <code>Dsus4</code>, <code>G/B</code>. '
+   +'Order matters a little \u2014 the chord you finish on gets extra weight, because that is what the ear calls home.</p></div>';
+
+  h+='<div class="grid g2">';
+  h+='<div class="card alt"><h4 style="margin-top:0">2. Or tap the notes</h4>'
+   +'<div class="chips" id="dPad">'+SHARP_NAMES.map(function(n,pc){
+      const lab=(FLAT_NAMES[pc]!==n)?n+"/"+FLAT_NAMES[pc]:n;
+      return '<button class="chip" data-pc="'+pc+'" aria-pressed="'+(det.notes.indexOf(pc)>=0)+'">'+esc(lab)+'</button>';
+     }).join("")+'</div>'
+   +'<p class="small muted" style="margin-bottom:0">Useful when you know the melody but not the harmony. Six or seven distinct notes usually pins it down.</p></div>';
+  h+='<div class="card"><h4 style="margin-top:0">3. Or let it listen</h4>'
+   +'<div class="row"><button class="btn play" id="dListen">Start listening</button>'
+   +'<button class="btn" id="dReset">Reset what it heard</button></div>'
+   +'<div id="dLive" style="margin:8px 0;min-height:34px"></div>'
+   +'<div id="dBars" style="display:flex;gap:3px;align-items:flex-end;height:74px"></div>'
+   +'<div id="dMicMsg" class="small" style="margin-top:8px">Plays into the microphone are tracked note by note and counted up. '
+   +'Single notes and arpeggios read far better than full strums.</div></div>';
+  h+='</div>';
+
+  h+='<h3>Best matches</h3><div id="dResults"></div>';
+  h+='<div class="grid g2"><div class="card tint"><h4 style="margin-top:0">Why it can be ambiguous</h4>'
+   +'<ul class="tight small" style="margin-bottom:0">'
+   +'<li>A major key and its relative minor contain identical notes. Only the chord you rest on separates them.</li>'
+   +'<li>Two or three chords fit many keys. Four usually fits one.</li>'
+   +'<li>Blues breaks the rules: I7 IV7 V7 are all dominant chords, which no single major key contains. Expect a low match and read it as a blues in the root of the first chord.</li>'
+   +'<li>A borrowed \u266dVII or iv does not mean you changed key. One outside chord is colour, three is a modulation.</li></ul></div>'
+   +'<div class="card warn"><h4 style="margin-top:0">Fastest manual method</h4>'
+   +'<ol class="tight small" style="margin-bottom:0"><li>Play the progression and stop wherever it feels finished. That chord is almost always the I.</li>'
+   +'<li>Major or minor quality of that chord tells you the tonality.</li>'
+   +'<li>Check the other chords against that key on the Keys tab. If they all fit, you are done.</li>'
+   +'<li>If one chord does not fit, look at it as borrowed before assuming you were wrong.</li></ol></div></div>';
+  p.innerHTML=h;
+
+  const ci=el("dChords");
+  ci.oninput=function(){det.chords=this.value;dAnalyse();};
+  delegate(p,"[data-ex]","click",function(t){det.chords=t.dataset.ex;ci.value=det.chords;dAnalyse();});
+  delegate(p,"#dPad .chip","click",function(t){
+    const pc=+t.dataset.pc, i=det.notes.indexOf(pc);
+    if(i>=0)det.notes.splice(i,1); else det.notes.push(pc);
+    t.setAttribute("aria-pressed",i<0);
+    pluck(60+mod(pc-0,12),0,1.0);
+    dAnalyse();
+  });
+  el("dClear").onclick=function(){
+    det.chords=""; det.notes=[]; ci.value="";
+    mic.weights=new Array(12).fill(0); mic.frames=0;
+    p.querySelectorAll("#dPad .chip").forEach(function(c){c.setAttribute("aria-pressed","false");});
+    micPaint(); dAnalyse();
+  };
+  el("dReset").onclick=function(){mic.weights=new Array(12).fill(0);mic.frames=0;micPaint();dAnalyse();};
+  el("dListen").onclick=function(){ if(mic.on)stopListen(); else startListen(); };
+  delegate(p,"[data-dkey]","click",function(t){
+    const q=t.dataset.dkey.split(":");
+    const sc=buildScale(q[0],q[1]==="true"?"natural_minor":"major").map(function(n){return n.pc;});
+    sc.push(sc[0]); playMidis(pcsToMidis(sc,52),0.24,0.85);
+  });
+  micPaint(); dAnalyse();
+};
+
+/* ============================================================
+   10c. MODULATION
+   ============================================================ */
+const MOD_NOTES={
+ "maj|0|min":["Parallel minor","Same root, opposite mood. The most reliable bridge in pop: drop to the parallel minor for eight bars, come back brighter. No pivot needed \u2014 the shared root carries it."],
+ "maj|9|min":["Relative minor","Not one new note. So smooth it barely registers as a change, which is exactly why it works under a lyric turn."],
+ "maj|5|maj":["Up a fourth","Warmer, heavier, more settled. The classic middle-eight. Your old I becomes the new V, so getting home is automatic."],
+ "maj|7|maj":["Up a fifth","Brighter and more urgent. Everything sounds a notch more lit. Come back by treating the new IV as home."],
+ "maj|2|min":["ii minor","A gentle sidestep. Only one new note. Jazz and soft rock live here."],
+ "maj|4|min":["iii minor","Floating and unresolved. Bridges that start here feel suspended until the chorus rescues them."],
+ "maj|5|min":["Minor iv","Borrowed from the parallel minor. Instant melancholy without leaving the neighbourhood."],
+ "maj|10|maj":["\u266dVII major","Borrowed, anthemic, rock. Feels like the floor dropping a step while the roof stays put."],
+ "maj|8|maj":["\u266dVI major","Big cinematic lift. Three new notes, so approach it with its own V7 or just slam into it."],
+ "maj|3|maj":["\u266dIII major","Heavy and gospel-flavoured. Chromatic mediant \u2014 dramatic by design."],
+ "maj|2|maj":["Up a whole step","The gear change. Usually saved for the final chorus rather than a bridge. Works with no preparation at all."],
+ "maj|1|maj":["Up a half step","The most obvious lift there is, and it still works. Almost never used for a bridge, only for the last chorus."],
+ "maj|9|maj":["VI major","Sunny surprise. Reads as a secondary dominant that never resolved."],
+ "maj|6|maj":["Tritone away","Maximum distance. Prog and film scores. No shared triads, so you need a hard cut or a long ramp."],
+ "min|0|maj":["Parallel major","The lights coming on. Same root, and the shift lands immediately."],
+ "min|3|maj":["Relative major","No new notes. The effortless lift for a chorus after a minor verse."],
+ "min|5|min":["Minor iv","Deeper and heavier. Good for a bridge that needs to sink rather than rise."],
+ "min|7|min":["Minor v","Modal and unresolved. Common in folk and doom."],
+ "min|7|maj":["Major V","Borrowed from harmonic minor. Dramatic, classical, and it can pivot you almost anywhere."],
+ "min|8|maj":["\u266dVI major","Wide and cinematic. The standard big-chorus destination out of a minor verse."],
+ "min|10|maj":["\u266dVII major","Rock lift. Feels like a chorus even before the chorus arrives."],
+ "min|2|min":["ii minor","Tight sidestep. Only a note or two moves."],
+ "min|1|maj":["Neapolitan (\u266dII)","Half step up, major. Rare and theatrical."],
+ "min|5|maj":["IV major","Dorian brightening. One raised note flips the whole colour."]
+};
+function pivotChords(a,b){
+  const out=[];
+  a.chords.filter(function(c){return c.tri;}).forEach(function(c){
+    const m=b.chords.filter(function(d){return d.tri&&d.pc===c.pc&&d.type===c.type;})[0];
+    if(m&&!out.some(function(x){return x.name===c.name;}))out.push({name:c.name,from:c.rn,to:m.rn});
+  });
+  return out;
+}
+function modOptions(src){
+  const out=[];
+  KEY_PROFILES.forEach(function(dst){
+    if(dst.tonicPc===src.tonicPc&&dst.minor===src.minor)return;
+    const shared=dst.scalePcs.filter(function(pc){return src.scalePcs.indexOf(pc)>=0;}).length;
+    const off=mod(dst.tonicPc-src.tonicPc,12);
+    const note=MOD_NOTES[(src.minor?"min":"maj")+"|"+off+"|"+(dst.minor?"min":"maj")];
+    out.push({dst:dst,shared:shared,off:off,note:note,
+      pivots:pivotChords(src,dst),
+      dom:spell(parseNote(dst.name),5,7).name+"7"});
+  });
+  out.sort(function(a,b){return b.shared-a.shared||a.off-b.off;});
+  return out;
+}
+RENDER.modulate=function(){
+  const p=el("panel-modulate");
+  if(!state.modKey){state.modKey=state.key;state.modMinor=state.keyMinor;}
+  const srcName=state.modMinor?KEY_TONICS_MIN[parseNote(state.modKey).pc]:KEY_TONICS_MAJ[parseNote(state.modKey).pc];
+  const src=keyProfile(srcName,state.modMinor);
+  const opts2=modOptions(src);
+  const named=opts2.filter(function(o){return o.note;});
+  let h='<h2>Where to go for the bridge</h2>'
+   +'<p class="lede">A bridge does its job by sounding like somewhere else. These are the places to go from <strong>'+esc(src.label)+'</strong>, '
+   +'each with the chords the two keys share \u2014 those are your pivots, the chord that belongs to both sides of the door.</p>';
+  h+='<div class="controls">'
+   +'<div class="field"><label for="moKey">Key you are in</label><select id="moKey">'
+   +KEY_TONICS_MAJ.map(function(n,pc){return '<option value="'+esc(n)+':0"'+(!src.minor&&pc===src.tonicPc?" selected":"")+'>'+esc(n)+' major</option>';}).join("")
+   +KEY_TONICS_MIN.map(function(n,pc){return '<option value="'+esc(n)+':1"'+(src.minor&&pc===src.tonicPc?" selected":"")+'>'+esc(n)+' minor</option>';}).join("")
+   +'</select></div>'
+   +'<div class="spacer"></div><span class="small muted">Shared notes out of 7 is the honest measure of how smooth a move will be.</span></div>';
+
+  h+='<div class="grid g2">';
+  named.slice(0,10).forEach(function(o,i){
+    const piv=o.pivots.slice(0,3);
+    const move=(piv.length?piv[0].name:src.chords[0].name)+" \u2192 "+o.dom+" \u2192 "+o.dst.chords[0].name;
+    h+='<div class="card"><div class="row" style="align-items:baseline">'
+     +'<div style="font-family:var(--hand);font-size:20px">'+esc(o.dst.label)+'</div>'
+     +'<span class="pill">'+esc(o.note[0])+'</span><div class="spacer"></div>'
+     +'<span class="small muted">'+o.shared+'/7 shared</span></div>'
+     +'<p class="small">'+o.note[1]+'</p>'
+     +'<div class="small"><strong>Pivot chords:</strong> '
+     +(piv.length?piv.map(function(x){return '<span class="note">'+esc(x.name)+'</span> <span class="muted">('+x.from+" \u2192 "+x.to+')</span>';}).join(", ")
+        :'<span class="muted">none \u2014 no triad belongs to both keys, so cut straight to it or ramp in on '+esc(o.dom)+'</span>')+'</div>'
+     +'<div class="small" style="margin-top:6px"><strong>The move:</strong> <span class="note">'+esc(move)+'</span></div>'
+     +'<button class="btn play" data-modplay="'+o.dst.tonicPc+':'+o.dst.minor+':'+(piv.length?piv[0].name:"")+'" style="margin-top:8px">Hear the change</button>'
+     +'</div>';
+  });
+  h+='</div>';
+
+  h+='<h3>All twenty-three destinations</h3>'
+   +'<p class="small muted">Sorted by how many notes the two keys already agree on. Six or seven means the listener will barely notice; three or fewer means they definitely will, which is sometimes the point.</p>';
+  h+='<div class="scroll"><table><thead><tr><th class="n">Shared</th><th>Key</th><th class="n">Move</th>'
+   +'<th>Pivot chords</th><th class="n">Its V7</th><th class="n">Hear</th></tr></thead><tbody>';
+  opts2.forEach(function(o){
+    h+='<tr><td class="n"><strong>'+o.shared+'</strong>/7</td>'
+     +'<td class="note">'+esc(o.dst.label)+'</td>'
+     +'<td class="n"><span class="rn">'+esc(ROMAN_BASE[o.off])+(o.dst.minor?"m":"")+'</span></td>'
+     +'<td class="small">'+(o.pivots.length?o.pivots.map(function(x){return esc(x.name);}).join(", "):'<span class="muted">none</span>')+'</td>'
+     +'<td class="n note">'+esc(o.dom)+'</td>'
+     +'<td class="n"><button class="btn" data-modplay="'+o.dst.tonicPc+':'+o.dst.minor+':'+(o.pivots.length?o.pivots[0].name:"")+'">\u25b6</button></td></tr>';
+  });
+  h+='</tbody></table></div>';
+
+  h+='<h3>Four ways to actually get there</h3><div class="grid g2">'
+   +'<div class="card"><h4 style="margin-top:0">Pivot chord</h4>'
+   +'<p class="small" style="margin-bottom:0">Play a chord that belongs to both keys, then follow it with the new key\u2019s V7. The listener re-reads the pivot in hindsight. Smoothest method, and the one worth learning first.</p>'
+   +'<h4>Direct (phrase) modulation</h4>'
+   +'<p class="small" style="margin-bottom:0">End the section, take a breath, start the next one in the new key. No preparation. Blunt, effective, and how most gear-change key lifts are done.</p></div>'
+   +'<div class="card alt"><h4 style="margin-top:0">Common tone</h4>'
+   +'<p class="small" style="margin-bottom:0">Hold one note across the change and move everything else underneath it. Works even between distant keys because the ear latches onto what stayed still.</p>'
+   +'<h4>Chromatic bass walk</h4>'
+   +'<p class="small" style="margin-bottom:0">Move the bass by half steps into the new tonic and let the chords follow. Nothing sounds wrong while the bass is still moving.</p></div></div>';
+  h+='<div class="card warn"><h4 style="margin-top:0">Bridge advice that is not about keys</h4>'
+   +'<ul class="tight small" style="margin-bottom:0">'
+   +'<li>Starting the bridge on a chord other than I does most of the work. You often do not need a key change at all \u2014 starting on vi or IV is already a different world.</li>'
+   +'<li>Change one thing, not four. New key plus new rhythm plus new register plus new dynamic reads as a different song.</li>'
+   +'<li>Get home with the new key\u2019s chord that is also the old key\u2019s V, or just cut back on the downbeat.</li>'
+   +'<li>Eight bars. If the bridge needs sixteen, it probably wants to be a second chorus.</li></ul></div>';
+  p.innerHTML=h;
+  el("moKey").onchange=function(){
+    const q=this.value.split(":");
+    state.modKey=q[0]; state.modMinor=q[1]==="1"; render("modulate");
+  };
+  delegate(p,"[data-modplay]","click",function(t){
+    const q=t.dataset.modplay.split(":"), dpc=+q[0], dmin=q[1]==="true", pivName=q[2];
+    const dst=keyProfile(dmin?KEY_TONICS_MIN[dpc]:KEY_TONICS_MAJ[dpc],dmin);
+    const seq=[];
+    seq.push(chordPcs(src.tonicPc,src.minor?"min":"maj"));
+    if(pivName){
+      const pv=src.chords.filter(function(c){return c.name===pivName&&c.tri;})[0];
+      if(pv)seq.push(chordPcs(pv.pc,pv.type));
+    }
+    seq.push(chordPcs(mod(dst.tonicPc+7,12),"7"));
+    seq.push(chordPcs(dst.tonicPc,dmin?"min":"maj"));
+    seq.forEach(function(pcs,i){
+      pcsToMidis(pcs,48).forEach(function(m,j){pluck(m,i*0.95+j*0.05,2.0);});
+    });
+  });
+};
+/* stop the microphone whenever the user leaves the detective tab */
+const __selectTab=selectTab;
+selectTab=function(name){ if(name!=="detective"&&mic.on)stopListen(); __selectTab(name); };
 
 /* ============================================================
    11. REFERENCE TAB
