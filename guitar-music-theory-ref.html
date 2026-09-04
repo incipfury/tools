@@ -513,6 +513,7 @@ function actx(){
   if(AC.state==="suspended")AC.resume();
   return AC;
 }
+let RINGING=[];
 function pluck(midi,when,dur,gain){
   if(!soundOn)return;
   const c=actx(); if(!c)return;
@@ -525,7 +526,23 @@ function pluck(midi,when,dur,gain){
     g.gain.exponentialRampToValueAtTime(gain*p[1],t+0.012);
     g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
     o.connect(g); g.connect(c.destination); o.start(t); o.stop(t+dur+0.05);
+    const rec={o:o,g:g};
+    RINGING.push(rec);
+    o.onended=function(){const i=RINGING.indexOf(rec); if(i>=0)RINGING.splice(i,1);};
   });
+}
+function stopAllNotes(){
+  const c=AC; if(!c){RINGING=[];return;}
+  const t=c.currentTime;
+  RINGING.forEach(function(r){
+    try{
+      r.g.gain.cancelScheduledValues(t);
+      r.g.gain.setValueAtTime(Math.max(r.g.gain.value,0.0001),t);
+      r.g.gain.exponentialRampToValueAtTime(0.0001,t+0.04);
+      r.o.stop(t+0.06);
+    }catch(e){}
+  });
+  RINGING=[];
 }
 function playMidis(midis,spacing,dur){
   midis.forEach(function(m,i){pluck(m,i*(spacing===undefined?0.35:spacing),dur||1.6);});
@@ -2173,6 +2190,9 @@ RENDER.modulate=function(){
    +KEY_TONICS_MIN.map(function(n,pc){return '<option value="'+esc(n)+':1"'+(src.minor&&pc===src.tonicPc?" selected":"")+'>'+esc(n)+' minor</option>';}).join("")
    +'</select></div>'
    +'<div class="spacer"></div><span class="small muted">Shared notes out of 7 is the honest measure of how smooth a move will be.</span></div>';
+  h+='<div class="card tint"><strong>Hear the change</strong> plays a full cadence in '+esc(src.label)+' first, so your ear is settled in the old key, '
+   +'then the pivot, the new dominant, and a cadence in the new one. The point is the seam — listen for the moment your sense of home moves. '
+   +'<span class="muted">Just the move</span> skips the setup once you know what you are listening for.</div>';
 
   h+='<div class="grid g2">';
   named.slice(0,10).forEach(function(o,i){
@@ -2187,7 +2207,8 @@ RENDER.modulate=function(){
      +(piv.length?piv.map(function(x){return '<span class="note">'+esc(x.name)+'</span> <span class="muted">('+x.from+" \u2192 "+x.to+')</span>';}).join(", ")
         :'<span class="muted">none \u2014 no triad belongs to both keys, so cut straight to it or ramp in on '+esc(o.dom)+'</span>')+'</div>'
      +'<div class="small" style="margin-top:6px"><strong>The move:</strong> <span class="note">'+esc(move)+'</span></div>'
-     +'<button class="btn play" data-modplay="'+o.dst.tonicPc+':'+o.dst.minor+':'+(piv.length?piv[0].name:"")+'" style="margin-top:8px">Hear the change</button>'
+     +'<div class="row" style="margin-top:8px"><button class="btn play" data-modplay="'+o.dst.tonicPc+':'+o.dst.minor+':'+(piv.length?piv[0].name:"")+'">Hear the change</button>'
+     +'<button class="btn" data-modmode="move" data-modplay="'+o.dst.tonicPc+':'+o.dst.minor+':'+(piv.length?piv[0].name:"")+'">Just the move</button></div>'
      +'</div>';
   });
   h+='</div>';
@@ -2195,14 +2216,14 @@ RENDER.modulate=function(){
   h+='<h3>All twenty-three destinations</h3>'
    +'<p class="small muted">Sorted by how many notes the two keys already agree on. Six or seven means the listener will barely notice; three or fewer means they definitely will, which is sometimes the point.</p>';
   h+='<div class="scroll"><table><thead><tr><th class="n">Shared</th><th>Key</th><th class="n">Move</th>'
-   +'<th>Pivot chords</th><th class="n">Its V7</th><th class="n">Hear</th></tr></thead><tbody>';
+   +'<th>Pivot chords</th><th class="n">Its V7</th><th class="n">Move only</th></tr></thead><tbody>';
   opts2.forEach(function(o){
     h+='<tr><td class="n"><strong>'+o.shared+'</strong>/7</td>'
      +'<td class="note">'+esc(o.dst.label)+'</td>'
      +'<td class="n"><span class="rn">'+esc(ROMAN_BASE[o.off])+(o.dst.minor?"m":"")+'</span></td>'
      +'<td class="small">'+(o.pivots.length?o.pivots.map(function(x){return esc(x.name);}).join(", "):'<span class="muted">none</span>')+'</td>'
      +'<td class="n note">'+esc(o.dom)+'</td>'
-     +'<td class="n"><button class="btn" data-modplay="'+o.dst.tonicPc+':'+o.dst.minor+':'+(o.pivots.length?o.pivots[0].name:"")+'">\u25b6</button></td></tr>';
+     +'<td class="n"><button class="btn" data-modmode="move" data-modplay="'+o.dst.tonicPc+':'+o.dst.minor+':'+(o.pivots.length?o.pivots[0].name:"")+'">\u25b6</button></td></tr>';
   });
   h+='</tbody></table></div>';
 
@@ -2228,17 +2249,29 @@ RENDER.modulate=function(){
   };
   delegate(p,"[data-modplay]","click",function(t){
     const q=t.dataset.modplay.split(":"), dpc=+q[0], dmin=q[1]==="true", pivName=q[2];
+    const full=t.dataset.modmode!=="move";
     const dst=keyProfile(dmin?KEY_TONICS_MIN[dpc]:KEY_TONICS_MAJ[dpc],dmin);
-    const seq=[];
-    seq.push(chordPcs(src.tonicPc,src.minor?"min":"maj"));
+    stopAllNotes();
+    const beat=0.9, seq=[];
+    const cadence=function(prof){
+      const t0=prof.tonicPc, q3=prof.minor?"min":"maj";
+      return [[t0,q3],[mod(t0+5,12),q3],[mod(t0+7,12),"7"],[t0,q3]];
+    };
+    if(full)cadence(src).forEach(function(c){seq.push({c:c,gap:beat});});
+    else seq.push({c:[src.tonicPc,src.minor?"min":"maj"],gap:beat});
+    if(seq.length)seq[seq.length-1].gap=beat*(full?1.5:1);   /* breath before the door opens */
     if(pivName){
-      const pv=src.chords.filter(function(c){return c.name===pivName&&c.tri;})[0];
-      if(pv)seq.push(chordPcs(pv.pc,pv.type));
+      const pv=src.chords.filter(function(x){return x.name===pivName&&x.tri;})[0];
+      if(pv)seq.push({c:[pv.pc,pv.type],gap:beat});
     }
-    seq.push(chordPcs(mod(dst.tonicPc+7,12),"7"));
-    seq.push(chordPcs(dst.tonicPc,dmin?"min":"maj"));
-    seq.forEach(function(pcs,i){
-      pcsToMidis(pcs,48).forEach(function(m,j){pluck(m,i*0.95+j*0.05,2.0);});
+    seq.push({c:[mod(dst.tonicPc+7,12),"7"],gap:beat*1.2});
+    cadence(dst).forEach(function(c,i){seq.push({c:c,gap:i===3?beat*1.6:beat});});
+    let at=0;
+    seq.forEach(function(step,i){
+      const pcs=chordPcs(step.c[0],step.c[1]);
+      const isLast=(i===seq.length-1);
+      pcsToMidis(pcs,48).forEach(function(m,j){pluck(m,at+j*0.05,isLast?3.0:2.0,isLast?0.16:0.14);});
+      at+=step.gap;
     });
   });
 };
