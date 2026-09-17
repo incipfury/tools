@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Array Factor Explorer</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<script>
+  (function() {
+    try {
+      var pref = localStorage.getItem('theme-pref') || 'system';
+      var theme = pref === 'system'
+        ? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+        : pref;
+      document.documentElement.setAttribute('data-theme', theme);
+    } catch (e) {
+      document.documentElement.setAttribute('data-theme', 'light');
+    }
+  })();
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.294.0/dist/umd/lucide.js"></script>
+
+<style>
+:root {
+  --bg-page: #ffffff;
+  --bg-subtle: #f2f4f8;
+  --bg-card: #ffffff;
+  --bg-elevated: #ffffff;
+
+  --text-heading: #163960;
+  --text-body: #4a4f57;
+  --text-muted: #76777a;
+  --text-disabled: #b1b3b7;
+
+  --border-subtle: #e9ebf0;
+  --border-strong: #b1b3b7;
+
+  --accent: #1369b3;
+  --accent-hover: #163960;
+  --accent-secondary: #ff8a3d;
+  --accent-bright: #15cde6;
+
+  --success: #2ba1a1;
+  --success-alt: #b6d981;
+  --warning: #ff8a3d;
+  --error: #b44533;
+  --info: #66a8d1;
+
+  --chart-1: #1369b3;
+  --chart-2: #ff8a3d;
+  --chart-3: #2ba1a1;
+  --chart-4: #b44533;
+  --chart-5: #7b8c9f;
+  --chart-6: #b6d981;
+  --chart-7: #15cde6;
+  --chart-8: #163960;
+
+  --font-sans: 'Geist', 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'Geist Mono', 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-serif: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+
+  --radius-sm: 4px;
+  --radius-md: 8px;
+}
+
+[data-theme="dark"] {
+  --bg-page: #18191c;
+  --bg-subtle: #2a3037;
+  --bg-card: #2a3037;
+  --bg-elevated: #4a4f57;
+
+  --text-heading: #f2f4f8;
+  --text-body: #e9ebf0;
+  --text-muted: #b1b3b7;
+  --text-disabled: #76777a;
+
+  --border-subtle: #2a3037;
+  --border-strong: #4a4f57;
+
+  --accent: #66a8d1;
+  --accent-hover: #15cde6;
+  --accent-secondary: #ff8a3d;
+  --accent-bright: #15cde6;
+
+  --success: #b6d981;
+  --success-alt: #2ba1a1;
+
+  --chart-1: #66a8d1;
+  --chart-8: #f2f4f8;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--text-body);
+  background: var(--bg-page);
+  font-variant-numeric: slashed-zero tabular-nums lining-nums;
+  transition: background-color 150ms ease, color 150ms ease;
+}
+
+h1, h2, h3, h4 { color: var(--text-heading); font-weight: 600; letter-spacing: -0.01em; margin: 0; }
+h1 { font-size: 1.375rem; line-height: 1.3; letter-spacing: -0.01em; display: flex; align-items: center; gap: 10px; }
+
+code, .data { font-family: var(--font-mono); font-size: 0.9rem; }
+
+.wrap { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+
+header {
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 20px 0;
+}
+header .wrap { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px; }
+header .sub { font-family: var(--font-mono); font-size: 0.875rem; color: var(--text-muted); }
+header svg { color: var(--accent); }
+
+main { padding: 24px 0 8px 0; }
+.grid { display: grid; grid-template-columns: 300px 1fr; gap: 24px; align-items: start; }
+@media (max-width: 768px) { .grid { grid-template-columns: 1fr; } }
+
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 22px;
+}
+
+.controls { display: flex; flex-direction: column; gap: 20px; }
+
+.eyebrow {
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  font-family: var(--font-sans);
+}
+
+.ctrl label { display: flex; justify-content: space-between; margin-bottom: 8px; }
+.ctrl label .val { font-family: var(--font-mono); color: var(--accent); font-size: 0.875rem; }
+.ctrl.overlay-ctrl label .val { color: var(--accent-secondary); }
+
+input[type=range] {
+  -webkit-appearance: none;
+  width: 100%; height: 3px;
+  background: var(--border-subtle);
+  border-radius: 2px; outline: none;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px; height: 14px; border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid var(--bg-page);
+  box-shadow: 0 0 0 1px var(--accent);
+  cursor: pointer; margin-top: -5.5px;
+  transition: box-shadow 150ms ease;
+}
+input[type=range]::-moz-range-thumb {
+  width: 14px; height: 14px; border-radius: 50%;
+  background: var(--accent); border: 2px solid var(--bg-page);
+  box-shadow: 0 0 0 1px var(--accent); cursor: pointer;
+}
+.overlay-ctrl input[type=range]::-webkit-slider-thumb { background: var(--accent-secondary); box-shadow: 0 0 0 1px var(--accent-secondary); }
+.overlay-ctrl input[type=range]::-moz-range-thumb { background: var(--accent-secondary); box-shadow: 0 0 0 1px var(--accent-secondary); }
+
+select {
+  width: 100%;
+  background: var(--bg-subtle);
+  color: var(--text-body);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 7px 9px;
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+}
+
+.divider { height: 1px; background: var(--border-subtle); margin: 2px 0; }
+
+.metrics { display: flex; flex-direction: column; gap: 12px; }
+.metric-row { display: flex; justify-content: space-between; align-items: baseline; font-size: 0.875rem; color: var(--text-muted); }
+.metric-row .v { font-family: var(--font-mono); font-size: 0.95rem; color: var(--text-body); }
+.metric-row .v.warn { color: var(--accent-secondary); }
+
+.flag {
+  display: none; align-items: flex-start; gap: 8px;
+  margin-top: 4px; padding: 10px 12px;
+  border: 1px solid var(--accent-secondary);
+  background: var(--bg-subtle);
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem; color: var(--text-body); line-height: 1.5;
+}
+.flag.on { display: flex; }
+.flag svg { flex-shrink: 0; margin-top: 2px; color: var(--accent-secondary); }
+
+.checkrow { display: flex; align-items: center; gap: 8px; font-size: 0.875rem; color: var(--text-muted); cursor: pointer; }
+.checkrow input { accent-color: var(--accent-secondary); width: 14px; height: 14px; cursor: pointer; }
+
+.subctrls { display: none; flex-direction: column; gap: 16px; margin-top: 14px; padding-left: 12px; border-left: 2px solid var(--accent-secondary); }
+.subctrls.on { display: flex; }
+
+.taper-def {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  margin-top: 2px;
+}
+.taper-def .eq { color: var(--accent); }
+
+.plots { display: flex; flex-direction: column; gap: 24px; }
+.plot-title {
+  font-size: 0.75rem; font-weight: 500; letter-spacing: 0.04em;
+  color: var(--text-muted); font-family: var(--font-mono);
+  margin-bottom: 10px; display: flex; justify-content: space-between; align-items: baseline;
+}
+.legend { font-size: 0.7rem; display: none; gap: 14px; }
+.legend.on { display: flex; }
+.legend span { display: inline-flex; align-items: center; gap: 5px; }
+.swatch { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+
+svg text { font-family: var(--font-mono); fill: var(--text-muted); }
+.af-path { fill: none; stroke: var(--chart-1); stroke-width: 1.75; }
+.af-path-2 { fill: none; stroke: var(--chart-2); stroke-width: 1.5; stroke-dasharray: 4,2; }
+.af-fill { fill: var(--chart-1); opacity: 0.08; }
+.steer-line { stroke: var(--accent-secondary); stroke-width: 1; stroke-dasharray: 3,3; opacity: 0.65; }
+.grid-line { stroke: var(--border-subtle); stroke-width: 1; }
+.grid-line-major { stroke: var(--border-strong); stroke-width: 1; opacity: 0.5; }
+.taper-bar { fill: var(--chart-1); opacity: 0.85; }
+.stem-line { stroke: var(--chart-1); stroke-width: 1.4; opacity: 0.6; }
+.stem-dot { fill: var(--chart-1); }
+
+footer {
+  padding: 16px 0 28px 0;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  border-top: 1px solid var(--border-subtle);
+  margin-top: 8px;
+  line-height: 1.6;
+}
+
+/* Segmented theme control */
+.segmented { display: inline-flex; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); padding: 2px; gap: 2px; }
+.segmented button {
+  font-family: var(--font-mono); font-size: 0.75rem;
+  background: transparent; color: var(--text-muted);
+  border: none; border-radius: 3px; padding: 4px 10px; cursor: pointer;
+  transition: color 150ms ease, background-color 150ms ease;
+}
+.segmented button:hover:not([aria-pressed="true"]) { color: var(--text-body); }
+.segmented button[aria-pressed="true"] { background: var(--bg-subtle); color: var(--accent); }
+.segmented button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <h1><i data-lucide="radio-tower" style="width:20px;height:20px;" stroke-width="1.5"></i>Array Factor Explorer</h1>
+    <div style="display:flex; align-items:center; gap:18px;">
+      <div class="sub" id="lambdaReadout">&lambda; = — mm</div>
+      <div class="segmented" role="radiogroup" aria-label="Theme">
+        <button type="button" data-mode="light"  aria-pressed="false">Light</button>
+        <button type="button" data-mode="system" aria-pressed="true">System</button>
+        <button type="button" data-mode="dark"   aria-pressed="false">Dark</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+    <div class="grid">
+
+      <div class="card controls">
+
+        <div class="ctrl">
+          <label><span class="eyebrow">Elements (N)</span> <span class="val" id="vN">16</span></label>
+          <input type="range" id="N" min="2" max="64" step="1" value="16">
+        </div>
+
+        <div class="ctrl">
+          <label><span class="eyebrow">Element spacing (d)</span> <span class="val" id="vD">15.0 mm</span></label>
+          <input type="range" id="d" min="2" max="60" step="0.5" value="15">
+        </div>
+
+        <div class="ctrl">
+          <label><span class="eyebrow">Frequency (f<sub>1</sub>)</span> <span class="val" id="vF">10.0 GHz</span></label>
+          <input type="range" id="f" min="1" max="40" step="0.1" value="10">
+        </div>
+
+        <div class="ctrl">
+          <label><span class="eyebrow">Steering angle (&theta;<sub>0</sub>)</span> <span class="val" id="vTheta">0&deg;</span></label>
+          <input type="range" id="theta" min="-90" max="90" step="1" value="0">
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="ctrl">
+          <label><span class="eyebrow">Amplitude taper</span></label>
+          <select id="taper">
+            <option value="uniform">Uniform</option>
+            <option value="hann">Hann</option>
+            <option value="hamming">Hamming</option>
+            <option value="chebyshev">Dolph-Chebyshev</option>
+            <option value="taylor">Taylor (n&#772;=4)</option>
+            <option value="gaussian">Gaussian</option>
+            <option value="truncgaussian">Truncated Gaussian</option>
+          </select>
+        </div>
+
+        <div class="ctrl" id="sllCtrl" style="display:none;">
+          <label id="sllLabel"><span class="eyebrow">Target sidelobe level</span> <span class="val" id="vSLL">-30 dB</span></label>
+          <input type="range" id="sll" min="3" max="60" step="1" value="30">
+        </div>
+
+        <div class="ctrl" id="truncCtrl" style="display:none;">
+          <label><span class="eyebrow">Hard truncation (each edge)</span> <span class="val" id="vTrunc">15%</span></label>
+          <input type="range" id="trunc" min="0" max="45" step="1" value="15">
+        </div>
+
+        <div class="taper-def" id="taperDef"></div>
+
+        <div class="divider"></div>
+
+        <label class="checkrow"><input type="checkbox" id="overlayToggle"> Overlay a second frequency (bandwidth / squint)</label>
+        <div class="subctrls" id="overlaySub">
+          <div class="ctrl overlay-ctrl">
+            <label><span class="eyebrow">Frequency (f<sub>2</sub>)</span> <span class="val" id="vF2">14.0 GHz</span></label>
+            <input type="range" id="f2" min="1" max="40" step="0.1" value="14">
+          </div>
+          <div class="metric-row"><span>beam squint at f<sub>2</sub></span><span class="v warn" id="mSquint">—</span></div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="eyebrow">Readout (f<sub>1</sub>)</div>
+        <div class="metrics">
+          <div class="metric-row"><span>-3 dB beamwidth</span><span class="v" id="mBW">—</span></div>
+          <div class="metric-row"><span>peak sidelobe</span><span class="v" id="mPSL">—</span></div>
+          <div class="metric-row"><span>d / &lambda;</span><span class="v" id="mDL">—</span></div>
+        </div>
+
+        <div class="flag" id="gratingFlag">
+          <i data-lucide="triangle-alert" style="width:15px;height:15px;"></i>
+          <span>Grating lobe in visible space — d/&lambda; exceeds 1/(1+|sin&theta;<sub>0</sub>|). A second full-strength lobe appears alongside the main beam.</span>
+        </div>
+
+      </div>
+
+      <div class="plots">
+        <div class="card">
+          <div class="plot-title">
+            <span>Gain vs. angle (dB, 0 dB = f<sub>1</sub> peak)</span>
+            <span class="legend" id="legendRect"><span><i class="swatch" style="background:var(--chart-1)"></i>f1</span><span><i class="swatch" style="background:var(--chart-2)"></i>f2</span></span>
+          </div>
+          <svg id="rectPlot" viewBox="0 0 720 300" width="100%" height="300"></svg>
+        </div>
+        <div class="card">
+          <div class="plot-title">
+            <span>Polar pattern — broadside up, endfire &plusmn;90&deg;</span>
+            <span class="legend" id="legendPolar"><span><i class="swatch" style="background:var(--chart-1)"></i>f1</span><span><i class="swatch" style="background:var(--chart-2)"></i>f2</span></span>
+          </div>
+          <svg id="polarPlot" viewBox="0 0 720 380" width="100%" height="380"></svg>
+        </div>
+        <div class="card">
+          <div class="plot-title">
+            <span>Element amplitude taper (normalized excitation, n = 0..N-1)</span>
+            <label class="checkrow" style="font-family:var(--font-mono);"><input type="checkbox" id="stemToggle" checked> stem plot</label>
+          </div>
+          <svg id="taperPlot" viewBox="0 0 720 150" width="100%" height="150"></svg>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    AF(&theta;) = &Sigma; w[n] exp( j k d n sin&theta; ) &middot; w[n] = taper[n] exp(&minus;j k<sub>1</sub> d n sin&theta;<sub>0</sub>) &middot; f2 overlay reuses the f1 phase weights and evaluates k at f2 — true fixed-phase-shifter squint
+  </div>
+</footer>
+
+<script>
+const c = 3e8;
+
+const els = {
+  N: document.getElementById('N'),
+  d: document.getElementById('d'),
+  f: document.getElementById('f'),
+  theta: document.getElementById('theta'),
+  taper: document.getElementById('taper'),
+  sll: document.getElementById('sll'),
+  trunc: document.getElementById('trunc'),
+  overlayToggle: document.getElementById('overlayToggle'),
+  f2: document.getElementById('f2'),
+  stemToggle: document.getElementById('stemToggle'),
+};
+const readouts = {
+  N: document.getElementById('vN'),
+  d: document.getElementById('vD'),
+  f: document.getElementById('vF'),
+  theta: document.getElementById('vTheta'),
+  lambda: document.getElementById('lambdaReadout'),
+  sll: document.getElementById('vSLL'),
+  trunc: document.getElementById('vTrunc'),
+  f2: document.getElementById('vF2'),
+};
+
+// ---------- amplitude tapers ----------
+
+function uniformW(N){ return new Array(N).fill(1); }
+function hannW(N){
+  const w = new Array(N).fill(1);
+  if(N===1) return w;
+  for(let n=0;n<N;n++) w[n] = 0.5 - 0.5*Math.cos(2*Math.PI*n/(N-1));
+  return w;
+}
+function hammingW(N){
+  const w = new Array(N).fill(1);
+  if(N===1) return w;
+  for(let n=0;n<N;n++) w[n] = 0.54 - 0.46*Math.cos(2*Math.PI*n/(N-1));
+  return w;
+}
+
+function dftRealPart(pRe){
+  const M = pRe.length;
+  const out = new Array(M).fill(0);
+  for(let k=0;k<M;k++){
+    let s=0;
+    for(let n=0;n<M;n++) s += pRe[n]*Math.cos(-2*Math.PI*k*n/M);
+    out[k]=s;
+  }
+  return out;
+}
+function dftComplexRealPart(pRe,pIm){
+  const M = pRe.length;
+  const out = new Array(M).fill(0);
+  for(let k=0;k<M;k++){
+    let s=0;
+    for(let n=0;n<M;n++){
+      const ang=-2*Math.PI*k*n/M;
+      s += pRe[n]*Math.cos(ang) - pIm[n]*Math.sin(ang);
+    }
+    out[k]=s;
+  }
+  return out;
+}
+
+function chebyshevW(M, atDb){
+  if(M===1) return [1];
+  const order = M-1;
+  const beta = Math.cosh((1/order)*Math.acosh(Math.pow(10, Math.abs(atDb)/20)));
+  const p = new Array(M);
+  for(let k=0;k<M;k++){
+    const x = beta*Math.cos(Math.PI*k/M);
+    let val;
+    if(x>1) val = Math.cosh(order*Math.acosh(x));
+    else if(x<-1) val = (1-2*(order%2))*Math.cosh(order*Math.acosh(-x));
+    else val = Math.cos(order*Math.acos(x));
+    p[k]=val;
+  }
+  let w;
+  if(M%2===1){
+    const W = dftRealPart(p);
+    const n = Math.floor((M+1)/2);
+    const wHalf = W.slice(0,n);
+    const left=[];
+    for(let idx=n-1; idx>=1; idx--) left.push(wHalf[idx]);
+    w = left.concat(wHalf);
+  } else {
+    const pRe=new Array(M), pIm=new Array(M);
+    for(let k=0;k<M;k++){
+      const ang=Math.PI*k/M;
+      pRe[k]=p[k]*Math.cos(ang);
+      pIm[k]=p[k]*Math.sin(ang);
+    }
+    const W = dftComplexRealPart(pRe,pIm);
+    const n = M/2+1;
+    const left=[];
+    for(let idx=n-1; idx>=1; idx--) left.push(W[idx]);
+    const right = W.slice(1,n);
+    w = left.concat(right);
+  }
+  const maxVal = Math.max(...w.map(Math.abs));
+  return w.map(v=>v/maxVal);
+}
+
+function taylorW(M, sllDb, nbar){
+  if(M===1) return [1];
+  nbar = Math.max(2, Math.min(nbar, Math.floor(M/2)));
+  const B = Math.pow(10, sllDb/20);
+  const A = Math.acosh(B)/Math.PI;
+  const s2 = (nbar*nbar)/(A*A + Math.pow(nbar-0.5,2));
+  const ma=[]; for(let m=1;m<nbar;m++) ma.push(m);
+  const m2 = ma.map(m=>m*m);
+  const Fm = new Array(ma.length).fill(0);
+  for(let mi=0; mi<ma.length; mi++){
+    const sign = (mi%2===0) ? 1 : -1;
+    let numer = sign;
+    for(let j=0;j<ma.length;j++){
+      numer *= (1 - m2[mi]/s2/(A*A + Math.pow(ma[j]-0.5,2)));
+    }
+    let denom = 2;
+    for(let j=0;j<ma.length;j++){
+      if(j===mi) continue;
+      denom *= (1 - m2[mi]/m2[j]);
+    }
+    Fm[mi] = numer/denom;
+  }
+  function W(n){
+    let sum=1;
+    for(let mi=0; mi<ma.length; mi++) sum += 2*Fm[mi]*Math.cos(2*Math.PI*ma[mi]*(n - M/2 + 0.5)/M);
+    return sum;
+  }
+  const w = new Array(M);
+  for(let n=0;n<M;n++) w[n]=W(n);
+  const scale = 1/W((M-1)/2);
+  const scaled = w.map(v=>v*scale);
+  const maxVal = Math.max(...scaled.map(Math.abs));
+  return scaled.map(v=>v/maxVal);
+}
+
+function gaussianW(N, edgeDb){
+  const cIdx = (N-1)/2;
+  if(cIdx===0) return [1];
+  const edgeAmp = Math.pow(10, -edgeDb/20);
+  const sigma = cIdx / Math.sqrt(-2*Math.log(edgeAmp));
+  const w = new Array(N);
+  for(let n=0;n<N;n++) w[n] = Math.exp(-0.5*Math.pow((n-cIdx)/sigma, 2));
+  return w;
+}
+function truncGaussianW(N, edgeDb, truncFracPct){
+  const w = gaussianW(N, edgeDb);
+  const cut = Math.round((truncFracPct/100) * N);
+  for(let n=0; n<cut && n<N; n++){ w[n]=0; w[N-1-n]=0; }
+  return w;
+}
+
+function taperWeights(N, kind, sllDb, truncFracPct){
+  if(kind==='hann') return hannW(N);
+  if(kind==='hamming') return hammingW(N);
+  if(kind==='chebyshev') return chebyshevW(N, sllDb);
+  if(kind==='taylor') return taylorW(N, sllDb, 4);
+  if(kind==='gaussian') return gaussianW(N, sllDb);
+  if(kind==='truncgaussian') return truncGaussianW(N, sllDb, truncFracPct);
+  return uniformW(N);
+}
+
+// ---------- array factor ----------
+
+function buildWeights(N, d_m, freqHz, theta0Deg, taperKind, sllDb, truncFracPct){
+  const k = 2*Math.PI*freqHz/c;
+  const theta0 = theta0Deg*Math.PI/180;
+  const amp = taperWeights(N, taperKind, sllDb, truncFracPct);
+  const wRe=new Array(N), wIm=new Array(N);
+  for(let n=0;n<N;n++){
+    const ph = -k*d_m*n*Math.sin(theta0);
+    wRe[n]=amp[n]*Math.cos(ph);
+    wIm[n]=amp[n]*Math.sin(ph);
+  }
+  return {wRe, wIm, amp};
+}
+
+function evalPattern(wRe, wIm, N, d_m, evalFreqHz){
+  const k = 2*Math.PI*evalFreqHz/c;
+  const steps=721;
+  const angles=new Array(steps), raw=new Array(steps);
+  for(let i=0;i<steps;i++){
+    const thetaDeg=-90+i*0.25;
+    const theta=thetaDeg*Math.PI/180;
+    let re=0, im=0;
+    for(let n=0;n<N;n++){
+      const ph = k*d_m*n*Math.sin(theta);
+      const cr=Math.cos(ph), ci=Math.sin(ph);
+      re += wRe[n]*cr - wIm[n]*ci;
+      im += wRe[n]*ci + wIm[n]*cr;
+    }
+    angles[i]=thetaDeg;
+    raw[i]=Math.sqrt(re*re+im*im);
+  }
+  return {angles, raw};
+}
+
+function findBeamwidth(angles, magDb){
+  let peakIdx=0;
+  for(let i=1;i<magDb.length;i++) if(magDb[i]>magDb[peakIdx]) peakIdx=i;
+  let lo=peakIdx, hi=peakIdx;
+  while(lo>0 && magDb[lo] > -3) lo--;
+  while(hi<magDb.length-1 && magDb[hi] > -3) hi++;
+  return angles[hi]-angles[lo];
+}
+function findPeakSidelobe(angles, magDb){
+  let peakIdx=0;
+  for(let i=1;i<magDb.length;i++) if(magDb[i]>magDb[peakIdx]) peakIdx=i;
+  let lo=peakIdx, hi=peakIdx;
+  while(lo>0 && magDb[lo-1]<magDb[lo]) lo--;
+  while(hi<magDb.length-1 && magDb[hi+1]<magDb[hi]) hi++;
+  let best=-Infinity;
+  for(let i=0;i<magDb.length;i++){
+    if(i>=lo && i<=hi) continue;
+    if(magDb[i]>best) best=magDb[i];
+  }
+  return best;
+}
+
+// ---------- rendering ----------
+
+function drawRect(svg, angles, magDb1, magDb2){
+  const W=720,H=300, padL=44,padR=14,padT=10,padB=26;
+  const plotW=W-padL-padR, plotH=H-padT-padB;
+  const dbMin=-40, dbMax=0;
+  const x = deg => padL + (deg+90)/180*plotW;
+  const y = db => padT + (dbMax-Math.max(db,dbMin))/(dbMax-dbMin)*plotH;
+
+  let s='';
+  for(let db=0; db>=-40; db-=10){
+    s += `<line class="${db===0?'grid-line-major':'grid-line'}" x1="${padL}" y1="${y(db)}" x2="${W-padR}" y2="${y(db)}"/>`;
+    s += `<text x="${padL-8}" y="${y(db)+3}" font-size="10" text-anchor="end">${db}</text>`;
+  }
+  for(let deg=-90; deg<=90; deg+=30){
+    s += `<line class="${deg===0?'grid-line-major':'grid-line'}" x1="${x(deg)}" y1="${padT}" x2="${x(deg)}" y2="${H-padB}"/>`;
+    s += `<text x="${x(deg)}" y="${H-padB+16}" font-size="10" text-anchor="middle">${deg}&deg;</text>`;
+  }
+
+  let path = `M ${x(angles[0])} ${y(Math.max(magDb1[0],dbMin))}`;
+  for(let i=1;i<angles.length;i++) path += ` L ${x(angles[i])} ${y(Math.max(magDb1[i],dbMin))}`;
+  const fillPath = path + ` L ${x(angles[angles.length-1])} ${y(dbMin)} L ${x(angles[0])} ${y(dbMin)} Z`;
+  s += `<path class="af-fill" d="${fillPath}"/>`;
+  s += `<path class="af-path" d="${path}"/>`;
+
+  if(magDb2){
+    let path2 = `M ${x(angles[0])} ${y(Math.max(magDb2[0],dbMin))}`;
+    for(let i=1;i<angles.length;i++) path2 += ` L ${x(angles[i])} ${y(Math.max(magDb2[i],dbMin))}`;
+    s += `<path class="af-path-2" d="${path2}"/>`;
+  }
+
+  svg.innerHTML = s;
+}
+
+function drawPolar(svg, angles, raw1, raw2, peak1, theta0){
+  const W=720,H=380;
+  const cx=W/2, cy=H-30, R=310;
+  const pt = (deg,r) => {
+    const rad = deg*Math.PI/180;
+    return [cx + r*Math.sin(rad), cy - r*Math.cos(rad)];
+  };
+  let s='';
+  const rings=[0,-10,-20,-30];
+  const ringR = db => R*Math.pow(10, db/20);
+  rings.forEach(db=>{
+    const rr = ringR(db);
+    s += `<circle class="${db===0?'grid-line-major':'grid-line'}" cx="${cx}" cy="${cy}" r="${rr}" fill="none"/>`;
+    s += `<text x="${cx+4}" y="${cy-rr-3}" font-size="9">${db}</text>`;
+  });
+  for(let deg=-90; deg<=90; deg+=30){
+    const [ex,ey]=pt(deg,R);
+    s += `<line class="${deg===0?'grid-line-major':'grid-line'}" x1="${cx}" y1="${cy}" x2="${ex}" y2="${ey}"/>`;
+    const [lx,ly]=pt(deg,R+14);
+    s += `<text x="${lx}" y="${ly}" font-size="10" text-anchor="middle">${deg}&deg;</text>`;
+  }
+  s += `<line class="grid-line-major" x1="${cx-R}" y1="${cy}" x2="${cx+R}" y2="${cy}"/>`;
+
+  let d='';
+  for(let i=0;i<angles.length;i++){
+    const rNorm = Math.min(raw1[i]/peak1, 1);
+    const rr = R*rNorm;
+    const [px,py] = pt(angles[i], rr);
+    d += (i===0?'M ':'L ') + px.toFixed(1) + ' ' + py.toFixed(1) + ' ';
+  }
+  s += `<path class="af-path" d="${d}"/>`;
+
+  if(raw2){
+    let d2='';
+    for(let i=0;i<angles.length;i++){
+      const rNorm = Math.min(raw2[i]/peak1, 1);
+      const rr = R*rNorm;
+      const [px,py] = pt(angles[i], rr);
+      d2 += (i===0?'M ':'L ') + px.toFixed(1) + ' ' + py.toFixed(1) + ' ';
+    }
+    s += `<path class="af-path-2" d="${d2}"/>`;
+  }
+
+  const [sx,sy] = pt(theta0, R);
+  s += `<line class="steer-line" x1="${cx}" y1="${cy}" x2="${sx}" y2="${sy}"/>`;
+
+  svg.innerHTML = s;
+}
+
+function drawTaper(svg, amp, stemMode){
+  const N = amp.length;
+  const W=720,H=150, padL=30,padR=14,padT=10,padB=22;
+  const plotW=W-padL-padR, plotH=H-padT-padB;
+  const gap = plotW/N;
+  const y0 = padT+plotH;
+  let s='';
+  s += `<line class="grid-line-major" x1="${padL}" y1="${y0}" x2="${W-padR}" y2="${y0}"/>`;
+  s += `<text x="${padL-6}" y="${padT+4}" font-size="9" text-anchor="end">1.0</text>`;
+  s += `<text x="${padL-6}" y="${y0+3}" font-size="9" text-anchor="end">0</text>`;
+
+  if(stemMode){
+    const r = Math.min(4.5, Math.max(2, gap*0.28));
+    for(let n=0;n<N;n++){
+      const h = Math.abs(amp[n])*plotH;
+      const cx = padL + gap*n + gap/2;
+      const cy = y0-h;
+      s += `<line class="stem-line" x1="${cx.toFixed(1)}" y1="${y0}" x2="${cx.toFixed(1)}" y2="${cy.toFixed(1)}"/>`;
+      s += `<circle class="stem-dot" cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${r.toFixed(1)}"/>`;
+    }
+  } else {
+    const barW = Math.max(1, gap*0.7);
+    for(let n=0;n<N;n++){
+      const h = Math.abs(amp[n])*plotH;
+      const cx = padL + gap*n + gap/2;
+      s += `<rect class="taper-bar" x="${(cx-barW/2).toFixed(1)}" y="${(y0-h).toFixed(1)}" width="${barW.toFixed(1)}" height="${h.toFixed(1)}"/>`;
+    }
+  }
+  svg.innerHTML = s;
+}
+
+const TAPER_DEFS = {
+  uniform: `<span class="eq">w[n] = 1</span>, n = 0..N-1
+no shading — narrowest beamwidth, -13.2 dB sidelobes (fixed, not adjustable)`,
+  hann: `<span class="eq">w[n] = 0.5 - 0.5 cos(2\u03C0n / (N-1))</span>
+raised-cosine taper, zero at both edges — ~-31 dB sidelobes, sidelobes fall off fast with angle`,
+  hamming: `<span class="eq">w[n] = 0.54 - 0.46 cos(2\u03C0n / (N-1))</span>
+raised-cosine, non-zero edges — ~-42 dB sidelobes but they don't decay further out`,
+  chebyshev: `Dolph-Chebyshev (equal-ripple):
+<span class="eq">w = Re{ IDFT[ T\u2098(\u03B2 cos(\u03C0k/N)) ] }</span>, \u03B2 = cosh( acosh(R)/(N-1) )
+R = 10^(SLL/20), T\u2098 = Chebyshev polynomial of order N-1
+every sidelobe sits at exactly the target level — narrowest beamwidth for a given SLL`,
+  taylor: `Taylor (n\u0304 = 4), near-equal-ripple:
+<span class="eq">w[n] = 1 + 2\u03A3 F\u2098 cos(2\u03C0m(n - N/2 + 0.5)/N)</span>, m = 1..n\u0304-1
+first n\u0304-1 sidelobes \u2248 target level, then they roll off ~1/\u03B8 — wider mainlobe than Chebyshev, but no far-out sidelobe regrowth`,
+  gaussian: `<span class="eq">w[n] = exp( -0.5 ((n - c)/\u03C3)\u00B2 )</span>, c = (N-1)/2
+\u03C3 set so w at the array edge equals the edge taper you choose — deeper edge taper \u2192 lower sidelobes but wider beam and lower aperture efficiency; there's no single "correct" value, it's a beamwidth/SLL/efficiency trade`,
+  truncgaussian: `Gaussian taper, then hard-zeroed over the outer % of elements at each edge:
+<span class="eq">w[n] = 0</span> for n in the truncated band, Gaussian otherwise
+the abrupt edge reintroduces sidelobes the smooth Gaussian avoided — watch the peak sidelobe readout climb as you increase truncation`,
+};
+
+function updateTaperDef(kind){
+  document.getElementById('taperDef').innerHTML = (TAPER_DEFS[kind] || TAPER_DEFS.uniform).replace(/\n/g,'<br>');
+}
+
+// ---------- wiring ----------
+
+function updateSubUI(){
+  const taper = els.taper.value;
+  const usesSll = (taper==='chebyshev'||taper==='taylor'||taper==='gaussian'||taper==='truncgaussian');
+  document.getElementById('sllCtrl').style.display = usesSll ? '' : 'none';
+  const isGaussianFamily = (taper==='gaussian'||taper==='truncgaussian');
+  const sllLabelText = isGaussianFamily ? 'Edge taper' : 'Target sidelobe level';
+  document.querySelector('#sllLabel .eyebrow').textContent = sllLabelText;
+  document.getElementById('truncCtrl').style.display = (taper==='truncgaussian') ? '' : 'none';
+  const overlayOn = els.overlayToggle.checked;
+  document.getElementById('overlaySub').classList.toggle('on', overlayOn);
+  document.getElementById('legendRect').classList.toggle('on', overlayOn);
+  document.getElementById('legendPolar').classList.toggle('on', overlayOn);
+}
+
+function update(){
+  const N = parseInt(els.N.value,10);
+  const d_mm = parseFloat(els.d.value);
+  const f_ghz = parseFloat(els.f.value);
+  const theta0 = parseFloat(els.theta.value);
+  const taperKind = els.taper.value;
+  const sllDb = parseFloat(els.sll.value);
+  const truncFracPct = parseFloat(els.trunc.value);
+  const overlayOn = els.overlayToggle.checked;
+  const f2_ghz = parseFloat(els.f2.value);
+
+  const d_m = d_mm/1000;
+  const f1_hz = f_ghz*1e9;
+  const lambda_mm = (c/f1_hz)*1000;
+
+  readouts.N.textContent = N;
+  readouts.d.textContent = d_mm.toFixed(1)+' mm';
+  readouts.f.textContent = f_ghz.toFixed(1)+' GHz';
+  readouts.theta.textContent = theta0+'\u00B0';
+  readouts.lambda.textContent = '\u03BB = '+lambda_mm.toFixed(2)+' mm';
+  readouts.sll.textContent = '-'+sllDb.toFixed(0)+' dB';
+  readouts.trunc.textContent = truncFracPct.toFixed(0)+'%';
+  readouts.f2.textContent = f2_ghz.toFixed(1)+' GHz';
+
+  const {wRe, wIm, amp} = buildWeights(N, d_m, f1_hz, theta0, taperKind, sllDb, truncFracPct);
+  const p1 = evalPattern(wRe, wIm, N, d_m, f1_hz);
+  const peak1 = Math.max(...p1.raw);
+  const magDb1 = p1.raw.map(v => 20*Math.log10(Math.max(v/peak1, 1e-6)));
+
+  let magDb2 = null, raw2 = null;
+  if(overlayOn){
+    const f2_hz = f2_ghz*1e9;
+    const p2 = evalPattern(wRe, wIm, N, d_m, f2_hz);
+    magDb2 = p2.raw.map(v => 20*Math.log10(Math.max(v/peak1, 1e-6)));
+    raw2 = p2.raw;
+
+    const ratio = (f1_hz/f2_hz)*Math.sin(theta0*Math.PI/180);
+    const clamped = Math.max(-1, Math.min(1, ratio));
+    const thetaSquint = Math.asin(clamped)*180/Math.PI;
+    document.getElementById('mSquint').textContent = thetaSquint.toFixed(1)+'\u00B0 (\u0394 '+(thetaSquint-theta0).toFixed(1)+'\u00B0)';
+  }
+
+  drawRect(document.getElementById('rectPlot'), p1.angles, magDb1, magDb2);
+  drawPolar(document.getElementById('polarPlot'), p1.angles, p1.raw, raw2, peak1, theta0);
+  drawTaper(document.getElementById('taperPlot'), amp, els.stemToggle.checked);
+  updateTaperDef(taperKind);
+
+  const bw = findBeamwidth(p1.angles, magDb1);
+  const psl = findPeakSidelobe(p1.angles, magDb1);
+  const dOverLambda = d_m/(c/f1_hz);
+
+  document.getElementById('mBW').textContent = bw.toFixed(1)+'\u00B0';
+  document.getElementById('mPSL').textContent = psl.toFixed(1)+' dB';
+  document.getElementById('mDL').textContent = dOverLambda.toFixed(3);
+
+  const gratingThreshold = 1/(1+Math.abs(Math.sin(theta0*Math.PI/180)));
+  const gratingPresent = dOverLambda >= gratingThreshold;
+  document.getElementById('gratingFlag').classList.toggle('on', gratingPresent);
+  document.getElementById('mDL').classList.toggle('warn', gratingPresent);
+}
+
+function onAnyChange(){ updateSubUI(); update(); }
+
+Object.values(els).forEach(el => el.addEventListener('input', onAnyChange));
+els.overlayToggle.addEventListener('change', onAnyChange);
+els.taper.addEventListener('change', onAnyChange);
+
+updateSubUI();
+update();
+
+// ---------- theme control ----------
+(function(){
+  const root = document.documentElement;
+  const buttons = document.querySelectorAll('.segmented button[data-mode]');
+  function getPref() { try { return localStorage.getItem('theme-pref') || 'system'; } catch(e) { return 'system'; } }
+  function resolve(p) { return p === 'system' ? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : p; }
+  function apply() {
+    const pref = getPref();
+    root.setAttribute('data-theme', resolve(pref));
+    buttons.forEach(b => b.setAttribute('aria-pressed', b.dataset.mode === pref ? 'true' : 'false'));
+  }
+  buttons.forEach(b => b.addEventListener('click', () => {
+    try { localStorage.setItem('theme-pref', b.dataset.mode); } catch(e) {}
+    apply();
+  }));
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+    if (getPref() === 'system') apply();
+  });
+  apply();
+})();
+
+if(window.lucide){ lucide.createIcons(); }
+</script>
+
+</body>
+</html>
