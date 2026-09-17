@@ -1,0 +1,2063 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Markdown Studio</title>
+
+  <!-- Fonts: Geist + Geist Mono + Source Serif 4 -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+
+  <!-- KaTeX for LaTeX rendering -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+
+  <!-- docx.js for DOCX export -->
+  <script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.min.js"></script>
+
+  <!-- highlight.js for code syntax highlighting -->
+  <link rel="stylesheet" id="hljs-theme" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+  <style>
+    /* ============================================================
+       DESIGN TOKENS — Style Guide v1
+       ============================================================ */
+    :root {
+      --bg-page:      #ffffff;
+      --bg-subtle:    #f2f4f8;
+      --bg-card:      #ffffff;
+
+      --text-heading: #163960;
+      --text-body:    #4a4f57;
+      --text-muted:   #76777a;
+      --text-disabled:#b1b3b7;
+
+      --border-subtle:#e9ebf0;
+      --border-strong:#b1b3b7;
+
+      --accent:         #1369b3;
+      --accent-hover:   #163960;
+      --accent-secondary: #ff8a3d;
+      --accent-bright:  #15cde6;
+
+      --success: #2ba1a1;
+      --warning: #ff8a3d;
+      --error:   #b44533;
+      --info:    #66a8d1;
+
+      --font-sans: 'Geist', 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+      --font-mono: 'Geist Mono', 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+      --font-serif:'Source Serif 4', Georgia, 'Times New Roman', serif;
+
+      --radius-sm: 4px;
+      --radius-md: 6px;
+    }
+
+    [data-theme="dark"] {
+      --bg-page:      #18191c;
+      --bg-subtle:    #2a3037;
+      --bg-card:      #2a3037;
+
+      --text-heading: #f2f4f8;
+      --text-body:    #e9ebf0;
+      --text-muted:   #b1b3b7;
+      --text-disabled:#76777a;
+
+      --border-subtle:#2a3037;
+      --border-strong:#4a4f57;
+
+      --accent:         #66a8d1;
+      --accent-hover:   #15cde6;
+      --accent-secondary: #ff8a3d;
+      --accent-bright:  #15cde6;
+
+      --success: #b6d981;
+      --info: #66a8d1;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body { height: 100%; overflow: hidden; }
+
+    body {
+      font-family: var(--font-sans);
+      font-size: 1rem;
+      line-height: 1.6;
+      color: var(--text-body);
+      background: var(--bg-subtle);
+      font-variant-numeric: slashed-zero tabular-nums lining-nums;
+      transition: background 0.25s, color 0.25s;
+      display: flex;
+      flex-direction: column;
+    }
+
+    body.resizing { cursor: col-resize; user-select: none; }
+    body.resizing .panel { pointer-events: none; }
+
+    .header {
+      background: var(--bg-page);
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 0.75rem 1.5rem;
+      display: flex;
+      flex-shrink: 0;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .logo { display: flex; align-items: center; gap: 0.625rem; }
+    .logo-mark {
+      width: 28px; height: 28px;
+      background: var(--accent);
+      border-radius: var(--radius-sm);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .logo-mark svg { width: 16px; height: 16px; fill: white; }
+    .logo-text { font-size: 0.9375rem; font-weight: 600; color: var(--text-heading); letter-spacing: -0.01em; }
+
+    .header-actions { display: flex; align-items: center; gap: 0.5rem; }
+
+    .btn {
+      display: inline-flex; align-items: center; gap: 0.375rem;
+      padding: 0.4rem 0.875rem;
+      border: 1px solid transparent;
+      border-radius: var(--radius-sm);
+      font-family: var(--font-sans);
+      font-size: 0.8125rem; font-weight: 500; line-height: 1;
+      cursor: pointer; white-space: nowrap;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+    }
+    .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .btn-primary { background: var(--accent); color: white; border-color: var(--accent); }
+    .btn-primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+    .btn-ghost { background: transparent; color: var(--text-body); border-color: var(--border-subtle); }
+    .btn-ghost:hover { background: var(--bg-subtle); border-color: var(--border-strong); }
+    .btn-orange { background: var(--accent-secondary); color: white; border-color: var(--accent-secondary); }
+    .btn-orange:hover { background: #e07a30; border-color: #e07a30; }
+    .btn-icon { padding: 0.4rem 0.5rem; min-width: 30px; justify-content: center; }
+
+    .theme-toggle {
+      width: 44px; height: 24px;
+      background: var(--bg-subtle);
+      border: 1px solid var(--border-strong);
+      border-radius: 100px;
+      position: relative; cursor: pointer;
+      transition: background 0.2s; flex-shrink: 0;
+    }
+    .theme-knob {
+      position: absolute; top: 2px; left: 2px;
+      width: 18px; height: 18px;
+      background: var(--bg-page);
+      border-radius: 50%;
+      border: 1px solid var(--border-strong);
+      transition: transform 0.2s;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px;
+    }
+    [data-theme="dark"] .theme-knob { transform: translateX(20px); }
+
+    .workspace {
+      display: flex;
+      flex: 1 1 auto;
+      min-height: 0;
+      padding: 1rem;
+      max-width: 1800px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    .panel {
+      background: var(--bg-page);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      display: flex; flex-direction: column;
+      overflow: hidden; min-height: 0; min-width: 0;
+      flex: 1 1 0;
+    }
+
+    .resizer {
+      flex: 0 0 17px;
+      width: 17px;
+      margin: 0 -0.5px;
+      cursor: col-resize;
+      display: flex; align-items: center; justify-content: center;
+      touch-action: none;
+      z-index: 5;
+    }
+    .resizer::after {
+      content: '';
+      width: 3px; height: 36px;
+      border-radius: 3px;
+      background: var(--border-strong);
+      transition: background 0.15s, height 0.15s;
+    }
+    .resizer:hover::after, .resizer.dragging::after {
+      background: var(--accent); height: 52px;
+    }
+
+    .panel-header {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 0.5rem 1rem;
+      background: var(--bg-subtle);
+      border-bottom: 1px solid var(--border-subtle);
+      flex-shrink: 0;
+    }
+    .panel-label { font-size: 0.75rem; font-weight: 500; color: var(--text-muted); letter-spacing: 0.04em; }
+    .panel-meta { font-size: 0.75rem; color: var(--text-disabled); font-family: var(--font-mono); }
+
+    .text-size-ctrl { display: flex; align-items: center; gap: 0.25rem; }
+    .text-size-btn {
+      width: 20px; height: 20px; display: flex; align-items: center; justify-content: center;
+      border: 1px solid var(--border-subtle); border-radius: 4px; background: var(--bg-page);
+      color: var(--text-muted); font-family: var(--font-sans); font-size: 0.6875rem; font-weight: 600;
+      line-height: 1; padding: 0; cursor: pointer; transition: background 0.15s, color 0.15s;
+    }
+    .text-size-btn:hover { background: var(--bg-subtle); color: var(--text-body); }
+    .text-size-value {
+      font-size: 0.6875rem; color: var(--text-disabled); font-family: var(--font-mono);
+      min-width: 2.6em; text-align: center;
+    }
+
+    .btn-toggle-active { background: var(--accent); color: white; border-color: var(--accent); }
+    .btn-toggle-active:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+
+    .toolbar {
+      display: flex; flex-wrap: wrap; gap: 0.25rem;
+      padding: 0.5rem 0.75rem;
+      border-bottom: 1px solid var(--border-subtle);
+      background: var(--bg-page);
+      flex-shrink: 0; align-items: center;
+    }
+    .toolbar-sep { width: 1px; height: 18px; background: var(--border-subtle); margin: 0 0.125rem; flex-shrink: 0; }
+
+    #editor {
+      flex: 1; border: none; padding: 1.25rem;
+      font-family: var(--font-mono); font-size: 13.5px; line-height: 1.75;
+      background: var(--bg-page); color: var(--text-body);
+      resize: none; outline: none; tab-size: 2; overflow-y: auto;
+    }
+    #editor::placeholder { color: var(--text-disabled); }
+
+    #preview {
+      flex: 1; padding: 1.5rem 2rem; overflow-y: auto; min-height: 0; color: var(--text-body);
+    }
+
+    .preview-empty {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      height: 100%; gap: 0.5rem; color: var(--text-disabled);
+    }
+    .preview-empty svg { opacity: 0.35; }
+    .preview-empty p { font-size: 0.875rem; }
+
+    #preview h1, #preview h2, #preview h3,
+    #preview h4, #preview h5, #preview h6 {
+      color: var(--text-heading); font-weight: 600; line-height: 1.3;
+      margin-top: 1.75rem; margin-bottom: 0.625rem;
+    }
+    #preview h1:first-child, #preview h2:first-child { margin-top: 0; }
+    #preview h1 { font-size: 2.25rem; letter-spacing: -0.02em; border-bottom: 2px solid var(--border-subtle); padding-bottom: 0.5rem; }
+    #preview h2 { font-size: 1.75rem; letter-spacing: -0.015em; border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.375rem; }
+    #preview h3 { font-size: 1.375rem; letter-spacing: -0.01em; }
+    #preview h4 { font-size: 1.125rem; }
+    #preview h5 { font-size: 1rem; color: var(--text-muted); }
+    #preview h6 { font-size: 0.875rem; color: var(--text-muted); }
+
+    #preview p { margin-bottom: 0.875rem; line-height: 1.7; }
+
+    #preview ul, #preview ol { padding-left: 1.625rem; margin-bottom: 0.875rem; margin-top: 0; }
+    #preview ul { list-style-type: disc; }
+    #preview ol { list-style-type: decimal; }
+    #preview ul ul, #preview ol ol, #preview ul ol, #preview ol ul { margin-top: 0.25rem; margin-bottom: 0.25rem; }
+    #preview li { margin-bottom: 0.25rem; line-height: 1.6; }
+    #preview li p { margin-bottom: 0.25rem; }
+
+    #preview li.task-item { list-style: none; margin-left: -1.25rem; }
+    #preview li.task-item input[type="checkbox"] { margin-right: 0.5rem; accent-color: var(--accent); }
+
+    #preview a { color: var(--accent); text-decoration: none; border-bottom: 1px solid currentColor; }
+    #preview a:hover { color: var(--accent-hover); }
+
+    #preview strong { font-weight: 600; color: var(--text-heading); }
+    #preview em { font-style: italic; }
+    #preview del { text-decoration: line-through; color: var(--text-muted); }
+
+    #preview mark { background: #fff3cd; color: var(--text-body); padding: 0.05em 0.2em; border-radius: 2px; }
+    [data-theme="dark"] #preview mark { background: #3a3000; }
+
+    #preview sup { font-size: 0.75em; vertical-align: super; }
+    #preview sub { font-size: 0.75em; vertical-align: sub; }
+    #preview abbr { text-decoration: underline dotted; cursor: help; }
+
+    #preview code {
+      font-family: var(--font-mono); font-size: 0.875em;
+      background: var(--bg-subtle); color: var(--accent-secondary);
+      padding: 0.15em 0.4em; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);
+    }
+
+    #preview pre {
+      background: var(--bg-subtle); border: 1px solid var(--border-subtle);
+      border-left: 3px solid var(--accent);
+      padding: 1rem 1.25rem; border-radius: var(--radius-md);
+      overflow-x: auto; margin: 1rem 0; font-size: 0.875rem;
+    }
+    #preview pre code { background: transparent; color: var(--text-body); padding: 0; border: none; font-size: inherit; }
+
+    #preview blockquote {
+      border-left: 3px solid var(--accent-secondary);
+      padding: 0.75rem 1.25rem; margin: 1rem 0;
+      background: var(--bg-subtle); border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      color: var(--text-muted); font-family: var(--font-serif);
+    }
+    #preview blockquote p { margin-bottom: 0; }
+
+    #preview hr { border: none; height: 1px; background: var(--border-subtle); margin: 1.75rem 0; }
+
+    #preview table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.9rem; }
+    #preview th, #preview td { border: 1px solid var(--border-subtle); padding: 0.5rem 0.875rem; text-align: left; vertical-align: top; }
+    #preview th { background: var(--bg-subtle); font-weight: 600; color: var(--text-heading); font-size: 0.8125rem; letter-spacing: 0.01em; }
+    #preview tr:nth-child(even) td { background: var(--bg-subtle); }
+    #preview td.align-center, #preview th.align-center { text-align: center; }
+    #preview td.align-right, #preview th.align-right { text-align: right; }
+
+    #preview img { max-width: 100%; height: auto; border-radius: var(--radius-md); margin: 0.75rem 0; border: 1px solid var(--border-subtle); }
+
+    #preview dl { margin: 0.75rem 0; }
+    #preview dt { font-weight: 600; color: var(--text-heading); }
+    #preview dd { margin-left: 1.5rem; margin-bottom: 0.5rem; color: var(--text-muted); }
+
+    #preview .footnotes { border-top: 1px solid var(--border-subtle); margin-top: 2rem; padding-top: 1rem; font-size: 0.875rem; color: var(--text-muted); }
+
+    #preview .katex { color: var(--text-body); }
+    #preview .katex-display { margin: 1rem 0; overflow-x: auto; }
+
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+    .toast {
+      position: fixed; bottom: 1.5rem; right: 1.5rem;
+      background: var(--text-heading); color: var(--bg-page);
+      padding: 0.625rem 1rem; border-radius: var(--radius-sm);
+      font-size: 0.8125rem; font-weight: 500;
+      transform: translateY(80px); opacity: 0;
+      transition: transform 0.2s, opacity 0.2s;
+      z-index: 500; pointer-events: none;
+    }
+    .toast.show { transform: translateY(0); opacity: 1; }
+
+    @media (max-width: 960px) {
+      .workspace { flex-direction: column; }
+      .panel { flex-basis: 0 !important; } /* ignore any saved drag ratio when stacked */
+      .resizer { display: none; }
+    }
+    @media (max-width: 640px) {
+      .workspace { padding: 0.5rem; gap: 0.5rem; }
+      #preview { padding: 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="header">
+    <div class="logo">
+      <div class="logo-mark">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 5h18v2H3V5zm0 6h18v2H3v-2zm0 6h12v2H3v-2z"/></svg>
+      </div>
+      <span class="logo-text">Markdown Studio</span>
+    </div>
+
+    <div class="header-actions">
+      <button class="btn btn-ghost btn-icon" onclick="loadSample()" title="Load sample document">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      </button>
+      <button class="btn btn-ghost" onclick="exportMarkdown()">Save .md</button>
+      <button class="btn btn-ghost" onclick="exportHTML()">Export HTML</button>
+      <button class="btn btn-orange" onclick="exportDocx()">Export .docx</button>
+      <button class="btn btn-ghost btn-icon" id="sync-scroll-btn" onclick="toggleSyncScroll()"
+              title="Sync scroll position between editor and preview">⇅</button>
+      <button class="btn btn-primary" onclick="saveToStorage()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        Save
+      </button>
+      <div class="theme-toggle" onclick="toggleTheme()" title="Toggle light/dark mode" role="button" tabindex="0" onkeydown="if(event.key==='Enter')toggleTheme()">
+        <div class="theme-knob" id="theme-knob">☀️</div>
+      </div>
+    </div>
+  </header>
+
+  <main class="workspace">
+
+    <div class="panel" id="panel-editor">
+      <div class="panel-header">
+        <span class="panel-label">Editor</span>
+        <div class="text-size-ctrl" title="Editor text size">
+          <button class="text-size-btn" onclick="adjustEditorSize(-0.1)">A-</button>
+          <span class="text-size-value" id="editor-size-value">100%</span>
+          <button class="text-size-btn" onclick="adjustEditorSize(0.1)">A+</button>
+        </div>
+        <span class="panel-meta" id="char-count">0 chars · 0 words</span>
+      </div>
+
+      <div class="toolbar" id="toolbar">
+        <button class="btn btn-ghost btn-icon" onclick="insertAtLineStart('# ')"   title="Heading 1">H1</button>
+        <button class="btn btn-ghost btn-icon" onclick="insertAtLineStart('## ')"  title="Heading 2">H2</button>
+        <button class="btn btn-ghost btn-icon" onclick="insertAtLineStart('### ')" title="Heading 3">H3</button>
+        <div class="toolbar-sep"></div>
+        <button class="btn btn-ghost btn-icon" onclick="wrapSel('**','**')" title="Bold (Ctrl+B)"><b>B</b></button>
+        <button class="btn btn-ghost btn-icon" onclick="wrapSel('*','*')"   title="Italic (Ctrl+I)"><em>I</em></button>
+        <button class="btn btn-ghost btn-icon" onclick="wrapSel('~~','~~')" title="Strikethrough"><del>S</del></button>
+        <button class="btn btn-ghost btn-icon" onclick="wrapSel('==','==')" title="Highlight">Mk</button>
+        <div class="toolbar-sep"></div>
+        <button class="btn btn-ghost btn-icon" onclick="wrapSel('\`','\`')"           title="Inline code"></></button>
+        <button class="btn btn-ghost btn-icon" onclick="insertCodeBlock()"             title="Code block">{ }</button>
+        <div class="toolbar-sep"></div>
+        <button class="btn btn-ghost btn-icon" onclick="wrapSel('$','$')"             title="Inline LaTeX">∑</button>
+        <button class="btn btn-ghost btn-icon" onclick="wrapSel('\n$$\n','\n$$\n')"   title="Block LaTeX">∑∑</button>
+        <div class="toolbar-sep"></div>
+        <button class="btn btn-ghost btn-icon" onclick="insertAtLineStart('- ')"      title="Bullet list">• —</button>
+        <button class="btn btn-ghost btn-icon" onclick="insertNumberedList()"          title="Numbered list">1.</button>
+        <button class="btn btn-ghost btn-icon" onclick="insertAtLineStart('- [ ] ')"  title="Task list">☐</button>
+        <div class="toolbar-sep"></div>
+        <button class="btn btn-ghost btn-icon" onclick="insertAtLineStart('> ')"      title="Blockquote">❝</button>
+        <button class="btn btn-ghost btn-icon" onclick="insertLink()"                 title="Link (Ctrl+K)">🔗</button>
+        <button class="btn btn-ghost btn-icon" onclick="insertImage()"                title="Image">⬜</button>
+        <button class="btn btn-ghost btn-icon" onclick="insertTable()"                title="Table">⊞</button>
+        <button class="btn btn-ghost btn-icon" onclick="insertMarkdown('\n---\n')"     title="Horizontal rule">—</button>
+        <div class="toolbar-sep"></div>
+        <button class="btn btn-ghost" onclick="clearEditor()" style="color: var(--error); font-size:0.75rem;">Clear</button>
+      </div>
+
+      <textarea id="editor"
+        placeholder="Start writing in Markdown…
+
+Supports: headers, bold/italic, lists, tables, code blocks, LaTeX ($E=mc^2$), task lists, footnotes, and more.
+
+Drag & drop a .md file to open it."
+        spellcheck="true"
+        autocorrect="off"
+        autocapitalize="off"></textarea>
+    </div>
+
+    <div class="resizer" id="resizer" role="separator" aria-orientation="vertical"
+         aria-label="Resize editor and preview panels" tabindex="0"></div>
+
+    <div class="panel" id="panel-preview">
+      <div class="panel-header">
+        <span class="panel-label">Preview</span>
+        <div class="text-size-ctrl" title="Preview text size">
+          <button class="text-size-btn" onclick="adjustPreviewSize(-0.1)">A-</button>
+          <span class="text-size-value" id="preview-size-value">100%</span>
+          <button class="text-size-btn" onclick="adjustPreviewSize(0.1)">A+</button>
+        </div>
+        <span class="panel-meta" id="render-info"></span>
+      </div>
+      <div id="preview">
+        <div class="preview-empty" id="preview-empty">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          <p>Preview will appear as you type</p>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+  /* =============================================================
+     MARKDOWN PARSER (HTML preview) — unchanged
+     ============================================================= */
+  function parseMarkdown(src, shared) {
+    // `shared` carries the extracted math/code placeholder tables across
+    // recursive calls (e.g. blockquote content). Only the top-level call
+    // (shared === undefined) performs extraction and final placeholder
+    // restoration — recursive calls reuse the same tables so placeholders
+    // resolve correctly instead of looking up an empty local array.
+    const isTop = !shared;
+    if (isTop) {
+      shared = { mathBlocks: [], mathInline: [], codeBlocks: [], inlineCodes: [] };
+
+      src = src.replace(/\$\$[\s\S]+?\$\$/g, m => {
+        shared.mathBlocks.push(m);
+        return `\x01MATHBLOCK${shared.mathBlocks.length - 1}\x01`;
+      });
+      src = src.replace(/\$[^\n$]+?\$/g, m => {
+        shared.mathInline.push(m);
+        return `\x01MATHINLINE${shared.mathInline.length - 1}\x01`;
+      });
+
+      src = src.replace(/```([\w\-]*)\n?([\s\S]*?)```/g, (_, lang, code) => {
+        const escaped = code.replace(/&/g,'&').replace(/</g,'<').replace(/>/g,'>');
+        const langClass = lang ? ` class="language-${lang}"` : '';
+        shared.codeBlocks.push(`<pre><code${langClass}>${escaped.trim()}</code></pre>`);
+        return `\x01CODEBLOCK${shared.codeBlocks.length - 1}\x01`;
+      });
+
+      src = src.replace(/`([^`\n]+)`/g, (_, code) => {
+        const escaped = code.replace(/&/g,'&').replace(/</g,'<').replace(/>/g,'>');
+        shared.inlineCodes.push(`<code>${escaped}</code>`);
+        return `\x01INLINECODE${shared.inlineCodes.length - 1}\x01`;
+      });
+
+      src = src.replace(/&(?![a-zA-Z#]\w*;)/g,'&');
+      src = src.replace(/</g,'<').replace(/>/g,'>');
+    }
+
+    const { mathBlocks, mathInline, codeBlocks, inlineCodes } = shared;
+
+    const lines = src.split('\n');
+    const output = [];
+    let i = 0;
+
+    while (i < lines.length) {
+      const line = lines[i];
+
+      if (line.trim() === '') { output.push(''); i++; continue; }
+
+      if (/^\x01CODEBLOCK\d+\x01$/.test(line.trim())) { output.push(line.trim()); i++; continue; }
+
+      const hm = line.match(/^(#{1,6})\s+(.*)/);
+      if (hm) {
+        const lvl = hm[1].length;
+        const id = hm[2].toLowerCase().replace(/[^\w\s-]/g,'').replace(/\s+/g,'-');
+        output.push(`<h${lvl} id="${id}">${inlineFormat(hm[2])}</h${lvl}>`);
+        i++; continue;
+      }
+
+      if (i + 1 < lines.length) {
+        if (/^=+$/.test(lines[i+1].trim()) && lines[i+1].trim().length >= 1) {
+          const id = line.toLowerCase().replace(/[^\w\s-]/g,'').replace(/\s+/g,'-');
+          output.push(`<h1 id="${id}">${inlineFormat(line)}</h1>`);
+          i += 2; continue;
+        }
+        if (/^-+$/.test(lines[i+1].trim()) && lines[i+1].trim().length >= 2) {
+          const id = line.toLowerCase().replace(/[^\w\s-]/g,'').replace(/\s+/g,'-');
+          output.push(`<h2 id="${id}">${inlineFormat(line)}</h2>`);
+          i += 2; continue;
+        }
+      }
+
+      if (/^(\*{3,}|-{3,}|_{3,})\s*$/.test(line)) { output.push('<hr>'); i++; continue; }
+
+      if (/^>\s?/.test(line)) {
+        const bqLines = [];
+        while (i < lines.length && /^>\s?/.test(lines[i])) { bqLines.push(lines[i].replace(/^>\s?/, '')); i++; }
+        const inner = parseMarkdown(bqLines.join('\n'), shared);
+        output.push(`<blockquote>${inner}</blockquote>`);
+        continue;
+      }
+
+      if (/^\|/.test(line) && i + 1 < lines.length && /^\|[\s|:-]+\|/.test(lines[i+1])) {
+        const tableLines = [];
+        while (i < lines.length && /^\|/.test(lines[i])) { tableLines.push(lines[i]); i++; }
+        output.push(parseTable(tableLines));
+        continue;
+      }
+
+      if (/^(\d+)\.\s/.test(line)) {
+        const listLines = [];
+        const startNum = parseInt(line.match(/^(\d+)\./)[1]);
+        while (i < lines.length && (/^(\d+)\.\s/.test(lines[i]) || /^  /.test(lines[i]))) { listLines.push(lines[i]); i++; }
+        output.push(parseOrderedList(listLines, startNum));
+        continue;
+      }
+
+      if (/^[-*+]\s/.test(line)) {
+        const listLines = [];
+        while (i < lines.length && (/^[-*+]\s/.test(lines[i]) || /^  /.test(lines[i]) || /^\t/.test(lines[i]))) { listLines.push(lines[i]); i++; }
+        output.push(parseUnorderedList(listLines));
+        continue;
+      }
+
+      if (i + 1 < lines.length && /^:\s/.test(lines[i+1])) {
+        const dlLines = [];
+        while (i < lines.length) {
+          if (/^:\s/.test(lines[i]) || (dlLines.length > 0 && lines[i].trim() !== '' && !(/^:\s/.test(lines[i])))) { dlLines.push(lines[i]); i++; }
+          else if (i + 1 < lines.length && /^:\s/.test(lines[i+1])) { dlLines.push(lines[i]); i++; }
+          else break;
+        }
+        output.push(parseDL(dlLines));
+        continue;
+      }
+
+      const paraLines = [];
+      while (i < lines.length &&
+             lines[i].trim() !== '' &&
+             !/^#{1,6}\s/.test(lines[i]) &&
+             !/^(\*{3,}|-{3,}|_{3,})\s*$/.test(lines[i]) &&
+             !/^>\s?/.test(lines[i]) &&
+             !/^\|/.test(lines[i]) &&
+             !/^[-*+]\s/.test(lines[i]) &&
+             !/^(\d+)\.\s/.test(lines[i]) &&
+             !/^\x01CODEBLOCK\d+\x01$/.test(lines[i].trim())) {
+        if (i + 1 < lines.length && /^[=-]+$/.test(lines[i+1].trim()) && lines[i+1].trim().length >= 1) break;
+        paraLines.push(lines[i]); i++;
+      }
+      if (paraLines.length) {
+        const paraHTML = paraLines.map((l, idx) => {
+          const hardBreak = /  $/.test(l) || /\\$/.test(l);
+          const clean = l.replace(/  $/, '').replace(/\\$/, '');
+          return inlineFormat(clean) + (hardBreak && idx < paraLines.length - 1 ? '<br>' : '');
+        }).join('\n');
+        output.push(`<p>${paraHTML}</p>`);
+      }
+    }
+
+    let html = output.join('\n');
+    if (isTop) {
+      html = html.replace(/\x01CODEBLOCK(\d+)\x01/g, (_, n) => codeBlocks[+n]);
+      html = html.replace(/\x01INLINECODE(\d+)\x01/g, (_, n) => inlineCodes[+n]);
+      html = html.replace(/\x01MATHBLOCK(\d+)\x01/g, (_, n) => mathBlocks[+n]);
+      html = html.replace(/\x01MATHINLINE(\d+)\x01/g, (_, n) => mathInline[+n]);
+    }
+    return html;
+  }
+
+  function inlineFormat(text) {
+    text = text.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
+    // Underscore emphasis: unlike *, CommonMark only treats _ as emphasis when
+    // it's not "intraword" (jammed between letters/digits/other underscores),
+    // and a run of 4+ underscores (ASCII art, separator lines) is left literal
+    // because neither side of any candidate delimiter can satisfy the
+    // not-adjacent-to-underscore lookbehind/lookahead below.
+    text = text.replace(/(?<![\w_])___(?!_)(.+?)(?<!_)___(?!_)(?!\w)/g, '<strong><em>$1</em></strong>');
+    text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    text = text.replace(/(?<![\w_])__(?!_)(.+?)(?<!_)__(?!_)(?!\w)/g, '<strong>$1</strong>');
+    text = text.replace(/\*([^*\n]+?)\*/g, '<em>$1</em>');
+    text = text.replace(/(?<![\w_])_(?!_)([^_\n]+?)(?<!_)_(?!_)(?!\w)/g, '<em>$1</em>');
+    text = text.replace(/~~(.+?)~~/g, '<del>$1</del>');
+    text = text.replace(/==(.+?)==/g, '<mark>$1</mark>');
+    text = text.replace(/\^([^\^\n]+?)\^/g, '<sup>$1</sup>');
+    text = text.replace(/~([^~\n]+?)~/g, '<sub>$1</sub>');
+    text = text.replace(/!\[([^\]]*)\]\(([^)]+?)(?:\s+"([^"]+)")?\)/g, (_, alt, src, title) =>
+      `<img src="${src}" alt="${alt}"${title ? ` title="${title}"` : ''}>`);
+    text = text.replace(/\[([^\]]+)\]\(([^)]+?)(?:\s+"([^"]+)")?\)/g, (_, txt, href, title) =>
+      `<a href="${href}" target="_blank" rel="noopener"${title ? ` title="${title}"` : ''}>${txt}</a>`);
+    text = text.replace(/(?<![">])(https?:\/\/[^\s<>"]+)/g,
+      '<a href="$1" target="_blank" rel="noopener">$1</a>');
+    text = text.replace(/\[\^([^\]]+)\]/g, '<sup class="footnote-ref"><a href="#fn-$1">[$1]</a></sup>');
+    return text;
+  }
+
+  function parseOrderedList(lines, startNum) {
+    const items = [];
+    let current = null;
+    for (const line of lines) {
+      const m = line.match(/^(\d+)\.\s(.*)/);
+      if (m) { if (current !== null) items.push(current); current = { text: m[2], sub: [] }; }
+      else if (current) { current.sub.push(line.replace(/^  /, '')); }
+    }
+    if (current) items.push(current);
+
+    const lis = items.map(item => {
+      let inner = inlineFormat(item.text);
+      inner = inner.replace(/^\[ \]\s/, '<input type="checkbox" disabled> ');
+      inner = inner.replace(/^\[x\]\s/i, '<input type="checkbox" disabled checked> ');
+      if (item.sub.length) {
+        const subStr = item.sub.join('\n').trim();
+        if (/^\d+\./.test(subStr)) inner += parseOrderedList(item.sub, 1);
+        else if (/^[-*+]/.test(subStr)) inner += parseUnorderedList(item.sub);
+        else inner += ' ' + item.sub.map(l => inlineFormat(l)).join(' ');
+      }
+      return `<li>${inner}</li>`;
+    });
+    return `<ol start="${startNum}">\n${lis.join('\n')}\n</ol>`;
+  }
+
+  function parseUnorderedList(lines) {
+    const items = [];
+    let current = null;
+    for (const line of lines) {
+      const m = line.match(/^[-*+]\s(.*)/);
+      if (m) { if (current !== null) items.push(current); current = { text: m[1], sub: [] }; }
+      else if (current) { current.sub.push(line.replace(/^  /, '').replace(/^\t/, '  ')); }
+    }
+    if (current) items.push(current);
+
+    const lis = items.map(item => {
+      let inner = inlineFormat(item.text);
+      let cls = '';
+      if (/^\[ \]\s/.test(item.text)) {
+        inner = '<input type="checkbox" disabled> ' + inlineFormat(item.text.replace(/^\[ \]\s/, ''));
+        cls = ' class="task-item"';
+      } else if (/^\[x\]\s/i.test(item.text)) {
+        inner = '<input type="checkbox" disabled checked> ' + inlineFormat(item.text.replace(/^\[x\]\s/i, ''));
+        cls = ' class="task-item"';
+      }
+      if (item.sub.length) {
+        const subStr = item.sub.join('\n').trim();
+        if (/^\d+\./.test(subStr)) inner += parseOrderedList(item.sub, 1);
+        else if (/^[-*+]/.test(subStr)) inner += parseUnorderedList(item.sub);
+        else inner += ' ' + item.sub.map(l => inlineFormat(l)).join(' ');
+      }
+      return `<li${cls}>${inner}</li>`;
+    });
+    return `<ul>\n${lis.join('\n')}\n</ul>`;
+  }
+
+  function parseTable(lines) {
+    if (lines.length < 2) return lines.map(l => `<p>${inlineFormat(l)}</p>`).join('');
+    const parseCells = (line) => line.replace(/^\||\|$/g, '').split('|').map(c => c.trim());
+    const headers = parseCells(lines[0]);
+    const sepLine = parseCells(lines[1]);
+    const aligns = sepLine.map(s => { if (/^:.*:$/.test(s)) return 'center'; if (/:$/.test(s)) return 'right'; return 'left'; });
+    const thead = headers.map((h, i) => `<th class="align-${aligns[i]}">${inlineFormat(h)}</th>`).join('');
+    const tbodyRows = lines.slice(2).map(line => {
+      const cells = parseCells(line);
+      const tds = headers.map((_, i) => `<td class="align-${aligns[i]}">${inlineFormat(cells[i] || '')}</td>`).join('');
+      return `<tr>${tds}</tr>`;
+    }).join('\n');
+    return `<table><thead><tr>${thead}</tr></thead><tbody>${tbodyRows}</tbody></table>`;
+  }
+
+  function parseDL(lines) {
+    let html = '<dl>';
+    for (const l of lines) {
+      if (/^:\s/.test(l)) html += `<dd>${inlineFormat(l.replace(/^:\s/, ''))}</dd>`;
+      else html += `<dt>${inlineFormat(l)}</dt>`;
+    }
+    html += '</dl>';
+    return html;
+  }
+
+  /* =============================================================
+     PANEL SCROLL SYNC (proportional — MD source and rendered HTML
+     rarely have the same length, so this matches scroll % of total
+     scrollable range rather than trying to map specific lines)
+     ============================================================= */
+  let syncScrollEnabled = false;
+  let suppressScrollSync = false;
+
+  function withSuppressedSync(fn) {
+    suppressScrollSync = true;
+    fn();
+    setTimeout(() => { suppressScrollSync = false; }, 50);
+  }
+
+  function toggleSyncScroll() {
+    syncScrollEnabled = !syncScrollEnabled;
+    const btn = document.getElementById('sync-scroll-btn');
+    btn.classList.toggle('btn-toggle-active', syncScrollEnabled);
+    try { localStorage.setItem('md_sync_scroll', syncScrollEnabled ? '1' : '0'); } catch(e) {}
+    showToast(syncScrollEnabled ? 'Scroll sync on' : 'Scroll sync off');
+  }
+
+  function syncScrollFrom(source, target) {
+    if (!syncScrollEnabled || suppressScrollSync) return;
+    const sourceMax = source.scrollHeight - source.clientHeight;
+    const targetMax = target.scrollHeight - target.clientHeight;
+    if (sourceMax <= 0 || targetMax <= 0) return;
+    const ratio = source.scrollTop / sourceMax;
+    withSuppressedSync(() => { target.scrollTop = ratio * targetMax; });
+  }
+
+  /* =============================================================
+     INDEPENDENT PANEL TEXT SIZE
+     ============================================================= */
+  const TEXT_SIZE_MIN = 0.6, TEXT_SIZE_MAX = 2.0;
+  const EDITOR_BASE_PX = 13.5;
+  let editorScale = 1, previewScale = 1;
+
+  function clampScale(s) { return Math.round(Math.max(TEXT_SIZE_MIN, Math.min(TEXT_SIZE_MAX, s)) * 100) / 100; }
+
+  function applyEditorScale() {
+    document.getElementById('editor').style.fontSize = (EDITOR_BASE_PX * editorScale) + 'px';
+    document.getElementById('editor-size-value').textContent = Math.round(editorScale * 100) + '%';
+  }
+  function applyPreviewScale() {
+    document.getElementById('preview').style.zoom = previewScale;
+    document.getElementById('preview-size-value').textContent = Math.round(previewScale * 100) + '%';
+  }
+
+  function adjustEditorSize(delta) {
+    editorScale = clampScale(editorScale + delta);
+    applyEditorScale();
+    try { localStorage.setItem('md_editor_scale', editorScale); } catch(e) {}
+  }
+  function adjustPreviewSize(delta) {
+    previewScale = clampScale(previewScale + delta);
+    applyPreviewScale();
+    try { localStorage.setItem('md_preview_scale', previewScale); } catch(e) {}
+  }
+
+  function initTextSizes() {
+    try {
+      const es = parseFloat(localStorage.getItem('md_editor_scale'));
+      if (es) editorScale = clampScale(es);
+      const ps = parseFloat(localStorage.getItem('md_preview_scale'));
+      if (ps) previewScale = clampScale(ps);
+    } catch(e) {}
+    applyEditorScale();
+    applyPreviewScale();
+  }
+
+  /* =============================================================
+     PREVIEW UPDATE
+     ============================================================= */
+  let renderTimer = null;
+
+  function updatePreview() {
+    clearTimeout(renderTimer);
+    renderTimer = setTimeout(_render, 80);
+    updateCounts();
+    saveToStorageSilent(); // autosave without spamming the toast
+  }
+
+  function _render() {
+    const src = document.getElementById('editor').value;
+    const preview = document.getElementById('preview');
+    const empty = document.getElementById('preview-empty');
+
+    if (!src.trim()) {
+      preview.innerHTML = '';
+      preview.appendChild(empty);
+      document.getElementById('render-info').textContent = '';
+      return;
+    }
+
+    // Replacing innerHTML resets scrollTop to 0, which is why the preview
+    // used to jump on every keystroke. Capture where the reader was first,
+    // then restore it afterward — pinned to the bottom if they were already
+    // there (the common case while actively typing new content), otherwise
+    // held at the same proportional position if the content's height changed.
+    const prevScrollHeight = preview.scrollHeight;
+    const prevScrollTop = preview.scrollTop;
+    const prevAtBottom = prevScrollHeight - preview.clientHeight - prevScrollTop < 4;
+
+    const t0 = performance.now();
+    preview.innerHTML = parseMarkdown(src);
+    const ms = (performance.now() - t0).toFixed(1);
+    document.getElementById('render-info').textContent = `${ms} ms`;
+
+    preview.querySelectorAll('pre code').forEach(block => { if (window.hljs) hljs.highlightElement(block); });
+
+    if (window.renderMathInElement) {
+      renderMathInElement(preview, {
+        delimiters: [
+          { left: '$$', right: '$$', display: true  },
+          { left: '$',  right: '$',  display: false },
+        ],
+        throwOnError: false
+      });
+    }
+
+    withSuppressedSync(() => {
+      if (prevAtBottom) {
+        preview.scrollTop = preview.scrollHeight;
+      } else if (prevScrollHeight > 0) {
+        preview.scrollTop = prevScrollTop * (preview.scrollHeight / prevScrollHeight);
+      }
+    });
+  }
+
+  function updateCounts() {
+    const val = document.getElementById('editor').value;
+    const chars = val.length;
+    const words = val.trim() ? val.trim().split(/\s+/).length : 0;
+    document.getElementById('char-count').textContent = `${chars} chars · ${words} words`;
+  }
+
+  /* =============================================================
+     TOOLBAR HELPERS
+     ============================================================= */
+  function getEditor() { return document.getElementById('editor'); }
+
+  function insertMarkdown(text) {
+    const ta = getEditor();
+    const s = ta.selectionStart, e = ta.selectionEnd;
+    ta.value = ta.value.slice(0, s) + text + ta.value.slice(e);
+    const pos = s + text.length;
+    ta.selectionStart = ta.selectionEnd = pos;
+    ta.focus();
+    updatePreview();
+  }
+
+  function wrapSel(before, after) {
+    const ta = getEditor();
+    const s = ta.selectionStart, e = ta.selectionEnd;
+    const sel = ta.value.slice(s, e) || 'text';
+    const replacement = before + sel + after;
+    ta.value = ta.value.slice(0, s) + replacement + ta.value.slice(e);
+    ta.selectionStart = s + before.length;
+    ta.selectionEnd   = s + before.length + sel.length;
+    ta.focus();
+    updatePreview();
+  }
+
+  function insertAtLineStart(prefix) {
+    const ta = getEditor();
+    const s = ta.selectionStart;
+    const lineStart = ta.value.lastIndexOf('\n', s - 1) + 1;
+    ta.value = ta.value.slice(0, lineStart) + prefix + ta.value.slice(lineStart);
+    const pos = s + prefix.length;
+    ta.selectionStart = ta.selectionEnd = pos;
+    ta.focus();
+    updatePreview();
+  }
+
+  function insertCodeBlock() {
+    const ta = getEditor();
+    const lang = prompt('Language (e.g. python, javascript):', '') || '';
+    const snippet = `\`\`\`${lang}\n\n\`\`\``;
+    const s = ta.selectionStart;
+    ta.value = ta.value.slice(0, s) + snippet + ta.value.slice(s);
+    ta.selectionStart = ta.selectionEnd = s + lang.length + 4;
+    ta.focus();
+    updatePreview();
+  }
+
+  function insertNumberedList() {
+    const ta = getEditor();
+    const s = ta.selectionStart;
+    const lineStart = ta.value.lastIndexOf('\n', s - 1) + 1;
+    const before = ta.value.slice(0, lineStart);
+    const prevLines = before.split('\n').reverse();
+    let num = 1;
+    for (const l of prevLines) {
+      const m = l.match(/^(\d+)\.\s/);
+      if (m) { num = parseInt(m[1]) + 1; break; }
+      if (l.trim() === '') break;
+    }
+    insertAtLineStart(`${num}. `);
+  }
+
+  function insertLink() {
+    const url = prompt('URL:', 'https://');
+    if (!url) return;
+    const ta = getEditor();
+    const sel = ta.value.slice(ta.selectionStart, ta.selectionEnd) || 'link text';
+    insertMarkdown(`[${sel}](${url})`);
+  }
+
+  function insertImage() {
+    const url = prompt('Image URL:', 'https://');
+    if (!url) return;
+    const alt = prompt('Alt text:', 'image') || 'image';
+    insertMarkdown(`![${alt}](${url})`);
+  }
+
+  function insertTable() {
+    const r = parseInt(prompt('Rows (data):', '3') || '3');
+    const c = parseInt(prompt('Columns:', '3') || '3');
+    if (!r || !c) return;
+    let t = '|' + Array.from({length:c},(_,i)=>` Col ${i+1} `).join('|') + '|\n';
+    t   += '|' + Array(c).fill(' --- ').join('|') + '|\n';
+    for (let i = 0; i < r; i++)
+      t += '|' + Array.from({length:c},(_,j)=>` Cell ${i+1}-${j+1} `).join('|') + '|\n';
+    insertMarkdown('\n' + t);
+    showToast('Table inserted');
+  }
+
+  function clearEditor() {
+    if (!confirm('Clear all content?')) return;
+    getEditor().value = '';
+    updatePreview();
+    showToast('Editor cleared');
+  }
+
+  /* =============================================================
+     EXPORT & SAVE
+     ============================================================= */
+  function exportMarkdown() {
+    const content = getEditor().value;
+    download(content, 'document.md', 'text/markdown');
+    showToast('Saved as .md');
+  }
+
+  function exportHTML() {
+    const output = document.getElementById('preview').innerHTML;
+    const dark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const full = `<!DOCTYPE html>
+<html lang="en" data-theme="${dark ? 'dark' : 'light'}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Exported Document</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <style>
+    :root{--bg:#fff;--fg:#4a4f57;--heading:#163960;--border:#e9ebf0;--subtle:#f2f4f8;--accent:#1369b3;--accent2:#ff8a3d;--mono:'Geist Mono','JetBrains Mono',monospace;--serif:'Source Serif 4',Georgia,serif}
+    [data-theme="dark"]{--bg:#18191c;--fg:#e9ebf0;--heading:#f2f4f8;--border:#2a3037;--subtle:#2a3037;--accent:#66a8d1}
+    body{font-family:'Geist','Inter',system-ui,sans-serif;font-size:16px;line-height:1.7;color:var(--fg);background:var(--bg);max-width:800px;margin:2rem auto;padding:0 2rem}
+    h1,h2,h3,h4,h5,h6{color:var(--heading);font-weight:600;margin:1.5rem 0 0.5rem;line-height:1.3}
+    h1{font-size:2rem;border-bottom:2px solid var(--border);padding-bottom:.4rem}
+    h2{font-size:1.5rem;border-bottom:1px solid var(--border);padding-bottom:.3rem}
+    p{margin-bottom:.875rem}
+    ul,ol{padding-left:1.5rem;margin-bottom:.875rem}li{margin-bottom:.25rem}
+    a{color:var(--accent);text-decoration:none;border-bottom:1px solid currentColor}
+    code{font-family:var(--mono);font-size:.875em;background:var(--subtle);padding:.1em .35em;border-radius:3px;color:var(--accent2)}
+    pre{background:var(--subtle);border:1px solid var(--border);border-left:3px solid var(--accent);padding:1rem;border-radius:4px;overflow-x:auto;margin:1rem 0}
+    pre code{background:none;padding:0;color:inherit}
+    blockquote{border-left:3px solid var(--accent2);padding:.6rem 1rem;margin:1rem 0;background:var(--subtle);font-family:var(--serif);color:#76777a}
+    table{width:100%;border-collapse:collapse;margin:1rem 0}
+    th,td{border:1px solid var(--border);padding:.5rem .875rem;text-align:left}
+    th{background:var(--subtle);font-weight:600;color:var(--heading);font-size:.8rem}
+    img{max-width:100%;height:auto;border-radius:4px;border:1px solid var(--border)}
+    hr{border:none;height:1px;background:var(--border);margin:1.5rem 0}
+    .katex{color:var(--fg)}
+  </style>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"><\/script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false})"><\/script>
+</head>
+<body>${output}</body>
+</html>`;
+    download(full, 'document.html', 'text/html');
+    showToast('Exported as HTML');
+  }
+
+  /* -------------------------------------------------------------
+     INLINE TOKENIZER (shared by all DOCX block builders)
+     Produces a flat list of tokens with style flags.
+     Supported: ***bi***, **b**, *i*, ___bi___, __b__, _i_,
+                ~~del~~, `code`, [text](url), and LaTeX math spans
+                (produced upstream as \x02MATH… placeholders)
+     ------------------------------------------------------------- */
+  function parseInlineTokens(text) {
+    const tokens = [];
+    let i = 0;
+    let buf = '';
+
+    const flush = (extra) => {
+      if (buf) { tokens.push(Object.assign({ text: buf }, extra || {})); buf = ''; }
+    };
+
+    while (i < text.length) {
+      const rest = text.slice(i);
+
+      // LaTeX math placeholder (inserted by exportDocx before line-splitting)
+      let mm = rest.match(/^\x02MATH(BLOCK|INLINE)(\d+)\x02/);
+      if (mm) { flush(); tokens.push({ math: true, mathKind: mm[1], mathIndex: parseInt(mm[2], 10) }); i += mm[0].length; continue; }
+
+      // Inline code `code`
+      let m = rest.match(/^`([^`]+)`/);
+      if (m) { flush(); tokens.push({ text: m[1], code: true }); i += m[0].length; continue; }
+
+      // Link [text](url)
+      m = rest.match(/^\[([^\]]+)\]\(([^)\s]+)(?:\s+"[^"]*")?\)/);
+      if (m) { flush(); tokens.push({ text: m[1], link: m[2] }); i += m[0].length; continue; }
+
+      // Bold+Italic ***x*** or ___x___
+      m = rest.match(/^\*\*\*([^*]+)\*\*\*/) || rest.match(/^___([^_]+)___/);
+      if (m) { flush(); tokens.push({ text: m[1], bold: true, italics: true }); i += m[0].length; continue; }
+
+      // Bold **x** or __x__
+      m = rest.match(/^\*\*([^*]+)\*\*/) || rest.match(/^__([^_]+)__/);
+      if (m) { flush(); tokens.push({ text: m[1], bold: true }); i += m[0].length; continue; }
+
+      // Italic *x* or _x_
+      m = rest.match(/^\*([^*\n]+)\*/) || rest.match(/^_([^_\n]+)_/);
+      if (m) { flush(); tokens.push({ text: m[1], italics: true }); i += m[0].length; continue; }
+
+      // Strikethrough ~~x~~
+      m = rest.match(/^~~([^~]+)~~/);
+      if (m) { flush(); tokens.push({ text: m[1], strike: true }); i += m[0].length; continue; }
+
+      // Highlight ==x== (no Word equivalent — keep text, mark via highlight)
+      m = rest.match(/^==([^=]+)==/);
+      if (m) { flush(); tokens.push({ text: m[1], highlight: true }); i += m[0].length; continue; }
+
+      // Image ![alt](url) — represent alt text only in DOCX
+      m = rest.match(/^!\[([^\]]*)\]\([^)]+\)/);
+      if (m) { flush(); tokens.push({ text: m[1] }); i += m[0].length; continue; }
+
+      // Plain character
+      buf += text[i];
+      i++;
+    }
+    flush();
+    return tokens.length ? tokens : [{ text: '' }];
+  }
+
+  /* Convert tokens -> array of docx TextRun / Math (ParagraphChild) */
+  function docxRuns(text) {
+    const { TextRun, UnderlineType } = window.docx;
+    const tokens = parseInlineTokens(text);
+    return tokens.map(t => {
+      if (t.math) return mdBuildMathObject(mdMathSourceFor(t));
+      const opts = { text: t.text };
+      if (t.bold)    opts.bold = true;
+      if (t.italics) opts.italics = true;
+      if (t.strike)  opts.strike = true;
+      if (t.code) {
+        opts.font = 'Consolas';
+        opts.color = 'b44533';          // matches --error accent for code
+      }
+      if (t.highlight) opts.highlight = 'yellow';
+      if (t.link) {
+        // Render link text styled like a hyperlink (true Hyperlink relationships
+        // require external rels; styled blue+underline is the pragmatic approach)
+        opts.color = '1369b3';
+        opts.underline = { type: UnderlineType.SINGLE, color: '1369b3' };
+      }
+      return new TextRun(opts);
+    });
+  }
+
+  /* Back-compat name used by the paragraph branch */
+  function docxInlineRuns(text) {
+    return docxRuns(text);
+  }
+
+  /* Plain-text fallback (still used in a couple of places) */
+  function stripInline(text) {
+    return text
+      .replace(/\*\*\*(.+?)\*\*\*/g, '$1')
+      .replace(/\*\*(.+?)\*\*/g, '$1')
+      .replace(/__(.+?)__/g, '$1')
+      .replace(/\*(.+?)\*/g, '$1')
+      .replace(/_(.+?)_/g, '$1')
+      .replace(/~~(.+?)~~/g, '$1')
+      .replace(/`([^`]+)`/g, '$1')
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+      .replace(/!\[([^\]]*)\]\([^)]+\)/g, '$1')
+      .replace(/==/g, '');
+  }
+
+  /* -------------------------------------------------------------
+     Build a docx.Table from GFM markdown table lines
+     ------------------------------------------------------------- */
+  function buildDocxTable(tableLines) {
+    const {
+      Table, TableRow, TableCell, Paragraph,
+      WidthType, BorderStyle, AlignmentType
+    } = window.docx;
+
+    if (tableLines.length < 2) return null;
+
+    const parseCells = (l) =>
+      l.replace(/^\s*\|/, '').replace(/\|\s*$/, '').split('|').map(c => c.trim());
+
+    const headers = parseCells(tableLines[0]);
+    const sep     = parseCells(tableLines[1]);
+    const colCount = headers.length;
+
+    const alignFor = (s) => {
+      if (/^:.*:$/.test(s)) return AlignmentType.CENTER;
+      if (/:$/.test(s))     return AlignmentType.RIGHT;
+      return AlignmentType.LEFT;
+    };
+    const aligns = sep.map(alignFor);
+
+    const cellBorder = { style: BorderStyle.SINGLE, size: 4, color: 'b1b3b7' };
+    const cellBorders = { top: cellBorder, bottom: cellBorder, left: cellBorder, right: cellBorder };
+
+    const makeCell = (text, colIdx, isHeader) => {
+      // Styled inline runs; force bold for header cells regardless of inline markup
+      const runs = docxRuns(text || '');
+      if (isHeader) runs.forEach(r => { /* header bold is applied in paragraph below */ });
+      return new TableCell({
+        borders: cellBorders,
+        shading: isHeader ? { fill: 'f2f4f8' } : undefined,
+        margins: { top: 60, bottom: 60, left: 100, right: 100 },
+        children: [new Paragraph({
+          alignment: aligns[colIdx] || AlignmentType.LEFT,
+          children: isHeader ? docxHeaderRuns(text || '') : runs
+        })]
+      });
+    };
+
+    const rows = [];
+    rows.push(new TableRow({
+      tableHeader: true,
+      children: headers.map((h, c) => makeCell(h, c, true))
+    }));
+
+    for (let r = 2; r < tableLines.length; r++) {
+      const cells = parseCells(tableLines[r]);
+      const rowCells = [];
+      for (let c = 0; c < colCount; c++) rowCells.push(makeCell(cells[c] || '', c, false));
+      rows.push(new TableRow({ children: rowCells }));
+    }
+
+    return new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows });
+  }
+
+  /* Header runs: same tokenizer but force bold + heading color */
+  function docxHeaderRuns(text) {
+    const { TextRun } = window.docx;
+    const tokens = parseInlineTokens(text);
+    return tokens.map(t => {
+      if (t.math) return mdBuildMathObject(mdMathSourceFor(t));
+      const opts = { text: t.text, bold: true, color: '163960' };
+      if (t.italics) opts.italics = true;
+      if (t.strike)  opts.strike = true;
+      if (t.code)    opts.font = 'Consolas';
+      return new TextRun(opts);
+    });
+  }
+
+  /* =============================================================
+     LATEX -> OOXML MATH (OMML) CONVERTER  (for DOCX export)
+
+     Parses a practical subset of LaTeX math syntax and builds
+     native, editable Word equations using docx.js's own Math API
+     (Math / MathRun / MathFraction / MathRadical / MathSuperScript
+     / MathSubScript / MathSubSuperScript / bracket wrappers). This
+     stays 100% client-side — no external MathML/XSLT conversion
+     step, no server, works fully offline.
+
+     Supported: ^ _ (with combined sub/superscript), \frac, \sqrt
+     (with optional index), \text/\mathrm/\operatorname (rendered
+     upright), \hat \vec \dot \ddot \bar \overline \tilde (accents),
+     \left...\right with ( ) [ ] { } \langle \rangle, common Greek
+     letters and math symbols/operators, and escaped literal chars.
+     Anything unrecognized falls back to literal text so a single
+     odd construct can't abort the whole export.
+     ============================================================= */
+
+  const MD_LATEX_SYMBOLS = {
+    // operators / relations
+    cdot: '\u00B7', times: '\u00D7', div: '\u00F7', pm: '\u00B1', mp: '\u2213',
+    leq: '\u2264', le: '\u2264', geq: '\u2265', ge: '\u2265', neq: '\u2260', ne: '\u2260',
+    approx: '\u2248', equiv: '\u2261', propto: '\u221D', sim: '\u223C', simeq: '\u2243',
+    cong: '\u2245', ll: '\u226A', gg: '\u226B',
+    infty: '\u221E', partial: '\u2202', nabla: '\u2207', hbar: '\u210F', ell: '\u2113',
+    forall: '\u2200', exists: '\u2203', emptyset: '\u2205', varnothing: '\u2205',
+    in: '\u2208', notin: '\u2209', ni: '\u220B',
+    subset: '\u2282', subseteq: '\u2286', supset: '\u2283', supseteq: '\u2287',
+    subsetneq: '\u228A',
+    cup: '\u222A', cap: '\u2229', setminus: '\u2216',
+    wedge: '\u2227', vee: '\u2228', neg: '\u00AC', lnot: '\u00AC',
+    oplus: '\u2295', otimes: '\u2297', odot: '\u2299',
+    cdots: '\u22EF', ldots: '\u2026', dots: '\u2026', vdots: '\u22EE', ddots: '\u22F1',
+    rightarrow: '\u2192', to: '\u2192', longrightarrow: '\u27F6',
+    leftarrow: '\u2190', longleftarrow: '\u27F5',
+    Rightarrow: '\u21D2', Leftarrow: '\u21D0',
+    leftrightarrow: '\u2194', Leftrightarrow: '\u21D4', mapsto: '\u21A6',
+    perp: '\u22A5', parallel: '\u2225', angle: '\u2220', measuredangle: '\u2221',
+    circ: '\u2218', star: '\u22C6', ast: '\u2217', bullet: '\u2022',
+    dagger: '\u2020', top: '\u22A4', bot: '\u22A5', aleph: '\u2135',
+    Re: '\u211C', Im: '\u2111', prime: '\u2032',
+    oint: '\u222E', surd: '\u221A',
+    sum: '\u2211', prod: '\u220F', coprod: '\u2210', int: '\u222B',
+    iint: '\u222C', iiint: '\u222D',
+    bigcup: '\u22C3', bigcap: '\u22C2', bigvee: '\u22C1', bigwedge: '\u22C0',
+    bigoplus: '\u2A01', bigotimes: '\u2A02',
+    langle: '\u27E8', rangle: '\u27E9',
+    // Greek (lowercase)
+    alpha: '\u03B1', beta: '\u03B2', gamma: '\u03B3', delta: '\u03B4',
+    epsilon: '\u03B5', varepsilon: '\u03F5', zeta: '\u03B6', eta: '\u03B7',
+    theta: '\u03B8', vartheta: '\u03D1', iota: '\u03B9', kappa: '\u03BA',
+    lambda: '\u03BB', mu: '\u03BC', nu: '\u03BD', xi: '\u03BE', omicron: '\u03BF',
+    pi: '\u03C0', varpi: '\u03D6', rho: '\u03C1', varrho: '\u03F1',
+    sigma: '\u03C3', varsigma: '\u03C2', tau: '\u03C4', upsilon: '\u03C5',
+    phi: '\u03C6', varphi: '\u03D5', chi: '\u03C7', psi: '\u03C8', omega: '\u03C9',
+    // Greek (uppercase — only the ones that render distinctly from Latin)
+    Gamma: '\u0393', Delta: '\u0394', Theta: '\u0398', Lambda: '\u039B',
+    Xi: '\u039E', Pi: '\u03A0', Sigma: '\u03A3', Upsilon: '\u03A5',
+    Phi: '\u03A6', Psi: '\u03A8', Omega: '\u03A9'
+  };
+
+  const MD_LATEX_ACCENTS = {
+    hat: '\u0302', widehat: '\u0302',
+    vec: '\u20D7', overrightarrow: '\u20D7',
+    dot: '\u0307', ddot: '\u0308',
+    bar: '\u0304', overline: '\u0305',
+    tilde: '\u0303', widetilde: '\u0303',
+    check: '\u030C', breve: '\u0306',
+    acute: '\u0301', grave: '\u0300'
+  };
+
+  // Spacing commands -> literal space text (approximate; Word math spacing
+  // is otherwise handled automatically by its own layout engine)
+  const MD_LATEX_SPACING = {
+    ',': ' ', ';': ' ', ':': ' ', '!': '', ' ': ' ',
+    quad: '\u2003', qquad: '\u2003\u2003'
+  };
+
+  function mdLatexReadCommandName(s, i) {
+    // s[i] === '\\'
+    let j = i + 1;
+    if (j < s.length && /[a-zA-Z]/.test(s[j])) {
+      let name = '';
+      while (j < s.length && /[a-zA-Z]/.test(s[j])) { name += s[j]; j++; }
+      return { name, i: j };
+    }
+    // Non-letter after backslash: escaped literal char (\{, \}, \$, \%, \&, \#, \_, \ , \\)
+    const ch = j < s.length ? s[j] : '';
+    return { name: null, literal: ch, i: j + 1 };
+  }
+
+  function mdLatexReadDelim(s, i) {
+    while (i < s.length && s[i] === ' ') i++;
+    if (s[i] === '\\') {
+      const r = mdLatexReadCommandName(s, i);
+      if (r.name === 'langle') return { ch: '\u27E8', i: r.i };
+      if (r.name === 'rangle') return { ch: '\u27E9', i: r.i };
+      if (r.name === '{' || r.literal === '{') return { ch: '{', i: r.i };
+      if (r.name === '}' || r.literal === '}') return { ch: '}', i: r.i };
+      if (r.literal != null) return { ch: r.literal, i: r.i };
+      return { ch: '', i: r.i };
+    }
+    if (s[i] === '.') return { ch: '', i: i + 1 }; // \left. / \right. = invisible delimiter
+    return { ch: s[i] || '', i: i + 1 };
+  }
+
+  function mdLatexParseArgument(s, i) {
+    if (s[i] === '{') {
+      const inner = mdLatexParseSequence(s, i + 1, '}');
+      return { node: inner.node, i: inner.i };
+    }
+    return mdLatexParseAtom(s, i);
+  }
+
+  function mdLatexParseAtom(s, i) {
+    let base;
+
+    if (i >= s.length) return { node: { type: 'seq', items: [] }, i };
+
+    if (s[i] === '{') {
+      const seq = mdLatexParseSequence(s, i + 1, '}');
+      base = seq.node;
+      i = seq.i;
+    } else if (s[i] === '\\') {
+      const cmd = mdLatexReadCommandName(s, i);
+      i = cmd.i;
+      if (cmd.name === null) {
+        // escaped literal character
+        const litMap = { ' ': ' ' };
+        base = { type: 'char', value: cmd.literal === '' ? ' ' : cmd.literal };
+      } else {
+        const name = cmd.name;
+        if (name === 'frac' || name === 'dfrac' || name === 'tfrac') {
+          const num = mdLatexParseArgument(s, i); i = num.i;
+          const den = mdLatexParseArgument(s, i); i = den.i;
+          base = { type: 'frac', num: num.node, den: den.node };
+        } else if (name === 'sqrt') {
+          let index = null;
+          if (s[i] === '[') {
+            const close = s.indexOf(']', i);
+            const idxStr = close >= 0 ? s.slice(i + 1, close) : '';
+            const idxParsed = mdLatexParseSequence(idxStr, 0, null);
+            index = idxParsed.node;
+            i = close >= 0 ? close + 1 : i;
+          }
+          const rad = mdLatexParseArgument(s, i); i = rad.i;
+          base = { type: 'sqrt', index, radicand: rad.node };
+        } else if (name === 'text' || name === 'mathrm' || name === 'operatorname' || name === 'textrm') {
+          if (s[i] === '{') {
+            let depth = 1, j = i + 1;
+            while (j < s.length && depth > 0) {
+              if (s[j] === '{') depth++;
+              else if (s[j] === '}') depth--;
+              if (depth > 0) j++;
+            }
+            const raw = s.slice(i + 1, j);
+            base = { type: 'plain', text: raw };
+            i = j + 1;
+          } else {
+            const single = mdLatexParseAtom(s, i); i = single.i;
+            base = { type: 'plain', text: mdLatexAstToPlainText(single.node) };
+          }
+        } else if (MD_LATEX_ACCENTS[name]) {
+          const arg = mdLatexParseArgument(s, i); i = arg.i;
+          base = { type: 'accent', accent: MD_LATEX_ACCENTS[name], arg: arg.node };
+        } else if (name === 'mathbf' || name === 'boldsymbol' || name === 'bm') {
+          const arg = mdLatexParseArgument(s, i); i = arg.i;
+          base = { type: 'bold', text: mdLatexAstToPlainText(arg.node) };
+        } else if (name === 'mathbb' || name === 'mathcal' || name === 'mathfrak' || name === 'mathscr' || name === 'mathsf' || name === 'mathtt') {
+          // Approximation: render upright. True blackboard/calligraphic/script
+          // glyphs need dedicated Unicode math-alphanumeric code points, which
+          // is out of scope for this converter.
+          const arg = mdLatexParseArgument(s, i); i = arg.i;
+          base = { type: 'plain', text: mdLatexAstToPlainText(arg.node) };
+        } else if (name === 'left') {
+          const open = mdLatexReadDelim(s, i); i = open.i;
+          const items = [];
+          while (i < s.length) {
+            if (s.slice(i).startsWith('\\right')) { i += 6; break; }
+            const atom = mdLatexParseAtom(s, i);
+            i = atom.i;
+            items.push(atom.node);
+          }
+          const close = mdLatexReadDelim(s, i); i = close.i;
+          base = { type: 'delim', open: open.ch, close: close.ch, inner: { type: 'seq', items } };
+        } else if (name === 'right') {
+          // Unmatched \right (malformed input) — treat as no-op
+          base = { type: 'seq', items: [] };
+        } else if (name === 'quad' || name === 'qquad') {
+          base = { type: 'text', value: MD_LATEX_SPACING[name] };
+        } else if (MD_LATEX_SYMBOLS[name]) {
+          base = { type: 'text', value: MD_LATEX_SYMBOLS[name] };
+        } else {
+          // Unknown command: fall back to showing the name literally
+          // rather than throwing away the export.
+          base = { type: 'text', value: name };
+        }
+      }
+    } else if (s[i] === ' ') {
+      base = { type: 'text', value: ' ' };
+      i++;
+    } else {
+      base = { type: 'char', value: s[i] };
+      i++;
+    }
+
+    // Sub/superscript modifiers (order-independent, applies once each)
+    let supNode = null, subNode = null;
+    for (let guard = 0; guard < 2; guard++) {
+      if (s[i] === '^' && !supNode) { const r = mdLatexParseArgument(s, i + 1); supNode = r.node; i = r.i; continue; }
+      if (s[i] === '_' && !subNode) { const r = mdLatexParseArgument(s, i + 1); subNode = r.node; i = r.i; continue; }
+      break;
+    }
+    if (supNode && subNode) base = { type: 'subsup', base, sub: subNode, sup: supNode };
+    else if (supNode) base = { type: 'sup', base, sup: supNode };
+    else if (subNode) base = { type: 'sub', base, sub: subNode };
+
+    return { node: base, i };
+  }
+
+  function mdLatexParseSequence(s, i, endChar) {
+    const items = [];
+    while (i < s.length) {
+      if (endChar && s[i] === endChar) { i++; break; }
+      if (s.slice(i).startsWith('\\right') && !endChar) {
+        // stray \right outside a \left at top level — stop quietly
+        break;
+      }
+      const atom = mdLatexParseAtom(s, i);
+      if (atom.i === i) { i++; continue; } // safety: avoid infinite loop
+      i = atom.i;
+      items.push(atom.node);
+    }
+    return { node: { type: 'seq', items }, i };
+  }
+
+  function mdLatexAstToPlainText(node) {
+    // Best-effort flatten of a node back to a plain string (used when
+    // \text is followed by a single unbraced atom rather than {..}).
+    if (!node) return '';
+    if (node.type === 'char' || node.type === 'text') return node.value;
+    if (node.type === 'seq') return node.items.map(mdLatexAstToPlainText).join('');
+    return '';
+  }
+
+  let _mdMathExtras = null;
+  function mdGetMathExtras() {
+    if (_mdMathExtras) return _mdMathExtras;
+    const { XmlComponent, XmlAttributeComponent, MathAccentCharacter, MathBase } = window.docx;
+
+    // Factory for a styled OMML run: <m:r><m:rPr><m:sty m:val="{styVal}"/></m:rPr><m:t>text</m:t></m:r>
+    // styVal: 'p' = plain/upright (used for \text, \mathrm), 'b' = bold upright (\mathbf)
+    function makeStyledRunClass(styVal) {
+      class Attrs extends XmlAttributeComponent {
+        constructor() { super({ val: styVal }); this.xmlKeys = { val: 'm:val' }; }
+      }
+      class Sty extends XmlComponent {
+        constructor() { super('m:sty'); this.root.push(new Attrs()); }
+      }
+      class RPr extends XmlComponent {
+        constructor() { super('m:rPr'); this.root.push(new Sty()); }
+      }
+      return class extends XmlComponent {
+        constructor(text) {
+          super('m:r');
+          this.root.push(new RPr());
+          const t = new XmlComponent('m:t');
+          t.root.push(text);
+          this.root.push(t);
+        }
+      };
+    }
+
+    const MathPlainRun = makeStyledRunClass('p');
+    const MathBoldRun = makeStyledRunClass('b');
+
+    class MathAccPr extends XmlComponent {
+      constructor(chr) { super('m:accPr'); this.root.push(new MathAccentCharacter(chr)); }
+    }
+    class MathAcc extends XmlComponent {
+      constructor(chr, children) {
+        super('m:acc');
+        this.root.push(new MathAccPr(chr));
+        this.root.push(new MathBase(children));
+      }
+    }
+
+    _mdMathExtras = { MathPlainRun, MathBoldRun, MathAcc };
+    return _mdMathExtras;
+  }
+
+  function mdLatexAstToMath(node) {
+    const docx = window.docx;
+    if (!node) return [];
+
+    switch (node.type) {
+      case 'seq': {
+        // Merge consecutive plain text/char nodes into a single MathRun
+        const out = [];
+        let buf = '';
+        const flush = () => { if (buf) { out.push(new docx.MathRun(buf)); buf = ''; } };
+        for (const item of node.items) {
+          if (item.type === 'char' || item.type === 'text') { buf += item.value; }
+          else { flush(); out.push(...mdLatexAstToMath(item)); }
+        }
+        flush();
+        return out;
+      }
+      case 'char': case 'text':
+        return node.value ? [new docx.MathRun(node.value)] : [];
+      case 'plain': {
+        const { MathPlainRun } = mdGetMathExtras();
+        return [new MathPlainRun(node.text)];
+      }
+      case 'bold': {
+        const { MathBoldRun } = mdGetMathExtras();
+        return [new MathBoldRun(node.text)];
+      }
+      case 'frac':
+        return [new docx.MathFraction({
+          numerator: mdLatexAstToMath(node.num),
+          denominator: mdLatexAstToMath(node.den)
+        })];
+      case 'sqrt':
+        return [new docx.MathRadical({
+          children: mdLatexAstToMath(node.radicand),
+          degree: node.index ? mdLatexAstToMath(node.index) : undefined
+        })];
+      case 'sup':
+        return [new docx.MathSuperScript({
+          children: mdLatexAstToMath(node.base),
+          superScript: mdLatexAstToMath(node.sup)
+        })];
+      case 'sub':
+        return [new docx.MathSubScript({
+          children: mdLatexAstToMath(node.base),
+          subScript: mdLatexAstToMath(node.sub)
+        })];
+      case 'subsup':
+        return [new docx.MathSubSuperScript({
+          children: mdLatexAstToMath(node.base),
+          subScript: mdLatexAstToMath(node.sub),
+          superScript: mdLatexAstToMath(node.sup)
+        })];
+      case 'accent': {
+        const { MathAcc } = mdGetMathExtras();
+        return [new MathAcc(node.accent, mdLatexAstToMath(node.arg))];
+      }
+      case 'delim': {
+        const inner = mdLatexAstToMath(node.inner);
+        if (node.open === '(' && node.close === ')') return [new docx.MathRoundBrackets({ children: inner })];
+        if (node.open === '[' && node.close === ']') return [new docx.MathSquareBrackets({ children: inner })];
+        if (node.open === '{' && node.close === '}') return [new docx.MathCurlyBrackets({ children: inner })];
+        if (node.open === '\u27E8' && node.close === '\u27E9') return [new docx.MathAngledBrackets({ children: inner })];
+        // Fallback: literal delimiter characters (e.g. |x|, invisible \left.)
+        const out = [];
+        if (node.open) out.push(new docx.MathRun(node.open));
+        out.push(...inner);
+        if (node.close) out.push(new docx.MathRun(node.close));
+        return out;
+      }
+      default:
+        return [];
+    }
+  }
+
+  function mdLatexToMathComponents(latexSrc) {
+    try {
+      const parsed = mdLatexParseSequence(String(latexSrc), 0, null);
+      const comps = mdLatexAstToMath(parsed.node);
+      return comps.length ? comps : [new window.docx.MathRun(String(latexSrc))];
+    } catch (err) {
+      console.error('LaTeX -> OMML parse failed, falling back to raw text:', err, latexSrc);
+      return [new window.docx.MathRun(String(latexSrc))];
+    }
+  }
+
+  function mdBuildMathObject(latexSrc) {
+    const { Math: DocxMath } = window.docx;
+    return new DocxMath({ children: mdLatexToMathComponents(latexSrc) });
+  }
+
+  function mdMathSourceFor(token) {
+    const store = token.mathKind === 'BLOCK' ? window.__mdMathBlockSrc : window.__mdMathInlineSrc;
+    return (store && store[token.mathIndex]) || '';
+  }
+
+  async function exportDocx() {
+    if (!window.docx) { showToast('docx library not loaded yet — try again in a moment'); return; }
+    const {
+      Document, Packer, Paragraph, TextRun,
+      HeadingLevel, AlignmentType, BorderStyle
+    } = window.docx;
+
+    // Pull LaTeX math spans out into placeholder tokens up front so the
+    // line-based block parser below can treat them as opaque atoms, and
+    // the inline tokenizer can swap each one for a real OOXML equation.
+    let src = getEditor().value;
+    const mathBlockSrc = [];
+    const mathInlineSrc = [];
+    src = src.replace(/\$\$([\s\S]+?)\$\$/g, (_, expr) => {
+      mathBlockSrc.push(expr.trim());
+      return `\x02MATHBLOCK${mathBlockSrc.length - 1}\x02`;
+    });
+    src = src.replace(/\$([^\n$]+?)\$/g, (_, expr) => {
+      mathInlineSrc.push(expr.trim());
+      return `\x02MATHINLINE${mathInlineSrc.length - 1}\x02`;
+    });
+    window.__mdMathBlockSrc = mathBlockSrc;
+    window.__mdMathInlineSrc = mathInlineSrc;
+
+    const lines = src.split('\n');
+    const children = [];
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+
+      // Blank
+      if (line.trim() === '') { children.push(new Paragraph({ children: [] })); continue; }
+
+      // A line that is ONLY a block-math placeholder -> its own centered
+      // equation paragraph (mirrors KaTeX's display-math rendering)
+      const blockMathMatch = line.trim().match(/^\x02MATHBLOCK(\d+)\x02$/);
+      if (blockMathMatch) {
+        const latexSrc = mathBlockSrc[parseInt(blockMathMatch[1], 10)];
+        children.push(new Paragraph({
+          alignment: AlignmentType.CENTER,
+          spacing: { before: 160, after: 160 },
+          children: [mdBuildMathObject(latexSrc)]
+        }));
+        continue;
+      }
+
+      // Headings
+      const hm = line.match(/^(#{1,6})\s+(.*)/);
+      if (hm) {
+        const lvl = hm[1].length;
+        const headingMap = [
+          HeadingLevel.HEADING_1, HeadingLevel.HEADING_2, HeadingLevel.HEADING_3,
+          HeadingLevel.HEADING_4, HeadingLevel.HEADING_5, HeadingLevel.HEADING_6
+        ];
+        children.push(new Paragraph({ heading: headingMap[lvl-1], children: docxRuns(hm[2]) }));
+        continue;
+      }
+
+      // GFM Table — header row followed by a |---|---| separator row
+      if (/^\s*\|.*\|\s*$/.test(line) &&
+          i + 1 < lines.length &&
+          /^\s*\|[\s|:-]+\|\s*$/.test(lines[i + 1])) {
+        const tableLines = [];
+        while (i < lines.length && /^\s*\|.*\|\s*$/.test(lines[i])) { tableLines.push(lines[i]); i++; }
+        i--; // step back; outer loop's i++ advances past table
+        const tableEl = buildDocxTable(tableLines);
+        if (tableEl) children.push(tableEl);
+        continue;
+      }
+
+      // Ordered list
+      const olm = line.match(/^(\d+)\.\s(.*)/);
+      if (olm) {
+        children.push(new Paragraph({
+          numbering: { reference: 'ordered', level: 0 },
+          children: docxRuns(olm[2])
+        }));
+        continue;
+      }
+
+      // Unordered list (and task list)
+      const ulm = line.match(/^[-*+]\s(.*)/);
+      if (ulm) {
+        const txt = ulm[1].replace(/^\[(x| )\]\s*/i, '');
+        children.push(new Paragraph({
+          bullet: { level: 0 },
+          children: docxRuns(txt)
+        }));
+        continue;
+      }
+
+      // Horizontal rule
+      if (/^(\*{3,}|-{3,}|_{3,})\s*$/.test(line)) {
+        children.push(new Paragraph({
+          border: { bottom: { color: '163960', size: 6, style: BorderStyle.SINGLE } },
+          children: []
+        }));
+        continue;
+      }
+
+      // Blockquote
+      if (/^>\s?/.test(line)) {
+        const txt = line.replace(/^>\s?/, '');
+        const bqChildren = parseInlineTokens(txt).map(t => {
+          if (t.math) return mdBuildMathObject(mdMathSourceFor(t));
+          return new TextRun({
+            text: t.text,
+            italics: true,
+            bold: !!t.bold,
+            strike: !!t.strike,
+            color: '76777a'
+          });
+        });
+        children.push(new Paragraph({
+          indent: { left: 720 },
+          children: bqChildren
+        }));
+        continue;
+      }
+
+      // Plain paragraph
+      children.push(new Paragraph({ children: docxRuns(line) }));
+    }
+
+    // Safety: never end the document on a bare table
+    children.push(new Paragraph({ children: [] }));
+
+    const doc = new Document({
+      numbering: {
+        config: [{ reference: 'ordered', levels: [{ level: 0, format: 'decimal', text: '%1.', alignment: AlignmentType.LEFT }] }]
+      },
+      styles: {
+        default: {
+          document: {
+            run: { font: 'Calibri', size: 24, color: '4a4f57' },
+            paragraph: { spacing: { line: 276 } }
+          }
+        },
+        paragraphStyles: [
+          { id: 'Heading1', name: 'Heading 1', run: { bold: true, size: 36, color: '163960' }, paragraph: { spacing: { before: 240, after: 120 } } },
+          { id: 'Heading2', name: 'Heading 2', run: { bold: true, size: 28, color: '163960' }, paragraph: { spacing: { before: 200, after: 100 } } },
+          { id: 'Heading3', name: 'Heading 3', run: { bold: true, size: 22, color: '163960' }, paragraph: { spacing: { before: 160, after: 80  } } },
+        ]
+      },
+      sections: [{ children }]
+    });
+
+    // Packer.toBlob() is the BROWSER-safe method.
+    try {
+      const blob = await Packer.toBlob(doc);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'document.docx';
+      document.body.appendChild(a);   // Firefox needs the anchor in the DOM
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      showToast('Exported as .docx (equations rendered as native Word math)');
+    } catch (err) {
+      console.error('DOCX export failed:', err);
+      showToast('DOCX export failed — see console');
+    }
+  }
+
+  function download(content, filename, mime) {
+    const blob = new Blob([content], { type: mime });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename; a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  /* =============================================================
+     STORAGE
+     ============================================================= */
+  function saveToStorage() {              // explicit Save button — shows toast
+    try { localStorage.setItem('md_content', getEditor().value); showToast('Saved'); } catch(e) {}
+  }
+  function saveToStorageSilent() {        // autosave on input — no toast
+    try { localStorage.setItem('md_content', getEditor().value); } catch(e) {}
+  }
+  function loadFromStorage() {
+    try {
+      const saved = localStorage.getItem('md_content');
+      if (saved) { getEditor().value = saved; updatePreview(); }
+    } catch(e) {}
+  }
+
+  /* =============================================================
+     THEME
+     ============================================================= */
+  function toggleTheme() {
+    const html = document.documentElement;
+    const isDark = html.getAttribute('data-theme') === 'dark';
+    const next = isDark ? 'light' : 'dark';
+    html.setAttribute('data-theme', next);
+    document.getElementById('theme-knob').textContent = next === 'dark' ? '🌙' : '☀️';
+    document.getElementById('hljs-theme').href = next === 'dark'
+      ? 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css'
+      : 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css';
+    try { localStorage.setItem('md_theme', next); } catch(e) {}
+  }
+
+  /* =============================================================
+     TOAST
+     ============================================================= */
+  let toastTimer = null;
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+  }
+
+  /* =============================================================
+     SAMPLE CONTENT
+     ============================================================= */
+  function loadSample() {
+    getEditor().value = `# Markdown Studio — Feature Demo
+
+A full-featured Markdown editor with live preview, LaTeX math, and DOCX export.
+
+## Text Formatting
+
+**Bold text**, *italic text*, ***bold italic***, ~~strikethrough~~, ==highlighted==.
+
+Inline \`code\` looks like this. Superscript: E=mc^2^. Subscript: H~2~O.
+
+## LaTeX Math
+
+Inline math: $E = mc^2$, $\\lambda = h / p$.
+
+Block equation:
+
+$$
+\\nabla \\cdot \\mathbf{E} = \\frac{\\rho}{\\varepsilon_0}
+$$
+
+$$
+\\hat{H}\\psi = i\\hbar \\frac{\\partial \\psi}{\\partial t}
+$$
+
+## Lists
+
+**Ordered (with correct numbering):**
+
+1. First item
+2. Second item
+3. Third item — continued numbering preserved
+
+**Unordered:**
+
+- Alpha band (8–12 Hz)
+- Beta band (13–30 Hz)
+- Gamma band (>30 Hz)
+
+**Task list:**
+
+- [x] Implement LaTeX rendering
+- [x] Fix ordered list numbering
+- [x] Add DOCX export
+- [ ] Add footnote rendering panel
+
+## Code
+
+\`\`\`python
+import numpy as np
+
+def beamform(array, theta_deg, freq_hz, d=0.5):
+    """Phase-steered array response."""
+    k = 2 * np.pi * freq_hz / 3e8
+    theta = np.radians(theta_deg)
+    n = np.arange(len(array))
+    weights = np.exp(-1j * k * d * n * np.sin(theta))
+    return np.abs(weights @ array)
+\`\`\`
+
+## Tables
+
+| System | MDV (m/s) | Range (km) | Freq (GHz) |
+|--------|----------:|:----------:|------------|
+| **GMTI-A** | 1.2   | 150        | 10         |
+| GMTI-B | 0.8       | 80         | 35         |
+| *STAP-C* | 0.4     | 200        | 10         |
+
+## Blockquote
+
+> "The best way to predict the future is to invent it."
+> — Alan Kay
+
+## Links & Images
+
+[Anthropic](https://anthropic.com) · [KaTeX Docs](https://katex.org)
+
+---
+
+*End of demo — edit freely.*`;
+    updatePreview();
+    showToast('Sample loaded');
+  }
+
+  /* =============================================================
+     KEYBOARD SHORTCUTS
+     ============================================================= */
+  document.addEventListener('keydown', e => {
+    const ta = getEditor();
+    if (e.target !== ta) return;
+
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      const s = ta.selectionStart, en = ta.selectionEnd;
+      ta.value = ta.value.slice(0, s) + '  ' + ta.value.slice(en);
+      ta.selectionStart = ta.selectionEnd = s + 2;
+      updatePreview();
+      return;
+    }
+
+    if (e.ctrlKey || e.metaKey) {
+      switch (e.key) {
+        case 'b': e.preventDefault(); wrapSel('**','**'); break;
+        case 'i': e.preventDefault(); wrapSel('*','*'); break;
+        case 'k': e.preventDefault(); insertLink(); break;
+        case 's': e.preventDefault(); saveToStorage(); break;
+      }
+    }
+  });
+
+  /* =============================================================
+     FILE DROP
+     ============================================================= */
+  const ta = getEditor();
+  ta.addEventListener('dragover', e => { e.preventDefault(); ta.style.background = 'var(--bg-subtle)'; });
+  ta.addEventListener('dragleave', () => { ta.style.background = ''; });
+  ta.addEventListener('drop', e => {
+    e.preventDefault(); ta.style.background = '';
+    const file = e.dataTransfer.files[0];
+    if (file && (file.type === 'text/markdown' || file.name.endsWith('.md') || file.name.endsWith('.txt'))) {
+      const reader = new FileReader();
+      reader.onload = ev => { ta.value = ev.target.result; updatePreview(); showToast('File loaded'); };
+      reader.readAsText(file);
+    }
+  });
+
+  /* Paste image */
+  document.addEventListener('paste', e => {
+    for (const item of e.clipboardData.items) {
+      if (item.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = ev => { insertMarkdown(`![pasted image](${ev.target.result})`); showToast('Image pasted'); };
+        reader.readAsDataURL(item.getAsFile());
+        break;
+      }
+    }
+  });
+
+  /* =============================================================
+     PANEL RESIZER (drag to resize editor/preview split)
+     ============================================================= */
+  (function initResizer() {
+    const resizer = document.getElementById('resizer');
+    const left = document.getElementById('panel-editor');
+    const right = document.getElementById('panel-preview');
+    const workspace = document.querySelector('.workspace');
+    if (!resizer || !left || !right || !workspace) return;
+
+    const MIN_PX = 220; // minimum width for either panel
+
+    function applyRatio(ratio) {
+      ratio = Math.max(0.05, Math.min(0.95, ratio));
+      left.style.flex = `${ratio} 1 0`;
+      right.style.flex = `${1 - ratio} 1 0`;
+    }
+
+    function currentUsableWidth() {
+      const rect = workspace.getBoundingClientRect();
+      const resizerWidth = resizer.getBoundingClientRect().width;
+      return rect.width - resizerWidth;
+    }
+
+    function loadRatio() {
+      try {
+        const r = parseFloat(localStorage.getItem('md_panel_ratio'));
+        if (r && r > 0.05 && r < 0.95) applyRatio(r);
+      } catch (e) {}
+    }
+
+    function saveRatio(ratio) {
+      try { localStorage.setItem('md_panel_ratio', ratio); } catch (e) {}
+    }
+
+    let dragging = false;
+
+    resizer.addEventListener('pointerdown', e => {
+      dragging = true;
+      resizer.setPointerCapture(e.pointerId);
+      resizer.classList.add('dragging');
+      document.body.classList.add('resizing');
+    });
+
+    resizer.addEventListener('pointermove', e => {
+      if (!dragging) return;
+      const rect = workspace.getBoundingClientRect();
+      const usable = currentUsableWidth();
+      let x = e.clientX - rect.left;
+      x = Math.max(MIN_PX, Math.min(usable - MIN_PX, x));
+      applyRatio(x / usable);
+    });
+
+    function stopDrag() {
+      if (!dragging) return;
+      dragging = false;
+      resizer.classList.remove('dragging');
+      document.body.classList.remove('resizing');
+      const usable = currentUsableWidth();
+      const ratio = left.getBoundingClientRect().width / usable;
+      saveRatio(ratio);
+    }
+
+    resizer.addEventListener('pointerup', stopDrag);
+    resizer.addEventListener('pointercancel', stopDrag);
+    resizer.addEventListener('lostpointercapture', stopDrag);
+
+    resizer.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+      e.preventDefault();
+      const usable = currentUsableWidth();
+      let ratio = left.getBoundingClientRect().width / usable;
+      ratio += (e.key === 'ArrowRight' ? 1 : -1) * 0.02;
+      applyRatio(ratio);
+      saveRatio(Math.max(0.05, Math.min(0.95, ratio)));
+    });
+
+    resizer.addEventListener('dblclick', () => {
+      applyRatio(0.5);
+      saveRatio(0.5);
+    });
+
+    loadRatio();
+  })();
+
+  /* =============================================================
+     INIT
+     ============================================================= */
+  document.addEventListener('DOMContentLoaded', () => {
+    try {
+      const t = localStorage.getItem('md_theme') || 'light';
+      document.documentElement.setAttribute('data-theme', t);
+      document.getElementById('theme-knob').textContent = t === 'dark' ? '🌙' : '☀️';
+      if (t === 'dark') document.getElementById('hljs-theme').href =
+        'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css';
+    } catch(e) {}
+
+    loadFromStorage();
+    initTextSizes();
+
+    document.getElementById('editor').addEventListener('input', updatePreview);
+
+    const editorEl = document.getElementById('editor');
+    const previewEl = document.getElementById('preview');
+    editorEl.addEventListener('scroll', () => syncScrollFrom(editorEl, previewEl));
+    previewEl.addEventListener('scroll', () => syncScrollFrom(previewEl, editorEl));
+    try {
+      if (localStorage.getItem('md_sync_scroll') === '1') {
+        syncScrollEnabled = true;
+        document.getElementById('sync-scroll-btn').classList.add('btn-toggle-active');
+      }
+    } catch(e) {}
+
+    setInterval(() => { try { localStorage.setItem('md_content', getEditor().value); } catch(e) {} }, 10000);
+
+    const mq = window.matchMedia('(max-width: 960px)');
+    mq.addEventListener('change', () => {});
+  });
+  </script>
+</body>
+</html>
