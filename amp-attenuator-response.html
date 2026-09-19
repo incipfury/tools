@@ -1085,11 +1085,14 @@
             <label>Out return</label><input type="number" id="outReturn" value="0" step="1" min="0" placeholder="0 = off"><span class="unit">Ω</span>
           </div>
           <div class="row" style="grid-template-columns: 60px 1fr;">
-            <label>Trim</label>
+            <label>Trim on</label>
             <select id="trimMode">
-              <option value="built">As built (OUT3 only)</option>
-              <option value="all">What-if (all outputs)</option>
+              <option value="built">OUT3 only (as built)</option>
+              <option value="all">All outputs (what-if)</option>
             </select>
+          </div>
+          <div style="font-family: var(--font-mono); font-size: 10px; color: var(--muted); margin-top: 2px;">
+            &#8220;Trim&#8221; means R10 and R11. Leave this on OUT3 only to match the real box. &#8220;All outputs&#8221; is a what-if that also puts them in the OUT1/OUT2 path, which the real box does not do.
           </div>
           <div style="font-family: var(--font-mono); font-size: 10px; color: var(--muted); margin-top: 4px;">
             The speaker fields above feed any jack set to &#8220;Custom driver&#8221;. R11 sits in series with the OUT3 tip (shorted by SW4 in bypass). Out shunt and Out return are what-if elements applied to each output group. Defaults are the Hewitt 16 Ω mod (R11 = 10 Ω, R10 = 68 Ω).
@@ -1890,6 +1893,8 @@ const SPK_ORDER = ['c12n','ctype','greenback','v30','blue','g12h','c12k','canrex
 const AMPS = [
   { id: 'bj4',  name: 'Fender Blues Junior IV',              ohms: 8,  watts: 15, type: 'tube' },
   { id: 'dr65', name: "Fender '65 Deluxe Reverb Reissue",    ohms: 8,  watts: 22, type: 'tube' },
+  { id: 'ht5_8',  name: 'Blackstar HT-5 (8 Ω output)',      ohms: 8,  watts: 5,  type: 'tube' },
+  { id: 'ht5_16', name: 'Blackstar HT-5 (16 Ω output)',     ohms: 16, watts: 5,  type: 'tube' },
   { id: 'gt8',  name: 'Generic tube amp, 8 Ω tap',           ohms: 8,  watts: 0,  type: 'tube' },
   { id: 'gt4',  name: 'Generic tube amp, 4 Ω tap',           ohms: 4,  watts: 0,  type: 'tube' },
   { id: 'gt16', name: 'Generic tube amp, 16 Ω tap',          ohms: 16, watts: 0,  type: 'tube' },
@@ -1999,15 +2004,16 @@ function loadNodes(f, cfg, R) {
     const rs = (!R.bypass && useR11) ? R11 : 0;                        // R11, shorted by SW4 in bypass
     return { zs: zs, zx: zx, zt: cAdd(C(rs, 0), zx) };
   };
-  const a = [R.out1, R.out2].filter(Boolean);
+  const spk = [];                       // each plugged speaker's own impedance
+  const aj = ['out1', 'out2'].filter(j => R[j]);
   let A = null, B = null;
-  if (a.length) {
-    const zs = a.length === 1 ? zOf(a[0]) : cParallel(zOf(a[0]), zOf(a[1]));
-    A = branch(zs, R.trimAll);
+  if (aj.length) {
+    const zl = aj.map(j => { const z = zOf(R[j]); spk.push({ jack: j, z: z }); return z; });
+    A = branch(zl.length === 1 ? zl[0] : cParallel(zl[0], zl[1]), R.trimAll);
   }
-  if (R.out3) B = branch(zOf(R.out3), true);
+  if (R.out3) { const z3 = zOf(R.out3); spk.push({ jack: 'out3', z: z3 }); B = branch(z3, true); }
   const zRail = (A && B) ? cParallel(A.zt, B.zt) : (A ? A.zt : (B ? B.zt : null));
-  return { A: A, B: B, zRail: zRail };
+  return { A: A, B: B, zRail: zRail, spk: spk };
 }
 
 function sweep(cfgIn, Nin) {
@@ -2021,6 +2027,8 @@ function sweep(cfgIn, Nin) {
   const gA = hasA ? mkG('A', (R.out1 && R.out2) ? 'Out1+Out2' : (R.out1 ? 'Out1' : 'Out2')) : null;
   const gB = hasB ? mkG('B', 'Out3') : null;
   const freqs = new Array(N), Zin_mag = new Array(N);
+  const speakers = ['out1', 'out2', 'out3'].filter(j => R[j]).map(j =>
+    ({ jack: j, label: j.charAt(0).toUpperCase() + j.slice(1), Zspk: new Array(N) }));
   const db = h => 20 * Math.log10(Math.max(cMag(h), 1e-12));
   for (let i = 0; i < N; i++) {
     const f = fmin * Math.pow(fmax/fmin, i/(N-1));
@@ -2030,13 +2038,14 @@ function sweep(cfgIn, Nin) {
     const zL = ln.zRail || C(1e9, 0);            // nothing plugged in: open circuit
     const {H, Zin} = networkResponse(M, zL);
     Zin_mag[i] = cMag(Zin);
+    ln.spk.forEach(sp => { speakers.find(x => x.jack === sp.jack).Zspk[i] = cMag(sp.z); });
     if (gA) { gA.H_db[i] = db(cMul(H, cDiv(ln.A.zx, ln.A.zt))); gA.Zspk[i] = cMag(ln.A.zs); }
     if (gB) { gB.H_db[i] = db(cMul(H, cDiv(ln.B.zx, ln.B.zt))); gB.Zspk[i] = cMag(ln.B.zs); }
   }
   const groups = [gA, gB].filter(Boolean);
   const blank = new Array(N).fill(NaN);
   return {
-    freqs: freqs, groups: groups, Zin_mag: Zin_mag, R: R,
+    freqs: freqs, groups: groups, speakers: speakers, Zin_mag: Zin_mag, R: R,
     H_db: groups.length ? groups[0].H_db : blank,
     Zspk_mag: groups.length ? groups[0].Zspk : blank
   };
@@ -2198,16 +2207,19 @@ function analyzeHW(cfgIn) {
 
   if (occ.length) {
     const pct = Math.round(ratio * 100);
+    const stiff = (!R.bypass && amp.ohms > 8)
+      ? ' The box presents about 8 \u03A9 to the amp whatever speaker is attached (the OUT3 trim exists to make a 16 \u03A9 speaker look like 8 \u03A9 to the network), so a 16 \u03A9 speaker does not match a 16 \u03A9 tap. Use the amp\u2019s 8 \u03A9 tap.'
+      : '';
     if (ratio < RULE.dangerRatio) {
       add('danger', ['in1'].concat(occ), 'Load far below the amp rating', f1(zinMin) + ' \u03A9 on ' + art(amp.ohms) + ' tap',
         'The ' + amp.ohms + ' \u03A9 output sees as little as ' + f1(zinMin) + ' \u03A9 (' + pct + '% of its rating). ' +
         (tube ? 'That can overheat the output tubes and overload the output transformer.' : 'That can trip protection or overheat the output devices.') +
-        ' Do not run the amp loud in this configuration.');
+        ' Do not run the amp loud in this configuration.' + stiff);
     } else if (ratio < RULE.warnRatio) {
       add('warn', ['in1'].concat(occ), 'Load below the amp rating', f1(zinMin) + ' \u03A9 on ' + art(amp.ohms) + ' tap',
         'The ' + amp.ohms + ' \u03A9 output sees as little as ' + f1(zinMin) + ' \u03A9 (' + pct + '% of its rating). ' +
         (tube ? 'A tube amp tolerates a moderate mismatch for a while, but expect more distortion and shorter tube life.' : 'A solid-state amp may run hot or limit.') +
-        ' Match the load to the tap.');
+        (stiff || ' Match the load to the tap.'));
     } else if (ratio > RULE.highRatio) {
       add('note', ['in1'].concat(occ), 'Load above the amp rating', f1(zinMin) + ' \u03A9 on ' + art(amp.ohms) + ' tap',
         'The lowest load the amp sees is ' + f1(zinMin) + ' \u03A9 against its ' + amp.ohms +
@@ -2225,7 +2237,7 @@ function analyzeHW(cfgIn) {
   }
   if (R.trimAll) {
     add('note', [], 'What-if trim mode is on', 'R10/R11 on every output',
-      'The Parameters panel applies R10 and R11 to every output, which the real box does not do. Set it back to "As built" to see the real hardware.');
+      'The Parameters panel applies R10 and R11 to every output, which the real box does not do. Set "Trim on" back to "OUT3 only" to see the real hardware.');
   }
   occ.forEach(j => {
     if (R[j].key === 'custom') {
@@ -2634,7 +2646,7 @@ function updatePlot() {
     const col = cssVar(e.colorVar);
     const multi = sw.groups.length > 1;
 
-    // One H(f) and Zspkr curve per output group. Proper wiring has one group;
+    // One H(f) curve per output group (speakers sharing a voltage). Proper wiring has one group;
     // OUT3 used together with OUT1/OUT2 gives two (different levels).
     sw.groups.forEach((g, gi) => {
       const nm = e.name + (multi ? ' ' + g.label : '');
@@ -2646,15 +2658,20 @@ function updatePlot() {
           hovertemplate: '%{x:.0f} Hz · %{y:.2f} dB<extra>' + nm + ' · H(f)</extra>'
         });
       }
-      if (e.vis.visZspk) {
+    });
+    // One Zspkr curve per plugged-in speaker (two for a dual 16 Ω pair).
+    if (e.vis.visZspk) {
+      const dashes = ['dot', 'longdash', 'dashdot'];
+      sw.speakers.forEach((sp, si) => {
+        const nm = e.name + (sw.speakers.length > 1 ? ' ' + sp.label : '');
         traces.push({
-          x: freqs, y: g.Zspk, type: 'scatter', mode: 'lines',
+          x: freqs, y: sp.Zspk, type: 'scatter', mode: 'lines',
           name: nm + ' · Z<sub>spkr</sub>', yaxis: 'y2',
-          line: {color: col, width: 1.4, dash: gi === 0 ? 'dot' : 'longdash'},
+          line: {color: col, width: 1.4, dash: dashes[si]},
           hovertemplate: '%{x:.0f} Hz · %{y:.2f} Ω<extra>' + nm + ' · Zspkr</extra>'
         });
-      }
-    });
+      });
+    }
     if (e.vis.visZin) {
       traces.push({
         x: freqs, y: Zin_mag, type: 'scatter', mode: 'lines',
