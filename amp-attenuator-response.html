@@ -733,6 +733,204 @@
   .stats-table .val-att  { color: var(--accent); }
   .stats-table .val-zin  { color: var(--orange); }
   .stats-table .num-dim  { color: var(--muted); }
+
+  /* ===== Hardware panel: front/back panels, jacks, toggles, dropdowns ===== */
+  .hw-panel { overflow: visible; margin-bottom: 24px; }
+  .hw-panel .panel-header { border-radius: 8px 8px 0 0; }
+  .hw-grid {
+    display: grid;
+    grid-template-columns: 250px minmax(0, 1fr);
+    gap: 16px; align-items: stretch;
+  }
+  @media (max-width: 1100px) { .hw-grid { grid-template-columns: 1fr; } }
+
+  .hw-face {
+    position: relative;
+    background: var(--surface-alt);
+    border: 1px solid var(--border-strong);
+    border-radius: 6px;
+    padding: 30px 18px 16px;
+    background-image:
+      radial-gradient(circle at 10px 10px, var(--border-strong) 2.5px, transparent 3px),
+      radial-gradient(circle at calc(100% - 10px) 10px, var(--border-strong) 2.5px, transparent 3px),
+      radial-gradient(circle at 10px calc(100% - 10px), var(--border-strong) 2.5px, transparent 3px),
+      radial-gradient(circle at calc(100% - 10px) calc(100% - 10px), var(--border-strong) 2.5px, transparent 3px);
+  }
+  [data-theme="dark"] .hw-face { background-color: rgba(255,255,255,0.03); }
+  .hw-face-title {
+    position: absolute; top: 9px; left: 26px;
+    font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.14em;
+    color: var(--muted); font-weight: 500;
+  }
+  .hw-face-note {
+    font-family: var(--font-mono); font-size: 10px; color: var(--muted);
+    line-height: 1.5; margin-top: 10px; text-align: center;
+  }
+
+  .hw-toggles { display: flex; justify-content: space-around; gap: 6px; transition: opacity 0.2s; }
+  .hw-front.bypassed .hw-toggles { opacity: 0.4; }
+  .tgl {
+    background: none; border: none; padding: 6px 4px; cursor: pointer;
+    display: flex; flex-direction: column; align-items: center; gap: 1px;
+    font-family: var(--font-mono); color: var(--body); border-radius: 6px;
+  }
+  .tgl:hover .tgl-plate { stroke: var(--accent); }
+  .tgl:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .tgl svg { width: 46px; height: 76px; overflow: visible; display: block; }
+  .tgl .tgl-plate { fill: var(--surface); stroke: var(--border-strong); stroke-width: 1.2; }
+  .tgl .tgl-well  { fill: var(--bg); stroke: var(--border-strong); stroke-width: 1.2; }
+  .tgl .tgl-lever { transform-origin: 24px 40px; transition: transform 0.18s ease; }
+  .tgl .tgl-stem, .tgl .tgl-knob { fill: var(--accent); transition: fill 0.18s; }
+  .tgl[aria-checked="false"] .tgl-lever { transform: rotate(180deg); }
+  .tgl[aria-checked="false"] .tgl-stem, .tgl[aria-checked="false"] .tgl-knob { fill: var(--muted); }
+  .tgl.inv .tgl-stem, .tgl.inv .tgl-knob { fill: var(--accent); }
+  .tgl.inv[aria-checked="false"] .tgl-lever { transform: none; }
+  .tgl.inv[aria-checked="true"]  .tgl-lever { transform: rotate(180deg); }
+  .tgl.inv[aria-checked="false"] .tgl-stem, .tgl.inv[aria-checked="false"] .tgl-knob { fill: var(--accent); }
+  .tgl.inv[aria-checked="true"]  .tgl-stem, .tgl.inv[aria-checked="true"]  .tgl-knob { fill: var(--orange); }
+  .tgl-name  { font-size: 11px; font-weight: 600; color: var(--heading); letter-spacing: 0.06em; margin-top: 3px; }
+  .tgl-sub   { font-size: 10px; color: var(--muted); }
+  .tgl-state { font-size: 10px; font-weight: 600; letter-spacing: 0.08em; color: var(--accent); margin-top: 1px; }
+  .tgl[aria-checked="false"] .tgl-state { color: var(--muted); }
+  .tgl.inv[aria-checked="false"] .tgl-state { color: var(--accent); }
+  .tgl.inv[aria-checked="true"]  .tgl-state { color: var(--orange); }
+
+  .hw-back-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1.05fr) minmax(0, 0.7fr) minmax(0, 1.05fr);
+    gap: 16px; align-items: center;
+  }
+  @media (max-width: 1250px) { .hw-back-row { grid-template-columns: minmax(0,1fr) minmax(0,1fr); row-gap: 22px; } }
+  @media (max-width: 640px)  { .hw-back-row { grid-template-columns: minmax(0,1fr); } }
+  .hw-col { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+  .hw-col-sw4 { align-items: center; }
+
+  .jk { display: grid; grid-template-columns: 58px minmax(0, 1fr); gap: 10px; align-items: center; }
+  .jk-fig svg { width: 58px; height: 58px; display: block; }
+  .jk-label {
+    font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.06em;
+    color: var(--heading); font-weight: 600; margin-bottom: 4px;
+    display: flex; flex-wrap: wrap; gap: 0 8px; align-items: baseline;
+  }
+  .jk-cap { font-weight: 400; color: var(--muted); letter-spacing: 0; font-size: 9.5px; line-height: 1.35; }
+  .jk-nut  { fill: var(--surface); stroke: var(--border-strong); stroke-width: 1.2; }
+  .jk-ring { fill: var(--bg); stroke: var(--border-strong); stroke-width: 2.5; transition: stroke 0.2s; }
+  .jk-ring.lvl-ok     { stroke: var(--teal); }
+  .jk-ring.lvl-note   { stroke: var(--accent); }
+  .jk-ring.lvl-warn   { stroke: var(--orange); }
+  .jk-ring.lvl-danger { stroke: var(--error); }
+  .jk-hole { fill: var(--bg-page); stroke: var(--border-strong); stroke-width: 1.5; }
+  [data-theme="dark"] .jk-hole { fill: rgba(0,0,0,0.4); }
+  .jk-plug { fill: var(--surface); stroke: var(--muted); stroke-width: 1.5; }
+  .jk-ohm  { font-family: var(--font-mono); font-size: 11px; font-weight: 600; fill: var(--heading); }
+
+  /* custom dropdown (native selects cannot style individual options) */
+  .dd { position: relative; width: 100%; }
+  .dd-btn {
+    width: 100%; display: flex; align-items: center; gap: 8px; text-align: left;
+    background: var(--bg); border: 1px solid var(--border-strong); border-radius: 4px;
+    padding: 6px 8px; cursor: pointer; color: var(--body);
+    font-family: var(--font-mono); min-height: 42px;
+    transition: border-color 0.15s;
+  }
+  .dd-btn:hover { border-color: var(--accent); }
+  .dd-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .dd-text { flex: 1; min-width: 0; }
+  .dd-main { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; font-size: 11.5px; line-height: 1.3; font-weight: 500; color: var(--heading); overflow: hidden; }
+  .dd-main.is-empty { color: var(--muted); font-weight: 400; }
+  .dd-sub  { display: block; font-size: 10px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .dd-caret { color: var(--muted); font-size: 10px; }
+  .dd.lvl-ok     .dd-btn { border-color: var(--teal); }
+  .dd.lvl-note   .dd-btn { border-color: var(--accent); }
+  .dd.lvl-warn   .dd-btn { border-color: var(--orange); }
+  .dd.lvl-danger .dd-btn { border-color: var(--error); }
+  .dd-menu {
+    position: absolute; z-index: 60; left: 0; top: calc(100% + 4px);
+    width: 330px; max-width: min(92vw, 380px); max-height: 380px; overflow-y: auto;
+    background: var(--surface); border: 1px solid var(--border-strong); border-radius: 6px;
+    box-shadow: 0 10px 28px rgba(0,0,0,0.2); padding: 4px;
+  }
+  .dd-menu.right { left: auto; right: 0; }
+  .dd-menu[hidden] { display: none; }
+  .dd-head {
+    font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.09em;
+    color: var(--muted); padding: 9px 8px 4px; font-weight: 500;
+  }
+  .dd-opt {
+    display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 1px 10px;
+    padding: 6px 8px; border-radius: 4px; cursor: pointer; align-items: baseline;
+    outline: none;
+  }
+  .dd-opt:hover, .dd-opt:focus { background: var(--surface-alt); }
+  .dd-opt[aria-selected="true"] { box-shadow: inset 2px 0 0 var(--accent); }
+  .o-name { font-size: 12.5px; line-height: 1.35; color: var(--body); }
+  .o-sub  { font-size: 11px; color: var(--muted); font-weight: 400; }
+  .o-tag  { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.08em; text-align: right; white-space: nowrap; font-weight: 600; }
+  .o-why  { grid-column: 1 / -1; font-family: var(--font-mono); font-size: 10px; line-height: 1.35; color: var(--muted); }
+  .dd-opt.neutral .o-name { color: var(--muted); font-style: italic; }
+  /* prominence: recommended stand out, the rest recede but stay selectable */
+  .dd-opt.good    .o-name { font-weight: 600; color: var(--heading); }
+  .dd-opt.good    .o-tag  { color: var(--teal); }
+  .dd-opt.partial .o-name { font-weight: 500; color: var(--heading); }
+  .dd-opt.partial .o-tag  { color: var(--accent); }
+  .dd-opt.note    .o-name { font-weight: 500; }
+  .dd-opt.note    .o-tag  { color: var(--accent); }
+  .dd-opt.warn, .dd-opt.danger { opacity: 0.6; }
+  .dd-opt.warn:hover, .dd-opt.danger:hover, .dd-opt.warn:focus, .dd-opt.danger:focus { opacity: 1; }
+  .dd-opt.warn   .o-tag { color: var(--orange); }
+  .dd-opt.danger .o-tag { color: var(--error); }
+
+  /* status box under the panels */
+  .hw-status {
+    margin-top: 16px; background: var(--bg);
+    border: 1px solid var(--border-strong); border-left-width: 4px; border-radius: 6px;
+    padding: 12px 14px;
+  }
+  .hw-status.lvl-ok     { border-left-color: var(--teal); }
+  .hw-status.lvl-note   { border-left-color: var(--accent); }
+  .hw-status.lvl-warn   { border-left-color: var(--orange); }
+  .hw-status.lvl-danger { border-left-color: var(--error); }
+  .hw-verdict { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 10px; font-family: var(--font-mono); font-size: 12px; color: var(--heading); font-weight: 500; }
+  .hw-badge { font-size: 9.5px; letter-spacing: 0.1em; font-weight: 600; padding: 2px 7px; border-radius: 3px; color: #fff; background: var(--teal); }
+  .lvl-note   .hw-badge { background: var(--accent); }
+  .lvl-warn   .hw-badge { background: var(--orange); }
+  .lvl-danger .hw-badge { background: var(--error); }
+  [data-theme="dark"] .lvl-note .hw-badge, [data-theme="dark"] .lvl-ok .hw-badge { color: #18191c; }
+  .hw-chips { display: flex; flex-wrap: wrap; gap: 6px 8px; margin-top: 10px; }
+  .hw-chip {
+    font-family: var(--font-mono); font-size: 10.5px; padding: 3px 8px;
+    border: 1px solid var(--border-strong); border-radius: 4px; background: var(--surface); color: var(--muted);
+  }
+  .hw-chip b { color: var(--heading); font-weight: 600; }
+  .hw-issues { list-style: none; margin: 12px 0 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+  .hw-issue {
+    display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 10px;
+    padding: 9px 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 4px;
+  }
+  .hw-issue .ico {
+    width: 18px; height: 18px; border-radius: 50%; margin-top: 1px;
+    font-family: var(--font-mono); font-size: 11px; font-weight: 700; line-height: 18px; text-align: center;
+    color: #fff; background: var(--teal);
+  }
+  .hw-issue.lvl-note   .ico { background: var(--accent); }
+  .hw-issue.lvl-warn   .ico { background: var(--orange); }
+  .hw-issue.lvl-danger .ico { background: var(--error); }
+  [data-theme="dark"] .hw-issue.lvl-note .ico, [data-theme="dark"] .hw-issue.lvl-ok .ico { color: #18191c; }
+  .hw-issue-title { font-size: 13px; font-weight: 600; color: var(--heading); line-height: 1.4; }
+  .hw-issue-text  { font-size: 12.5px; line-height: 1.55; color: var(--body); margin-top: 2px; }
+  .hw-tags { display: inline-flex; flex-wrap: wrap; gap: 4px; margin-left: 8px; vertical-align: 1px; }
+  .hw-tag  { font-family: var(--font-mono); font-size: 9px; padding: 0 5px; border: 1px solid var(--border-strong); border-radius: 3px; color: var(--muted); font-weight: 400; letter-spacing: 0.04em; }
+  .hw-foot { font-family: var(--font-mono); font-size: 10px; color: var(--muted); margin-top: 10px; line-height: 1.5; }
+
+  /* schematic reflects what is plugged in */
+  .sch-dim { opacity: 0.3; }
+  .sch-node { transition: opacity 0.2s; }
+  .schematic .sch-spk { font-family: var(--font-mono); font-size: 7.5px; fill: var(--accent); }
+  .name-extra { display: block; font-size: 9px; color: var(--muted); font-weight: 400; letter-spacing: 0.02em; }
+
+  /* keep the header readable when the summary line is long (phones) */
+  .header-meta { flex-wrap: wrap; min-width: 0; }
+  .meta-text { min-width: 0; overflow-wrap: anywhere; }
 </style>
 </head>
 <body>
@@ -755,6 +953,32 @@
   </nav>
 
   <div id="analyzer-view" class="tab-view active">
+
+  <div class="panel hw-panel" id="hwPanel">
+    <div class="panel-header">
+      <span>Hardware</span>
+      <span class="meta" id="hwMeta">connections and switch positions</span>
+    </div>
+    <div class="panel-body">
+      <div class="hw-grid">
+        <section class="hw-face hw-front" id="hwFront" aria-label="Front panel">
+          <div class="hw-face-title">FRONT PANEL</div>
+          <div class="hw-toggles" id="hwFrontToggles"></div>
+          <div class="hw-face-note">IN = pad engaged. Stage 1 (about &minus;7 dB) is always in unless SW4 bypasses the box.</div>
+        </section>
+        <section class="hw-face hw-back" aria-label="Back panel">
+          <div class="hw-face-title">BACK PANEL &middot; LEFT TO RIGHT</div>
+          <div class="hw-back-row">
+            <div class="hw-col"><div class="jk" data-jack="out3"></div></div>
+            <div class="hw-col"><div class="jk" data-jack="out1"></div><div class="jk" data-jack="out2"></div></div>
+            <div class="hw-col hw-col-sw4"><div id="hwSw4"></div></div>
+            <div class="hw-col"><div class="jk" data-jack="in1"></div></div>
+          </div>
+        </section>
+      </div>
+      <div class="hw-status lvl-ok" id="hwStatus"></div>
+    </div>
+  </div>
 
   <div class="layout">
 
@@ -781,9 +1005,9 @@
           <div class="row"><label>R2b</label><select id="R2b"></select><span class="unit">Ω</span></div>
           <div class="row"><label>L1</label><input type="number" id="L1" value="0.9" step="0.05" min="0"><span class="unit">mH</span></div>
           <div class="row"><label>R1</label><select id="R1"></select><span class="unit">Ω</span></div>
-          <div class="row"><label>+ R10</label><input type="number" id="mShunt" value="0" step="1" min="0" placeholder="0 = off"><span class="unit">Ω</span></div>
+          <div class="row"><label>R10</label><input type="number" id="mShunt" value="68" step="1" min="0" placeholder="0 = off"><span class="unit">Ω</span></div>
           <div style="font-family: var(--font-mono); font-size: 10px; color: var(--muted); margin-top: 2px;">
-            R10: extra R from node M to return (parallel with R1). For 16 Ω cab mod, set 68.
+            R10: node M to return through OUT3&#8217;s ring, in parallel with R1. As built it is in circuit only while a plug is in OUT3.
           </div>
         </div>
 
@@ -819,7 +1043,7 @@
         </div><!-- /stage-block -->
 
         <div class="ctrl-group">
-          <div class="ctrl-group-title"><span>Speaker load</span><span class="hint">8 Ω driver</span></div>
+          <div class="ctrl-group-title"><span>Custom driver &amp; output network</span><span class="hint">Custom driver option</span></div>
           <div class="row" style="grid-template-columns: 60px 1fr; margin-bottom: 4px;">
             <label>Preset</label>
             <select id="speakerPreset">
@@ -840,6 +1064,10 @@
                 <option value="v30_16">Celestion Vintage 30 · 16 Ω</option>
                 <option value="ideal16">Ideal 16 Ω (reference)</option>
               </optgroup>
+              <optgroup label="4 Ω drivers">
+                <option value="c12n_x2">2 × Jensen C12N cab · 4 Ω</option>
+                <option value="ideal4">Ideal 4 Ω (reference)</option>
+              </optgroup>
             </select>
           </div>
           <div class="row"><label>Re</label><input type="number" id="Re" value="6.05" step="0.1" min="0.1"><span class="unit">Ω</span></div>
@@ -848,7 +1076,7 @@
           <div class="row"><label>RES</label><input type="number" id="RES" value="38.5" step="0.5" min="0.5"><span class="unit">Ω</span></div>
           <div class="row"><label>Qms</label><input type="number" id="Qms" value="7.52" step="0.1" min="0.1"><span class="unit">—</span></div>
           <div class="row" style="margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--border);">
-            <label>+ R11</label><input type="number" id="outSeries" value="0" step="1" min="0" placeholder="0 = off"><span class="unit">Ω</span>
+            <label>R11</label><input type="number" id="outSeries" value="10" step="1" min="0" placeholder="0 = off"><span class="unit">Ω</span>
           </div>
           <div class="row">
             <label>Out shunt</label><input type="number" id="loadMatch" value="0" step="1" min="0" placeholder="0 = off"><span class="unit">Ω</span>
@@ -856,8 +1084,15 @@
           <div class="row">
             <label>Out return</label><input type="number" id="outReturn" value="0" step="1" min="0" placeholder="0 = off"><span class="unit">Ω</span>
           </div>
+          <div class="row" style="grid-template-columns: 60px 1fr;">
+            <label>Trim</label>
+            <select id="trimMode">
+              <option value="built">As built (OUT3 only)</option>
+              <option value="all">What-if (all outputs)</option>
+            </select>
+          </div>
           <div style="font-family: var(--font-mono); font-size: 10px; color: var(--muted); margin-top: 4px;">
-            Output network. R11 = series top rail (after R8). Out shunt = parallel across speaker. Out return = series in speaker– return. For Hewitt 16 Ω mod, set R11=10, R10=68 in Stage 1.
+            The speaker fields above feed any jack set to &#8220;Custom driver&#8221;. R11 sits in series with the OUT3 tip (shorted by SW4 in bypass). Out shunt and Out return are what-if elements applied to each output group. Defaults are the Hewitt 16 Ω mod (R11 = 10 Ω, R10 = 68 Ω).
           </div>
         </div>
       </div>
@@ -922,6 +1157,7 @@
           <line x1="24" y1="78" x2="34" y2="78" stroke="currentColor" opacity="0.55"/>
           <line x1="34" y1="78" x2="34" y2="130" stroke="currentColor" opacity="0.55"/>
           <line x1="34" y1="130" x2="46" y2="130" stroke="currentColor" opacity="0.55"/>
+          <text class="sch-spk" id="sch-spk-in1" x="6" y="98"></text>
 
           <!-- ============ SW4 · 4PDT TRUE BYPASS ============
                Four ganged SPDT sections, SW4a..SW4d. Each is drawn as a proper
@@ -1092,6 +1328,7 @@
           <line id="wiper-bp4" x1="512" y1="130" x2="488" y2="112" stroke="var(--orange)" stroke-width="1.6"/>
 
           <!-- ============ OUTPUT JACKS ============ -->
+          <g id="sch-out1" class="sch-node">
           <text x="536" y="44" fill="currentColor" opacity="0.6" font-family="Geist Mono, ui-monospace, monospace" font-size="10">Out1</text>
           <rect x="536" y="50" width="18" height="36" fill="none" stroke="currentColor" stroke-width="0.7" opacity="0.5"/>
           <line x1="536" y1="58" x2="547" y2="58" stroke="currentColor" opacity="0.7" stroke-width="1.2"/>
@@ -1105,6 +1342,10 @@
           <line x1="526" y1="78" x2="526" y2="130" stroke="currentColor" opacity="0.55"/>
           <circle cx="526" cy="130" r="2.2" fill="currentColor" opacity="0.7"/>
 
+          <text class="sch-spk" id="sch-spk-out1" x="536" y="98"></text>
+          </g>
+
+          <g id="sch-out2" class="sch-node">
           <text x="582" y="44" fill="currentColor" opacity="0.6" font-family="Geist Mono, ui-monospace, monospace" font-size="10">Out2</text>
           <rect x="582" y="50" width="18" height="36" fill="none" stroke="currentColor" stroke-width="0.7" opacity="0.5"/>
           <line x1="582" y1="58" x2="593" y2="58" stroke="currentColor" opacity="0.7" stroke-width="1.2"/>
@@ -1118,6 +1359,10 @@
           <line x1="572" y1="78" x2="572" y2="130" stroke="currentColor" opacity="0.55"/>
           <circle cx="572" cy="130" r="2.2" fill="currentColor" opacity="0.7"/>
 
+          <text class="sch-spk" id="sch-spk-out2" x="582" y="98"></text>
+          </g>
+
+          <g id="sch-out3" class="sch-node">
           <text x="676" y="44" fill="var(--orange)" opacity="0.8" font-family="Geist Mono, ui-monospace, monospace" font-size="10">Out3</text>
           <rect x="676" y="50" width="18" height="46" fill="none" stroke="var(--orange)" stroke-width="0.7" opacity="0.7"/>
           <line x1="676" y1="60" x2="687" y2="60" stroke="var(--orange)" opacity="0.85" stroke-width="1.2"/>
@@ -1136,6 +1381,10 @@
           <line x1="664" y1="86" x2="664" y2="130" stroke="currentColor" opacity="0.55"/>
           <circle cx="664" cy="130" r="2.2" fill="currentColor" opacity="0.7"/>
 
+          <text class="sch-spk" id="sch-spk-out3" x="676" y="108"></text>
+          </g>
+
+          <g id="sch-r10" class="sch-node">
           <!-- R10 : Out3 ring back to node M. Dashed to distinguish; the little hop
                marks a crossing (no connection) with the sleeve-bypass riser. -->
           <line x1="676" y1="72" x2="610" y2="72" stroke="var(--orange)" opacity="0.7" stroke-dasharray="3,2"/>
@@ -1147,6 +1396,8 @@
           <line x1="112" y1="150" x2="112" y2="88" stroke="var(--orange)" opacity="0.7" stroke-dasharray="3,2"/>
           <line x1="112" y1="88" x2="128" y2="88" stroke="var(--orange)" opacity="0.7" stroke-dasharray="3,2"/>
 
+          </g>
+
           <!-- ============ LEGEND ============ -->
           <text x="530" y="176" fill="currentColor" opacity="0.55" font-family="Geist Mono, ui-monospace, monospace" font-size="9">SW4a&#8211;d ganged (one 4PDT)</text>
           <text x="530" y="188" fill="currentColor" opacity="0.55" font-family="Geist Mono, ui-monospace, monospace" font-size="9">C = common (pole)</text>
@@ -1157,7 +1408,7 @@
           <span class="k">Stage 1</span> morphs with frequency: at LF (L1 ≈ short) R1 sits at the input; at HF (L1 ≈ open) R2B+R1 sit as a shunt at the output. Roughly −7 dB at both extremes when loaded by the speaker.<br>
           <span class="k">Stages 2–4</span>: each SPDT common (C) sits on the signal rail ahead of its series R. Wiper on <span class="o">T2</span> ⇒ pad in: the shunt (R3/R5/R7) is connected to the return rail and the series R stays in the path. Wiper on <span class="o">T1</span> ⇒ pad out: the jumper shorts the series R and the shunt floats.<br>
           <span class="o">SW4</span> (4PDT true bypass): four ganged SPDT sections. Commons carry the jack tips/sleeves; <span class="o">T2</span> throws go to the attenuator (node A, network out, return rail); <span class="o">T1</span> throws are jumpered pole-to-pole to form the bypass nets. In bypass the whole network — signal <em>and</em> return — is lifted out of the chain.<br>
-          <span class="k">Outputs</span>: Out1/Out2 (TS) direct-tap for 8 Ω cabs (or two 16 Ω in parallel). Out3 (TRS) uses R11 in series and R10 from node M for a single 16 Ω cab. In bypass, the tip net also lands on Out3's tip, shunting R11.
+          <span class="k">Outputs</span>: Out1/Out2 (TS) direct-tap for 8 Ω cabs (or two 16 Ω in parallel). Out3 (TRS) uses R11 in series and R10 from node M for a single 16 Ω cab. A mono plug shorts Out3's ring to its sleeve, which is what switches R10 in, so R10 loads Stage 1 only while a cable is in Out3. In bypass, the tip net also lands on Out3's tip, shunting R11.
         </div>
         </div>
       </div>
@@ -1569,75 +1820,692 @@ function speakerZ(f, cfg) {
   return cAdd(cAdd(C(Re_,0), C(0, w*Le_)), Z_m);
 }
 
-function buildNetwork(f, cfg) {
-  // SW4 on T1 — attenuator lifted out of the chain (signal AND return).
-  // ABCD identity => H=1, Zin=Zspkr.
-  if (cfg.bypass) {
-    return abcdId();
-  }
+// ============================================================================
+// ===== HARDWARE MODEL: amps, speakers, jacks, and the rules that judge a
+// ===== wiring choice. The physical model (loads on the output rail) lives in
+// ===== sweep() below; the rules engine (analyzeHW) reuses it.
+// ============================================================================
 
-  const w = 2*Math.PI*f;
-  const R2a = cfg.R2a;
-  const R2b = cfg.R2b;
-  const L1  = cfg.L1 * 1e-3;
-  const R1  = cfg.R1;
-  const R3  = cfg.R3;
-  const R4  = cfg.R4;
-  const R5  = cfg.R5;
-  const R6  = cfg.R6;
-  const R7  = cfg.R7;
-  const R8  = cfg.R8;
-  const sw1 = cfg.sw1;
-  const sw2 = cfg.sw2;
-  const sw3 = cfg.sw3;
+const SPEAKER_META = {
+  c12n:        "Blues Jr IV Tweed · Jensen C12N · 8 Ω",
+  ctype:       "Blues Jr IV · Celestion A-Type · 8 Ω",
+  greenback:   "Celestion G12M Greenback · 25 W · 8 Ω",
+  v30:         "Celestion Vintage 30 · 60 W · 8 Ω",
+  blue:        "Vox AC30 · Celestion Alnico Blue · 8 Ω",
+  g12h:        "Celestion G12H-30 Heritage · 8 Ω",
+  c12k:        "Fender HR/Twin · Jensen C12K · 8 Ω",
+  canrex:      "Eminence Cannabis Rex · 8 Ω",
+  ideal:       "Reference · Ideal · 8 Ω",
+  g10n40_16:   "Blackstar HT-5 · Celestion G10N-40 · 16 Ω",
+  greenback16: "Celestion G12M Greenback · 16 Ω",
+  v30_16:      "Celestion Vintage 30 · 16 Ω",
+  ideal16:     "Reference · Ideal · 16 Ω",
+  c12n_x2:     "2 × Jensen C12N cab · 4 Ω",
+  ideal4:      "Reference · Ideal · 4 Ω"
+};
 
-  const R10extra = cfg.mShunt;
-  const R1eff = (R10extra > 0 && isFinite(R10extra)) ? (R1 * R10extra)/(R1 + R10extra) : R1;
-  const stage1 = stage1ABCD(w, R2a, R2b, R1eff, L1);
+const SPEAKERS = {
+  c12n:        { Re: 6.05, Le: 0.90, fs: 113, RES: 38.5, Qms: 7.52 },
+  ctype:       { Re: 6.4,  Le: 0.7,  fs: 90,  RES: 37.3, Qms: 3.5  },
+  greenback:   { Re: 6.7,  Le: 0.7,  fs: 75,  RES: 30,   Qms: 4.0  },
+  v30:         { Re: 6.9,  Le: 0.4,  fs: 75,  RES: 30,   Qms: 7.0  },
+  blue:        { Re: 6.8,  Le: 0.5,  fs: 75,  RES: 35,   Qms: 3.5  },
+  g12h:        { Re: 6.5,  Le: 0.65, fs: 55,  RES: 32,   Qms: 4.0  },
+  c12k:        { Re: 5.5,  Le: 0.65, fs: 120, RES: 28,   Qms: 4.0  },
+  canrex:      { Re: 5.95, Le: 0.6,  fs: 90,  RES: 25,   Qms: 2.6  },
+  ideal:       { Re: 8.0,  Le: 0.0,  fs: 1,   RES: 1,    Qms: 1    },
+  g10n40_16:   { Re: 12.05, Le: 1.4, fs: 98,  RES: 50,   Qms: 4.5  },
+  greenback16: { Re: 13.5,  Le: 1.4, fs: 75,  RES: 60,   Qms: 4.0  },
+  v30_16:      { Re: 13.8,  Le: 0.8, fs: 75,  RES: 60,   Qms: 7.0  },
+  ideal16:     { Re: 16.0,  Le: 0.0, fs: 1,   RES: 1,    Qms: 1    },
+  // Two identical drivers in parallel: halve Re, Le and RES, same fs and Qms.
+  c12n_x2:     { Re: 3.025, Le: 0.45, fs: 113, RES: 19.25, Qms: 7.52 },
+  ideal4:      { Re: 4.0,  Le: 0.0,  fs: 1,   RES: 1,    Qms: 1    }
+};
 
-  // Stages 2-4: wiper on T2 engages a full L-pad (input shunt + series).
-  // Wiper on T1 shorts the series R and floats the shunt => identity.
-  const stage = (engaged, Rseries, Rshunt) =>
-    engaged ? abcdMul(abcdShunt(C(Rshunt, 0)), abcdSeries(C(Rseries, 0)))
-            : abcdId();
+// What the end user can plug into OUT1, OUT2 and OUT3. "ohms" is the nominal
+// rating the wiring rules use. Add or edit entries here to extend the lists.
+const SPK_INFO = {
+  c12n:        { name: 'Jensen C12N',               note: 'Blues Jr IV Tweed',     ohms: 8,  short: 'C12N' },
+  ctype:       { name: 'Celestion A-Type',          note: 'Blues Jr IV',           ohms: 8,  short: 'A-Type' },
+  greenback:   { name: 'Celestion G12M Greenback',  note: '25 W',                  ohms: 8,  short: 'G12M' },
+  v30:         { name: 'Celestion Vintage 30',      note: '60 W',                  ohms: 8,  short: 'V30' },
+  blue:        { name: 'Celestion Alnico Blue',     note: 'Vox AC30',              ohms: 8,  short: 'Blue' },
+  g12h:        { name: 'Celestion G12H-30 Heritage',note: '',                      ohms: 8,  short: 'G12H' },
+  c12k:        { name: 'Jensen C12K',               note: 'Fender HR/Twin',        ohms: 8,  short: 'C12K' },
+  canrex:      { name: 'Eminence Cannabis Rex',     note: '',                      ohms: 8,  short: 'CanRex' },
+  ideal:       { name: 'Ideal resistor (reference)', note: '',         ohms: 8,  short: 'Ideal 8' },
+  g10n40_16:   { name: 'Celestion G10N-40',         note: 'Blackstar HT-5',        ohms: 16, short: 'G10N-40' },
+  greenback16: { name: 'Celestion G12M Greenback',  note: '25 W',          ohms: 16, short: 'G12M 16' },
+  v30_16:      { name: 'Celestion Vintage 30',      note: '60 W',          ohms: 16, short: 'V30 16' },
+  ideal16:     { name: 'Ideal resistor (reference)', note: '',         ohms: 16, short: 'Ideal 16' },
+  c12n_x2:     { name: '2 × Jensen C12N cab',       note: 'two 8 Ω wired parallel', ohms: 4, short: '2×C12N' },
+  ideal4:      { name: 'Ideal resistor (reference)', note: '',         ohms: 4,  short: 'Ideal 4' },
+  custom:      { name: 'Custom driver',             note: 'T/S values in Parameters', ohms: null, short: 'Custom' }
+};
+const SPK_ORDER = ['c12n','ctype','greenback','v30','blue','g12h','c12k','canrex','ideal',
+                   'g10n40_16','greenback16','v30_16','ideal16','c12n_x2','ideal4','custom'];
 
-  const mats = [
-    stage1,
-    stage(sw1, R4, R3),
-    stage(sw2, R6, R5),
-    stage(sw3, R8, R7)
-  ];
+// Amp speaker outputs. type: 'tube' or 'ss' changes how an open circuit is judged.
+const AMPS = [
+  { id: 'bj4',  name: 'Fender Blues Junior IV',              ohms: 8,  watts: 15, type: 'tube' },
+  { id: 'dr65', name: "Fender '65 Deluxe Reverb Reissue",    ohms: 8,  watts: 22, type: 'tube' },
+  { id: 'gt8',  name: 'Generic tube amp, 8 Ω tap',           ohms: 8,  watts: 0,  type: 'tube' },
+  { id: 'gt4',  name: 'Generic tube amp, 4 Ω tap',           ohms: 4,  watts: 0,  type: 'tube' },
+  { id: 'gt16', name: 'Generic tube amp, 16 Ω tap',          ohms: 16, watts: 0,  type: 'tube' },
+  { id: 'gs8',  name: 'Generic solid-state amp, 8 Ω',        ohms: 8,  watts: 0,  type: 'ss'   },
+  { id: 'gs4',  name: 'Generic solid-state amp, 4 Ω',        ohms: 4,  watts: 0,  type: 'ss'   }
+];
+const DEFAULT_AMP = 'bj4';
 
-  const Rtop = cfg.outSeries;
-  if (Rtop > 0 && isFinite(Rtop)) {
-    mats.push(abcdSeries(C(Rtop, 0)));
-  }
+// Live hardware selection. Switch positions stay in the existing SW1-SW4 controls.
+let hwState = { amp: DEFAULT_AMP, out1: 'c12n', out2: null, out3: null };
 
-  const Rload = cfg.loadMatch;
-  if (Rload > 0 && isFinite(Rload)) {
-    mats.push(abcdShunt(C(Rload, 0)));
-  }
-
-  return abcdCascade(mats);
+function spkNominal(key, cfg) {
+  const i = SPK_INFO[key];
+  if (i && i.ohms) return i.ohms;
+  const re = (cfg && cfg.Re > 0) ? cfg.Re : 6;
+  let best = 8, bd = Infinity;
+  [4, 8, 16].forEach(n => { const d = Math.abs(Math.log(re * 1.2 / n)); if (d < bd) { bd = d; best = n; } });
+  return best;
+}
+function spkParams(key, cfg) {
+  if (key === 'custom') return { Re: cfg.Re, Le: cfg.Le, fs: cfg.fs, RES: cfg.RES, Qms: cfg.Qms };
+  return SPEAKERS[key] || null;
+}
+function spkLabel(key, cfg) {
+  const i = SPK_INFO[key];
+  if (!i) return String(key);
+  return i.name + (key === 'custom' ? '' : '') + ' · ' + spkNominal(key, cfg) + ' Ω';
 }
 
-function sweep(cfg) {
-  const N = 401, fmin = 20, fmax = 20000;
-  const freqs = new Array(N), H_db = new Array(N), Zin_mag = new Array(N), Zspk_mag = new Array(N);
-  const Rret = cfg.outReturn;
-  const hasReturn = (Rret > 0 && isFinite(Rret));
-  for (let i=0; i<N; i++) {
+// Configs saved before the hardware panel existed have no "hw" block. Convert
+// them without changing their numbers: a config that used R10/R11 becomes a
+// speaker on OUT3, anything else becomes a speaker on OUT1.
+function matchPreset(c) {
+  const p = SPEAKERS[c.speakerPreset];
+  if (!p) return (c.Re > 0) ? 'custom' : 'c12n';
+  const same = ['Re','Le','fs','RES','Qms'].every(k => c[k] === undefined || Math.abs(c[k] - p[k]) < 1e-9);
+  return same ? c.speakerPreset : 'custom';
+}
+function ensureHW(cfg) {
+  const c = cfg || {};
+  if (c.hw && typeof c.hw === 'object') {
+    if (!c.trimMode) c.trimMode = 'built';
+    return c;
+  }
+  const key = matchPreset(c);
+  const onOut3 = (c.mShunt > 0) || (c.outSeries > 0);
+  c.hw = { amp: DEFAULT_AMP, out1: null, out2: null, out3: null };
+  c.hw[onOut3 ? 'out3' : 'out1'] = key;
+  c.trimMode = 'built';
+  return c;
+}
+function withHW(cfg, patch) {
+  return Object.assign({}, cfg, { hw: Object.assign({}, cfg.hw, patch) });
+}
+
+function resolveHW(cfg) {
+  const h = cfg.hw || {};
+  const mk = (key) => {
+    if (!key || !SPK_INFO[key]) return null;
+    const params = spkParams(key, cfg);
+    if (!params) return null;
+    return {
+      key: key, name: SPK_INFO[key].name, short: SPK_INFO[key].short,
+      ohms: spkNominal(key, cfg), params: params,
+      preset: key === 'custom' ? (cfg.speakerPreset || '') : key
+    };
+  };
+  return {
+    amp: AMPS.find(a => a.id === h.amp) || AMPS[0],
+    out1: mk(h.out1), out2: mk(h.out2), out3: mk(h.out3),
+    bypass: !!cfg.bypass,
+    trimAll: cfg.trimMode === 'all'
+  };
+}
+
+// ----------------------------------------------------------------------------
+// Physical model. Stages 1-4 form one ladder. Speakers hang on its output rail
+// in two groups: A = OUT1/OUT2 (direct, parallel), B = OUT3 (R11 in series).
+// R10 joins node M to return through OUT3's ring, so it is in circuit only
+// while a mono plug sits in OUT3. In bypass SW4 lifts the ladder and shorts
+// R11, so every plugged speaker sits straight across the amp.
+// ----------------------------------------------------------------------------
+const posVal = v => (v > 0 && isFinite(v)) ? v : 0;
+
+function buildNetwork(f, cfg, R10eff) {
+  if (cfg.bypass) return abcdId();
+  const w  = 2*Math.PI*f;
+  const L1 = cfg.L1 * 1e-3;
+  const R1eff = (R10eff > 0 && isFinite(R10eff)) ? (cfg.R1 * R10eff)/(cfg.R1 + R10eff) : cfg.R1;
+  const stage1 = stage1ABCD(w, cfg.R2a, cfg.R2b, R1eff, L1);
+  const stage = (engaged, Rseries, Rshunt) =>
+    engaged ? abcdMul(abcdShunt(C(Rshunt, 0)), abcdSeries(C(Rseries, 0))) : abcdId();
+  return abcdCascade([
+    stage1,
+    stage(cfg.sw1, cfg.R4, cfg.R3),
+    stage(cfg.sw2, cfg.R6, cfg.R5),
+    stage(cfg.sw3, cfg.R8, cfg.R7)
+  ]);
+}
+
+function loadNodes(f, cfg, R) {
+  const Rret = posVal(cfg.outReturn), Rsh = posVal(cfg.loadMatch), R11 = posVal(cfg.outSeries);
+  const zOf = o => speakerZ(f, Object.assign({ speakerPreset: o.preset }, o.params));
+  const branch = (zs, useR11) => {
+    const zb = cAdd(zs, C(Rret, 0));                                   // speaker + return R
+    const zx = (!R.bypass && Rsh > 0) ? cParallel(zb, C(Rsh, 0)) : zb;  // out shunt across the branch
+    const rs = (!R.bypass && useR11) ? R11 : 0;                        // R11, shorted by SW4 in bypass
+    return { zs: zs, zx: zx, zt: cAdd(C(rs, 0), zx) };
+  };
+  const a = [R.out1, R.out2].filter(Boolean);
+  let A = null, B = null;
+  if (a.length) {
+    const zs = a.length === 1 ? zOf(a[0]) : cParallel(zOf(a[0]), zOf(a[1]));
+    A = branch(zs, R.trimAll);
+  }
+  if (R.out3) B = branch(zOf(R.out3), true);
+  const zRail = (A && B) ? cParallel(A.zt, B.zt) : (A ? A.zt : (B ? B.zt : null));
+  return { A: A, B: B, zRail: zRail };
+}
+
+function sweep(cfgIn, Nin) {
+  const cfg = ensureHW(cfgIn);
+  const N = Nin || 401, fmin = 20, fmax = 20000;
+  const R = resolveHW(cfg);
+  const R10 = posVal(cfg.mShunt);
+  const R10eff = (R.out3 || R.trimAll) ? R10 : 0;
+  const hasA = !!(R.out1 || R.out2), hasB = !!R.out3;
+  const mkG = (id, label) => ({ id: id, label: label, H_db: new Array(N), Zspk: new Array(N) });
+  const gA = hasA ? mkG('A', (R.out1 && R.out2) ? 'Out1+Out2' : (R.out1 ? 'Out1' : 'Out2')) : null;
+  const gB = hasB ? mkG('B', 'Out3') : null;
+  const freqs = new Array(N), Zin_mag = new Array(N);
+  const db = h => 20 * Math.log10(Math.max(cMag(h), 1e-12));
+  for (let i = 0; i < N; i++) {
     const f = fmin * Math.pow(fmax/fmin, i/(N-1));
     freqs[i] = f;
-    const ZL_speaker = speakerZ(f, cfg);
-    const ZL = hasReturn ? cAdd(ZL_speaker, C(Rret, 0)) : ZL_speaker;
-    const M = buildNetwork(f, cfg);
-    const {H, Zin} = networkResponse(M, ZL);
-    H_db[i] = 20*Math.log10(Math.max(cMag(H), 1e-12));
+    const ln = loadNodes(f, cfg, R);
+    const M  = buildNetwork(f, cfg, R10eff);
+    const zL = ln.zRail || C(1e9, 0);            // nothing plugged in: open circuit
+    const {H, Zin} = networkResponse(M, zL);
     Zin_mag[i] = cMag(Zin);
-    Zspk_mag[i] = cMag(ZL_speaker);
+    if (gA) { gA.H_db[i] = db(cMul(H, cDiv(ln.A.zx, ln.A.zt))); gA.Zspk[i] = cMag(ln.A.zs); }
+    if (gB) { gB.H_db[i] = db(cMul(H, cDiv(ln.B.zx, ln.B.zt))); gB.Zspk[i] = cMag(ln.B.zs); }
   }
-  return {freqs, H_db, Zin_mag, Zspk_mag};
+  const groups = [gA, gB].filter(Boolean);
+  const blank = new Array(N).fill(NaN);
+  return {
+    freqs: freqs, groups: groups, Zin_mag: Zin_mag, R: R,
+    H_db: groups.length ? groups[0].H_db : blank,
+    Zspk_mag: groups.length ? groups[0].Zspk : blank
+  };
+}
+
+// ----------------------------------------------------------------------------
+// Rules engine. Returns every issue with a severity, the jacks it involves, a
+// short label (for dropdown rows) and a longer explanation (for the status box).
+// Thresholds are rules of thumb: tune RULE below.
+// ----------------------------------------------------------------------------
+const RULE = {
+  dangerRatio: 0.35,   // min |Z| the amp sees / its rating: below this is danger
+  warnRatio:   0.60,   // below this is a warning (real 8 Ω speakers dip to about 0.75)
+  highRatio:   1.70    // above this the load is comfortably above rating (note only)
+};
+const LVL = { ok: 0, note: 1, warn: 2, danger: 3 };
+const LVL_NAME = ['ok', 'note', 'warn', 'danger'];
+const JACK_LABEL = { in1: 'IN1', out1: 'OUT1', out2: 'OUT2', out3: 'OUT3' };
+
+function idxAt(freqs, target) {
+  let best = 0, bd = Infinity;
+  for (let i = 0; i < freqs.length; i++) {
+    const d = Math.abs(freqs[i] - target);
+    if (d < bd) { bd = d; best = i; }
+  }
+  return best;
+}
+function groupLevels(sw, gi) {
+  const g = sw.groups[gi];
+  const i1 = idxAt(sw.freqs, 1000), iH = idxAt(sw.freqs, 10000), iL = idxAt(sw.freqs, 100);
+  return { h1k: g.H_db[i1], hf: g.H_db[iH] - g.H_db[i1], lf: g.H_db[iL] - g.H_db[i1] };
+}
+const sgn = x => (x >= 0 ? '+' : '\u2212') + Math.abs(x).toFixed(1);
+const f1  = x => x.toFixed(1);
+const art = n => (n === 8 ? 'an ' : 'a ') + n + ' \u03A9';
+
+function analyzeHW(cfgIn) {
+  const cfg = ensureHW(cfgIn);
+  const R = resolveHW(cfg);
+  const sw = sweep(cfg, 61);
+  const i1k = idxAt(sw.freqs, 1000);
+  const zinMin = Math.min.apply(null, sw.Zin_mag);
+  const zin1k = sw.Zin_mag[i1k];
+  const amp = R.amp;
+  const occ = ['out1', 'out2', 'out3'].filter(j => R[j]);
+  const A = ['out1', 'out2'].filter(j => R[j]);
+  const hasB = !!R.out3;
+  const ratio = zinMin / amp.ohms;
+  const tube = amp.type === 'tube';
+  const issues = [];
+  const add = (level, jacks, title, short, text, extra) =>
+    issues.push(Object.assign({ level: level, jacks: jacks, title: title, short: short, text: text }, extra || {}));
+  const jl = j => JACK_LABEL[j];
+  let layout = '', layoutShort = '';
+
+  if (occ.length === 0) {
+    layout = 'No speaker connected';
+    layoutShort = 'nothing plugged in';
+    if (R.bypass) {
+      if (tube) {
+        add('danger', [], 'Open output with SW4 in bypass', 'Open circuit on a tube amp',
+          'The attenuator is out of the path and no speaker is plugged in, so the amp drives an open circuit. An unloaded tube amp can arc across the output transformer and destroy it. Plug in a speaker, or put SW4 back to attenuate, before the amp is switched on.');
+      } else {
+        add('note', [], 'No speaker connected (bypass)', 'No load, no sound',
+          'Nothing is plugged into an output and the attenuator is bypassed. Most solid-state amps tolerate an open output, but there is nothing to hear. Check your amp manual before leaving it this way.');
+      }
+    } else {
+      add('warn', [], 'No speaker connected', 'Amp sees only the attenuator',
+        'With no speaker the attenuator is the whole load. The amp sees ' + f1(zinMin) + ' \u03A9 at minimum and ' + f1(zin1k) +
+        ' \u03A9 at 1 kHz, and all of its output power heats the network resistors. There is no sound. Fine for a moment, not for playing.');
+    }
+  } else if (!hasB) {
+    if (A.length === 1) {
+      const j = A[0], s = R[j], other = (j === 'out1') ? 'out2' : 'out1';
+      if (s.ohms === 8) {
+        layout = 'Single 8 \u03A9 speaker on ' + jl(j);
+        layoutShort = 'single 8 \u03A9';
+      } else if (s.ohms === 16) {
+        layout = '16 \u03A9 speaker alone on ' + jl(j);
+        layoutShort = 'needs a 16 \u03A9 partner';
+        const alt = sweep(withHW(cfg, { out1: null, out2: null, out3: s.key }), 61);
+        const g0 = groupLevels(sw, 0), g1 = groupLevels(alt, 0);
+        const d1k = g0.h1k - g1.h1k, dHF = g0.hf - g1.hf;
+        const txt = R.bypass
+          ? 'In bypass the trim is out of circuit anyway, so this only changes the load on the amp. A pair of 16 \u03A9 speakers is the intended use of OUT1 and OUT2.'
+          : 'OUT1 and OUT2 are meant for one 8 \u03A9 speaker or a pair of 16 \u03A9 speakers. A lone 16 \u03A9 speaker skips the R10/R11 trim that OUT3 applies, so at 1 kHz it plays ' +
+            sgn(d1k) + ' dB compared with the same speaker on OUT3, and the high end shifts ' + sgn(dHF) +
+            ' dB. Add a second 16 \u03A9 speaker on ' + jl(other) + ', or move this one to OUT3.';
+        add(R.bypass ? 'note' : 'warn', [j, other], '16 \u03A9 speaker alone on ' + jl(j),
+            'Pair it with a 16 \u03A9 on ' + jl(other), txt, { partial: true });
+      } else {
+        layout = s.ohms + ' \u03A9 speaker on ' + jl(j);
+        layoutShort = 'not an 8 \u03A9 or 16 \u03A9 load';
+        add('warn', [j], s.ohms + ' \u03A9 speaker on ' + jl(j), 'Not an 8 \u03A9 load',
+          'OUT1 and OUT2 are built for one 8 \u03A9 speaker or a pair of 16 \u03A9 speakers. A ' + s.ohms +
+          ' \u03A9 speaker changes the load on the attenuator and the amp.');
+      }
+    } else {
+      const s1 = R.out1, s2 = R.out2;
+      const zp = 1 / (1 / s1.ohms + 1 / s2.ohms);
+      // While attenuating, the pad ladder hides a low parallel load from the amp, but the pad values were tuned for 8 \u03A9.
+      const shield = R.bypass ? '' : ' While attenuating the amp still sees ' + f1(zinMin) + ' \u03A9, so it is shielded from this load, but the pads were tuned for 8 \u03A9 and level and tone shift.';
+      if (s1.ohms === 16 && s2.ohms === 16) {
+        layout = 'Two 16 \u03A9 speakers on OUT1 + OUT2 (8 \u03A9 in parallel)';
+        layoutShort = 'pair of 16 \u03A9';
+      } else if (s1.ohms === 8 && s2.ohms === 8) {
+        layout = 'Two 8 \u03A9 speakers on OUT1 + OUT2 (4 \u03A9 in parallel)';
+        layoutShort = 'two 8 \u03A9 = 4 \u03A9';
+        let dual8 = '';
+        if (!R.bypass) {
+          const one = sweep(withHW(cfg, { out2: null }), 61);
+          dual8 = ' At 1 kHz the pair plays ' + sgn(groupLevels(sw, 0).h1k - groupLevels(one, 0).h1k) + ' dB compared with one of them alone.';
+        }
+        add('warn', ['out1', 'out2'], 'Two 8 \u03A9 speakers in parallel', 'Two 8 \u03A9 = 4 \u03A9 total',
+          'Two 8 \u03A9 speakers in parallel present about 4 \u03A9, half the box\u2019s 8 \u03A9 design load.' + dual8 + shield + ' Use one 8 \u03A9 speaker on either jack, or two 16 \u03A9 speakers together.');
+      } else if ((s1.ohms === 8 && s2.ohms === 16) || (s1.ohms === 16 && s2.ohms === 8)) {
+        layout = 'Mixed 8 \u03A9 and 16 \u03A9 speakers on OUT1 + OUT2';
+        layoutShort = '8 \u03A9 + 16 \u03A9 mixed';
+        const p8 = Math.round(zp / 8 * 100);
+        add('warn', ['out1', 'out2'], 'Mixed 8 \u03A9 and 16 \u03A9 speakers', 'Uneven power split',
+          'In parallel they present about ' + f1(zp) + ' \u03A9. The 8 \u03A9 speaker takes about ' + p8 + '% of the power and the 16 \u03A9 speaker ' + (100 - p8) +
+          '%, so they play at different levels.' + shield + ' Use two 16 \u03A9 speakers, or one 8 \u03A9 speaker alone.');
+      } else {
+        layout = s1.ohms + ' \u03A9 and ' + s2.ohms + ' \u03A9 speakers on OUT1 + OUT2';
+        layoutShort = f1(zp) + ' \u03A9 total';
+        add('warn', ['out1', 'out2'], s1.ohms + ' \u03A9 and ' + s2.ohms + ' \u03A9 speakers in parallel', f1(zp) + ' \u03A9 total',
+          'In parallel they present about ' + f1(zp) + ' \u03A9. OUT1 and OUT2 are built for a total of 8 \u03A9: one 8 \u03A9 speaker or two 16 \u03A9 speakers.' + shield);
+      }
+    }
+  } else if (A.length === 0) {
+    const s = R.out3;
+    if (s.ohms === 16) {
+      layout = 'Single 16 \u03A9 speaker on OUT3';
+      layoutShort = 'single 16 \u03A9';
+    } else {
+      layout = s.ohms + ' \u03A9 speaker on OUT3';
+      layoutShort = 'OUT3 is tuned for 16 \u03A9';
+      const alt = sweep(withHW(cfg, { out3: null, out1: s.key }), 61);
+      const g0 = groupLevels(sw, 0), g1 = groupLevels(alt, 0);
+      const txt = R.bypass
+        ? 'In bypass R11 is shorted and R10 is out of circuit, so OUT3 behaves like any other jack. With the attenuator engaged it is tuned for a single 16 \u03A9 speaker.'
+        : 'OUT3 puts R11 in series and R10 at node M so that a 16 \u03A9 speaker behaves like an 8 \u03A9 one. With ' + art(s.ohms) +
+          ' speaker it plays ' + sgn(g0.h1k - g1.h1k) + ' dB at 1 kHz compared with the same speaker on OUT1, and the high end shifts ' +
+          sgn(g0.hf - g1.hf) + ' dB. Use OUT1 or OUT2 for it.';
+      add(R.bypass ? 'note' : 'warn', ['out3'], s.ohms + ' \u03A9 speaker on OUT3', 'OUT3 is tuned for 16 \u03A9', txt);
+    }
+  } else {
+    layout = 'OUT3 used together with ' + A.map(jl).join(' + ');
+    layoutShort = 'OUT3 with other jacks';
+    const noB = sweep(withHW(cfg, { out3: null }), 61);
+    const gA = groupLevels(sw, 0), gB = groupLevels(sw, 1), g0 = groupLevels(noB, 0);
+    const txt = R.bypass
+      ? 'In bypass the tip net shorts R11 and R10 is out of circuit, so every plugged speaker sits in parallel across the amp. Together they present ' + f1(zinMin) + ' \u03A9 at minimum.'
+      : 'OUT3 is a separate path with R11 in series and R10 tied into node M. With OUT1/OUT2 in use, R10 loads Stage 1 for their speaker' + (A.length > 1 ? 's' : '') +
+        ' (' + sgn(gA.h1k - g0.h1k) + ' dB at 1 kHz) and the OUT3 speaker plays ' + sgn(gB.h1k - gA.h1k) +
+        ' dB compared with them. Together they present ' + f1(zinMin) + ' \u03A9 at minimum. Use OUT3 by itself.';
+    add('warn', ['out3'].concat(A), 'OUT3 used together with ' + A.map(jl).join(' + '), 'OUT3 is meant to be used alone', txt);
+  }
+
+  if (occ.length) {
+    const pct = Math.round(ratio * 100);
+    if (ratio < RULE.dangerRatio) {
+      add('danger', ['in1'].concat(occ), 'Load far below the amp rating', f1(zinMin) + ' \u03A9 on ' + art(amp.ohms) + ' tap',
+        'The ' + amp.ohms + ' \u03A9 output sees as little as ' + f1(zinMin) + ' \u03A9 (' + pct + '% of its rating). ' +
+        (tube ? 'That can overheat the output tubes and overload the output transformer.' : 'That can trip protection or overheat the output devices.') +
+        ' Do not run the amp loud in this configuration.');
+    } else if (ratio < RULE.warnRatio) {
+      add('warn', ['in1'].concat(occ), 'Load below the amp rating', f1(zinMin) + ' \u03A9 on ' + art(amp.ohms) + ' tap',
+        'The ' + amp.ohms + ' \u03A9 output sees as little as ' + f1(zinMin) + ' \u03A9 (' + pct + '% of its rating). ' +
+        (tube ? 'A tube amp tolerates a moderate mismatch for a while, but expect more distortion and shorter tube life.' : 'A solid-state amp may run hot or limit.') +
+        ' Match the load to the tap.');
+    } else if (ratio > RULE.highRatio) {
+      add('note', ['in1'].concat(occ), 'Load above the amp rating', f1(zinMin) + ' \u03A9 on ' + art(amp.ohms) + ' tap',
+        'The lowest load the amp sees is ' + f1(zinMin) + ' \u03A9 against its ' + amp.ohms +
+        ' \u03A9 tap. That is safe, but less power reaches the speaker and the amp will sound slightly different.');
+    }
+  }
+
+  if (amp.ohms !== 8) {
+    add('note', ['in1'], amp.ohms + ' \u03A9 amp on an 8 \u03A9 box', 'Box is built for 8 \u03A9',
+      'The network values and the plots are referenced to an 8 \u03A9 amp output. Use the amp\u2019s 8 \u03A9 tap if it has one. Other taps work as long as the load check stays clean, but level and impedance figures here assume 8 \u03A9.');
+  }
+  if (R.bypass && occ.length) {
+    add('note', [], 'Bypass on: attenuator out of the path', '0 dB, SW1 to SW3 inactive',
+      'SW4 lifts the whole network. Speakers connect straight to the amp, SW1 to SW3 and R10/R11 have no effect, and R11 is shorted by the SW4 tip net.');
+  }
+  if (R.trimAll) {
+    add('note', [], 'What-if trim mode is on', 'R10/R11 on every output',
+      'The Parameters panel applies R10 and R11 to every output, which the real box does not do. Set it back to "As built" to see the real hardware.');
+  }
+  occ.forEach(j => {
+    if (R[j].key === 'custom') {
+      add('note', [j], 'Custom driver on ' + jl(j), 'Uses the Parameters panel',
+        'This jack uses the Re, Le, fs, RES and Qms values from the Parameters panel. Its nominal rating (' + R[j].ohms + ' \u03A9) is estimated from Re.');
+    }
+  });
+
+  const worst = issues.reduce((m, i) => Math.max(m, LVL[i.level]), 0);
+  const partialIssue = issues.find(i => i.partial);
+  return {
+    cfg: cfg, R: R, sw: sw, issues: issues, worst: worst,
+    layout: layout, layoutShort: layoutShort,
+    partial: !!partialIssue, partialJacks: partialIssue ? partialIssue.jacks : [],
+    zinMin: zinMin, zin1k: zin1k, ratio: ratio, occ: occ
+  };
+}
+
+// Rank one dropdown choice: analyse the whole config with that choice applied
+// and look at the issues that involve this jack.
+function classifyOption(baseCfg, jack, value) {
+  const patch = {}; patch[jack === 'in1' ? 'amp' : jack] = value;
+  const a = analyzeHW(withHW(baseCfg, patch));
+  const rel = a.issues.filter(i => i.jacks.indexOf(jack) >= 0);
+  const hard = rel.filter(i => !i.partial);
+  const worst = hard.reduce((m, i) => Math.max(m, LVL[i.level]), 0);
+  const top = (hard.filter(i => LVL[i.level] === worst)[0]) || rel[0] || null;
+  let cls;
+  if (worst >= 3) cls = 'danger';
+  else if (worst === 2) cls = 'warn';
+  else if (rel.some(i => i.partial)) cls = 'partial';
+  else if (worst === 1) cls = 'note';
+  else cls = 'good';
+  const why = top ? top.short : (jack === 'in1' ? 'matches the 8 \u03A9 design' : a.layoutShort);
+  return { cls: cls, why: why };
+}
+
+// ============================================================================
+// ===== HARDWARE PANEL UI: toggles, jacks, dropdowns, status box =====
+// The switch positions still live in the sidebar controls (#sw1-3, #masterBypass);
+// the front/back panel toggles click those elements, so both stay in step.
+// ============================================================================
+let hwBuilt = false;
+
+const HW_JACKS = {
+  out3: { label: 'OUT3', cap: 'one 16 \u03A9 speaker (R11 + R10 trim)' },
+  out1: { label: 'OUT1', cap: 'one 8 \u03A9 speaker, or first of a 16 \u03A9 pair' },
+  out2: { label: 'OUT2', cap: 'one 8 \u03A9 speaker, or second of a 16 \u03A9 pair' },
+  in1:  { label: 'IN1',  cap: 'from the amp speaker output' }
+};
+
+function toggleHTML(id, name, sub, inv) {
+  return '<button type="button" class="tgl' + (inv ? ' inv' : '') + '" data-sw="' + id + '" role="switch" aria-checked="true" aria-label="' + name + ' ' + sub + '">' +
+    '<svg viewBox="0 0 48 80" aria-hidden="true">' +
+      '<rect class="tgl-plate" x="2" y="2" width="44" height="76" rx="8"/>' +
+      '<circle class="tgl-well" cx="24" cy="40" r="12"/>' +
+      '<g class="tgl-lever"><rect class="tgl-stem" x="20" y="14" width="8" height="28" rx="4"/><circle class="tgl-knob" cx="24" cy="14" r="7"/></g>' +
+    '</svg>' +
+    '<span class="tgl-name">' + name + '</span><span class="tgl-sub">' + sub + '</span><span class="tgl-state"></span></button>';
+}
+
+function jackSVG(occupied, lvl, ohmTxt) {
+  return '<svg viewBox="0 0 64 64" aria-hidden="true">' +
+    '<polygon class="jk-nut" points="61,32 46.5,57.1 17.5,57.1 3,32 17.5,6.9 46.5,6.9"/>' +
+    '<circle class="jk-ring lvl-' + lvl + '" cx="32" cy="32" r="21"/>' +
+    (occupied
+      ? '<circle class="jk-plug" cx="32" cy="32" r="15"/><text class="jk-ohm" x="32" y="36" text-anchor="middle">' + ohmTxt + '</text>'
+      : '<circle class="jk-hole" cx="32" cy="32" r="11"/>') +
+    '</svg>';
+}
+
+// ---- dropdown options, ranked by the rules engine for the current wiring ----
+const TAG_TXT = { good: 'FITS', partial: 'PAIR', note: 'NOTE', warn: 'WARN', danger: 'DANGER', neutral: '' };
+
+function hwCur(jack) { return jack === 'in1' ? hwState.amp : hwState[jack]; }
+
+function buildOptions(jack) {
+  const base = captureConfig();
+  if (jack === 'in1') {
+    return AMPS.map(a => {
+      const c = classifyOption(base, 'in1', a.id);
+      return { value: a.id, label: a.name,
+               sub: a.ohms + ' \u03A9 \u00B7 ' + (a.type === 'tube' ? 'tube' : 'solid state') + (a.watts ? ' \u00B7 ' + a.watts + ' W' : ''),
+               cls: c.cls, why: c.why };
+    });
+  }
+  return SPK_ORDER.map(k => {
+    const c = classifyOption(base, jack, k);
+    return { value: k, label: spkLabel(k, base), sub: SPK_INFO[k].note, cls: c.cls, why: c.why };
+  });
+}
+function optHTML(it, selected) {
+  return '<div class="dd-opt ' + it.cls + '" role="option" tabindex="-1" data-value="' + (it.value === null ? '' : escapeHtml(it.value)) +
+    '" aria-selected="' + (selected ? 'true' : 'false') + '">' +
+    '<span class="o-name">' + escapeHtml(it.label) + (it.sub ? '<span class="o-sub"> \u00B7 ' + escapeHtml(it.sub) + '</span>' : '') + '</span>' +
+    '<span class="o-tag">' + TAG_TXT[it.cls] + '</span>' +
+    (it.why ? '<span class="o-why">' + escapeHtml(it.why) + '</span>' : '') + '</div>';
+}
+function menuHTML(jack) {
+  const items = buildOptions(jack), cur = hwCur(jack);
+  const fit = items.filter(i => i.cls === 'good' || i.cls === 'partial' || i.cls === 'note');
+  const bad = items.filter(i => i.cls === 'warn' || i.cls === 'danger');
+  let h = '';
+  if (jack !== 'in1') h += optHTML({ value: null, label: 'Nothing plugged in', sub: '', cls: 'neutral', why: '' }, cur === null);
+  if (fit.length) h += '<div class="dd-head">' + (jack === 'in1' ? 'RECOMMENDED FOR THIS SETUP' : 'FITS THE CURRENT WIRING') + '</div>' +
+                       fit.map(i => optHTML(i, i.value === cur)).join('');
+  if (bad.length) h += '<div class="dd-head">' + (fit.length ? 'NOT RECOMMENDED HERE (STILL ALLOWED)' : 'NOT RECOMMENDED WITH THE CURRENT WIRING (STILL ALLOWED)') + '</div>' +
+                       bad.map(i => optHTML(i, i.value === cur)).join('');
+  return h;
+}
+
+let openDD = null;
+function makeDropdown(host, jack) {
+  host.innerHTML = '<button type="button" class="dd-btn" aria-haspopup="listbox" aria-expanded="false">' +
+    '<span class="dd-text"><span class="dd-main"></span><span class="dd-sub"></span></span><span class="dd-caret" aria-hidden="true">&#9662;</span></button>' +
+    '<div class="dd-menu" role="listbox" hidden></div>';
+  const btn = host.querySelector('.dd-btn'), menu = host.querySelector('.dd-menu');
+  const inst = { host: host, jack: jack, isOpen: false };
+  const opts = () => Array.prototype.slice.call(menu.querySelectorAll('.dd-opt'));
+
+  inst.open = function () {
+    if (openDD && openDD !== inst) openDD.close(false);
+    menu.innerHTML = menuHTML(jack);
+    menu.hidden = false; inst.isOpen = true; openDD = inst;
+    btn.setAttribute('aria-expanded', 'true');
+    menu.classList.remove('right');
+    const r = menu.getBoundingClientRect();
+    if (r.right > window.innerWidth - 8) menu.classList.add('right');
+    const sel = menu.querySelector('.dd-opt[aria-selected="true"]') || menu.querySelector('.dd-opt');
+    if (sel) { sel.focus(); sel.scrollIntoView({ block: 'nearest' }); }
+  };
+  inst.close = function (refocus) {
+    menu.hidden = true; inst.isOpen = false;
+    btn.setAttribute('aria-expanded', 'false');
+    if (openDD === inst) openDD = null;
+    if (refocus) btn.focus();
+  };
+  function pick(o) {
+    const v = o.dataset.value === '' ? null : o.dataset.value;
+    inst.close(true);
+    hwState[jack === 'in1' ? 'amp' : jack] = v;
+    updatePlot();
+  }
+  btn.addEventListener('click', () => inst.isOpen ? inst.close(false) : inst.open());
+  btn.addEventListener('keydown', e => {
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); inst.open(); }
+  });
+  menu.addEventListener('click', e => { const o = e.target.closest('.dd-opt'); if (o) pick(o); });
+  menu.addEventListener('keydown', e => {
+    const list = opts(), i = list.indexOf(document.activeElement);
+    if (e.key === 'ArrowDown') { e.preventDefault(); list[Math.min(list.length - 1, i + 1)].focus(); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); list[Math.max(0, i - 1)].focus(); }
+    else if (e.key === 'Home') { e.preventDefault(); list[0].focus(); }
+    else if (e.key === 'End') { e.preventDefault(); list[list.length - 1].focus(); }
+    else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (i >= 0) pick(list[i]); }
+    else if (e.key === 'Escape') { e.preventDefault(); inst.close(true); }
+    else if (e.key === 'Tab') { inst.close(false); }
+  });
+  return inst;
+}
+document.addEventListener('mousedown', e => {
+  if (openDD && !openDD.host.contains(e.target)) openDD.close(false);
+});
+
+function buildHardwareDOM() {
+  document.getElementById('hwFrontToggles').innerHTML =
+    toggleHTML('sw1', 'SW1', '\u221214 dB') + toggleHTML('sw2', 'SW2', '\u22127 dB') + toggleHTML('sw3', 'SW3', '\u22123.5 dB');
+  document.getElementById('hwSw4').innerHTML = toggleHTML('masterBypass', 'SW4', '4PDT true bypass', true);
+  document.querySelectorAll('.jk[data-jack]').forEach(el => {
+    const j = el.dataset.jack, m = HW_JACKS[j];
+    el.innerHTML = '<div class="jk-fig"></div><div class="jk-body"><div class="jk-label"><span>' + m.label +
+      '</span><span class="jk-cap">' + m.cap + '</span></div><div class="dd"></div></div>';
+    el._dd = makeDropdown(el.querySelector('.dd'), j);
+  });
+  document.querySelectorAll('.tgl[data-sw]').forEach(b => {
+    b.addEventListener('click', () => document.getElementById(b.dataset.sw).click());
+  });
+  document.getElementById('trimMode').addEventListener('change', updatePlot);
+  hwBuilt = true;
+}
+
+// ---- rendering ----
+const HW_ICON = { ok: '\u2713', note: 'i', warn: '!', danger: '\u00D7' };
+const HW_BADGE = ['OK', 'NOTE', 'WARNING', 'DANGER'];
+
+function hwChip(label, value) {
+  return '<span class="hw-chip">' + escapeHtml(label) + ' <b>' + escapeHtml(value) + '</b></span>';
+}
+
+function renderStatus(a) {
+  const el = document.getElementById('hwStatus');
+  const R = a.R, lvl = LVL_NAME[a.worst];
+  const chips = [];
+  const zTxt = a.zinMin > 1e6 ? 'open circuit' : f1(a.zinMin) + ' \u03A9 min, ' + f1(a.zin1k) + ' \u03A9 at 1 kHz';
+  chips.push(hwChip('Amp sees', zTxt + ' (rated ' + R.amp.ohms + ' \u03A9)'));
+  a.sw.groups.forEach((g, gi) => {
+    const lv = groupLevels(a.sw, gi);
+    chips.push(hwChip((a.sw.groups.length > 1 ? g.label : 'Speaker level') + ' at 1 kHz', (lv.h1k >= 0 ? '+' : '\u2212') + Math.abs(lv.h1k).toFixed(1) + ' dB'));
+  });
+  chips.push(hwChip('Mode', R.bypass ? 'SW4 bypass, 0 dB' : 'attenuating'));
+
+  const sorted = a.issues.slice().sort((x, y) => LVL[y.level] - LVL[x.level]);
+  let list;
+  if (!sorted.length) {
+    list = '<li class="hw-issue lvl-ok"><span class="ico">' + HW_ICON.ok + '</span><div><div class="hw-issue-title">No problems found</div>' +
+           '<div class="hw-issue-text">This wiring matches what the box was designed for.</div></div></li>';
+  } else {
+    list = sorted.map(i =>
+      '<li class="hw-issue lvl-' + i.level + '"><span class="ico">' + HW_ICON[i.level] + '</span><div>' +
+      '<div class="hw-issue-title">' + escapeHtml(i.title) +
+      (i.jacks.length ? '<span class="hw-tags">' + i.jacks.map(j => '<span class="hw-tag">' + JACK_LABEL[j] + '</span>').join('') + '</span>' : '') +
+      '</div><div class="hw-issue-text">' + escapeHtml(i.text) + '</div></div></li>').join('');
+  }
+  el.className = 'hw-status lvl-' + lvl;
+  el.innerHTML =
+    '<div class="hw-verdict"><span class="hw-badge">' + HW_BADGE[a.worst] + '</span><span>' + escapeHtml(a.layout) + '</span></div>' +
+    '<div class="hw-chips">' + chips.join('') + '</div>' +
+    '<ul class="hw-issues">' + list + '</ul>' +
+    '<div class="hw-foot">These checks are rules of thumb from the network model. Not modelled: speaker power handling, resistor wattage and cable resistance.</div>';
+}
+
+function renderSchematicState(a) {
+  const R = a.R;
+  ['out1', 'out2', 'out3'].forEach(j => {
+    const g = document.getElementById('sch-' + j);
+    if (g) g.classList.toggle('sch-dim', !R[j]);
+    const t = document.getElementById('sch-spk-' + j);
+    if (t) t.textContent = R[j] ? R[j].short + ' ' + R[j].ohms + '\u03A9' : '';
+  });
+  const r10 = document.getElementById('sch-r10');
+  if (r10) r10.classList.toggle('sch-dim', !(!R.bypass && (R.out3 || R.trimAll)));
+  const t = document.getElementById('sch-spk-in1');
+  if (t) t.textContent = R.amp.ohms + '\u03A9 amp';
+}
+
+function renderHardware() {
+  if (!hwBuilt) return;
+  const cfg = captureConfig();
+  const a = analyzeHW(cfg);
+  const R = a.R;
+
+  document.querySelectorAll('.tgl[data-sw]').forEach(t => {
+    const id = t.dataset.sw;
+    const on = document.getElementById(id).classList.contains('engaged');
+    t.setAttribute('aria-checked', on ? 'true' : 'false');
+    t.querySelector('.tgl-state').textContent = id === 'masterBypass' ? (on ? 'BYPASS' : 'ATTEN') : (on ? 'IN' : 'BYP');
+  });
+  document.getElementById('hwFront').classList.toggle('bypassed', R.bypass);
+
+  ['out3', 'out1', 'out2', 'in1'].forEach(j => {
+    const host = document.querySelector('.jk[data-jack="' + j + '"]');
+    const occupied = j === 'in1' ? true : !!R[j];
+    // Issues with no jack list are global; an open-circuit danger also colours the amp jack.
+    const worst = a.issues.filter(i => i.jacks.indexOf(j) >= 0 || (j === 'in1' && !i.jacks.length && i.level === 'danger'))
+                          .reduce((m, i) => Math.max(m, LVL[i.level]), 0);
+    const lvl = occupied ? LVL_NAME[worst] : 'empty';
+    const ohmTxt = j === 'in1' ? R.amp.ohms + '\u03A9' : (R[j] ? R[j].ohms + '\u03A9' : '');
+    host.querySelector('.jk-fig').innerHTML = jackSVG(occupied, lvl, ohmTxt);
+    host.querySelector('.dd').className = 'dd lvl-' + lvl;
+    const main = host.querySelector('.dd-main'), sub = host.querySelector('.dd-sub');
+    if (j === 'in1') {
+      main.className = 'dd-main'; main.textContent = R.amp.name;
+      sub.textContent = R.amp.ohms + ' \u03A9 \u00B7 ' + (R.amp.type === 'tube' ? 'tube' : 'solid state') + (R.amp.watts ? ' \u00B7 ' + R.amp.watts + ' W' : '');
+    } else if (R[j]) {
+      main.className = 'dd-main'; main.textContent = R[j].name;
+      const note = SPK_INFO[R[j].key].note;
+      sub.textContent = R[j].ohms + ' \u03A9' + (note ? ' \u00B7 ' + note : '');
+    } else {
+      main.className = 'dd-main is-empty'; main.textContent = 'Nothing plugged in'; sub.textContent = 'empty jack';
+    }
+    host.querySelector('.jk-fig').setAttribute('title', JACK_LABEL[j] + (occupied ? '' : ' (empty)'));
+  });
+
+  renderStatus(a);
+  renderSchematicState(a);
+  const meta = document.getElementById('speakerMeta');
+  if (meta) meta.textContent = R.amp.name + ' \u00B7 ' + R.amp.ohms + ' \u03A9 \u2192 ' +
+    (a.occ.length ? a.occ.map(j => JACK_LABEL[j] + ' ' + R[j].name + ' (' + R[j].ohms + ' \u03A9)').join(', ') : 'no speaker');
+  const hm = document.getElementById('hwMeta');
+  if (hm) hm.textContent = a.layout;
 }
 
 // ===== Multi-config comparison state =====
@@ -1659,7 +2527,9 @@ function captureConfig() {
     outSeries:num('outSeries'), loadMatch:num('loadMatch'), outReturn:num('outReturn'),
     bypass: document.getElementById('masterBypass').classList.contains('engaged'),
     speakerPreset: document.getElementById('speakerPreset').value,
-    Re:num('Re'), Le:num('Le'), fs:num('fs'), RES:num('RES'), Qms:num('Qms')
+    Re:num('Re'), Le:num('Le'), fs:num('fs'), RES:num('RES'), Qms:num('Qms'),
+    hw: { amp: hwState.amp, out1: hwState.out1, out2: hwState.out2, out3: hwState.out3 },
+    trimMode: document.getElementById('trimMode').value
   };
 }
 
@@ -1671,6 +2541,10 @@ function applyConfigToControls(cfg) {
    'outSeries','loadMatch','outReturn','Re','Le','fs','RES','Qms']
     .forEach(id => { if (cfg[id] !== undefined) setVal(id, cfg[id]); });
   if (cfg.speakerPreset !== undefined) setVal('speakerPreset', cfg.speakerPreset);
+  // Hardware selection. Configs saved before the hardware panel are converted without changing their numbers.
+  cfg = ensureHW(JSON.parse(JSON.stringify(cfg)));
+  hwState = { amp: cfg.hw.amp || DEFAULT_AMP, out1: cfg.hw.out1 || null, out2: cfg.hw.out2 || null, out3: cfg.hw.out3 || null };
+  setVal('trimMode', cfg.trimMode || 'built');
 
   ['sw1','sw2','sw3'].forEach(id => {
     const el = document.getElementById(id);
@@ -1706,7 +2580,7 @@ function normalizeSavedConfig(sc) {
   return {
     id:     sc.id     || ('cfg_' + Math.random().toString(36).slice(2, 9)),
     name:   sc.name   || 'Config',
-    cfg:    sc.cfg    || {},
+    cfg:    ensureHW(sc.cfg || {}),
     colorIdx: (typeof sc.colorIdx === 'number') ? sc.colorIdx : 0,
     show:   false,
     visH:   sc.visH   !== undefined ? !!sc.visH   : true,
@@ -1755,17 +2629,32 @@ function updatePlot() {
   const statsRows = [];
 
   for (const e of entries) {
-    const {freqs, H_db, Zin_mag, Zspk_mag} = sweep(e.cfg);
+    const sw = sweep(e.cfg);
+    const {freqs, Zin_mag} = sw;
     const col = cssVar(e.colorVar);
+    const multi = sw.groups.length > 1;
 
-    if (e.vis.visH) {
-      traces.push({
-        x: freqs, y: H_db, type: 'scatter', mode: 'lines',
-        name: e.name + ' · H(f)', yaxis: 'y',
-        line: {color: col, width: 2.2},
-        hovertemplate: '%{x:.0f} Hz · %{y:.2f} dB<extra>' + e.name + ' · H(f)</extra>'
-      });
-    }
+    // One H(f) and Zspkr curve per output group. Proper wiring has one group;
+    // OUT3 used together with OUT1/OUT2 gives two (different levels).
+    sw.groups.forEach((g, gi) => {
+      const nm = e.name + (multi ? ' ' + g.label : '');
+      if (e.vis.visH) {
+        traces.push({
+          x: freqs, y: g.H_db, type: 'scatter', mode: 'lines',
+          name: nm + ' · H(f)', yaxis: 'y',
+          line: {color: col, width: 2.2, dash: gi === 0 ? 'solid' : 'dashdot'},
+          hovertemplate: '%{x:.0f} Hz · %{y:.2f} dB<extra>' + nm + ' · H(f)</extra>'
+        });
+      }
+      if (e.vis.visZspk) {
+        traces.push({
+          x: freqs, y: g.Zspk, type: 'scatter', mode: 'lines',
+          name: nm + ' · Z<sub>spkr</sub>', yaxis: 'y2',
+          line: {color: col, width: 1.4, dash: gi === 0 ? 'dot' : 'longdash'},
+          hovertemplate: '%{x:.0f} Hz · %{y:.2f} Ω<extra>' + nm + ' · Zspkr</extra>'
+        });
+      }
+    });
     if (e.vis.visZin) {
       traces.push({
         x: freqs, y: Zin_mag, type: 'scatter', mode: 'lines',
@@ -1774,22 +2663,16 @@ function updatePlot() {
         hovertemplate: '%{x:.0f} Hz · %{y:.2f} Ω<extra>' + e.name + ' · Zin</extra>'
       });
     }
-    if (e.vis.visZspk) {
-      traces.push({
-        x: freqs, y: Zspk_mag, type: 'scatter', mode: 'lines',
-        name: e.name + ' · Z<sub>spkr</sub>', yaxis: 'y2',
-        line: {color: col, width: 1.4, dash: 'dot'},
-        hovertemplate: '%{x:.0f} Hz · %{y:.2f} Ω<extra>' + e.name + ' · Zspkr</extra>'
-      });
-    }
 
+    const H_db = sw.H_db;
     const i1k = nearestIdx(freqs, 1000), i10k = nearestIdx(freqs, 10000), i100 = nearestIdx(freqs, 100);
     statsRows.push({
       key: e.key, name: e.name, isLive: e.isLive, color: col, vis: e.vis,
       att:  H_db[i1k],
       dHF:  H_db[i10k] - H_db[i1k],
       dLF:  H_db[i100] - H_db[i1k],
-      zin:  Zin_mag[i1k]
+      zin:  Zin_mag[i1k],
+      extra: multi ? sw.groups.map(g => g.label + ' ' + g.H_db[i1k].toFixed(1) + ' dB').join('  ·  ') : ''
     });
   }
 
@@ -1844,10 +2727,12 @@ function updatePlot() {
 
   renderStatsTable(statsRows);
   updateBestPractice(entries.length);
+  renderHardware();
 }
 
 // ===== Stats / legend table =====
 function fmtSigned(v, unit) {
+  if (!isFinite(v)) return '–';
   const s = (v >= 0 ? '+' : '') + v.toFixed(2);
   return s + ' ' + unit;
 }
@@ -1860,11 +2745,11 @@ function renderStatsTable(rows) {
       (r.vis[visKey] ? ' checked' : '') + '>';
     return '<tr class="' + (r.isLive ? 'row-live' : '') + '" data-key="' + r.key + '">' +
       '<td class="col-sw"><span class="sw-dot" style="background:' + r.color + '"></span></td>' +
-      '<td class="col-name">' + escapeHtml(r.name) + '</td>' +
+      '<td class="col-name">' + escapeHtml(r.name) + (r.extra ? '<span class="name-extra">' + escapeHtml(r.extra) + '</span>' : '') + '</td>' +
       '<td class="col-vis">' + cb('visH') + '</td>' +
       '<td class="col-vis">' + cb('visZin') + '</td>' +
       '<td class="col-vis">' + cb('visZspk') + '</td>' +
-      '<td class="val-att">' + r.att.toFixed(2) + ' dB</td>' +
+      '<td class="val-att">' + (isFinite(r.att) ? r.att.toFixed(2) + ' dB' : '–') + '</td>' +
       '<td class="num-dim">' + fmtSigned(r.dHF, 'dB') + '</td>' +
       '<td class="num-dim">' + fmtSigned(r.dLF, 'dB') + '</td>' +
       '<td class="val-zin">' + r.zin.toFixed(2) + ' Ω</td>' +
@@ -1983,43 +2868,7 @@ function populate() {
     });
   }
 
-  const SPEAKER_META = {
-    c12n:        "Blues Jr IV Tweed · Jensen C12N · 8 Ω",
-    ctype:       "Blues Jr IV · Celestion A-Type · 8 Ω",
-    greenback:   "Celestion G12M Greenback · 25 W · 8 Ω",
-    v30:         "Celestion Vintage 30 · 60 W · 8 Ω",
-    blue:        "Vox AC30 · Celestion Alnico Blue · 8 Ω",
-    g12h:        "Celestion G12H-30 Heritage · 8 Ω",
-    c12k:        "Fender HR/Twin · Jensen C12K · 8 Ω",
-    canrex:      "Eminence Cannabis Rex · 8 Ω",
-    ideal:       "Reference · Ideal · 8 Ω",
-    g10n40_16:   "Blackstar HT-5 · Celestion G10N-40 · 16 Ω",
-    greenback16: "Celestion G12M Greenback · 16 Ω",
-    v30_16:      "Celestion Vintage 30 · 16 Ω",
-    ideal16:     "Reference · Ideal · 16 Ω"
-  };
-
-  const SPEAKERS = {
-    c12n:        { Re: 6.05, Le: 0.90, fs: 113, RES: 38.5, Qms: 7.52 },
-    ctype:       { Re: 6.4,  Le: 0.7,  fs: 90,  RES: 37.3, Qms: 3.5  },
-    greenback:   { Re: 6.7,  Le: 0.7,  fs: 75,  RES: 30,   Qms: 4.0  },
-    v30:         { Re: 6.9,  Le: 0.4,  fs: 75,  RES: 30,   Qms: 7.0  },
-    blue:        { Re: 6.8,  Le: 0.5,  fs: 75,  RES: 35,   Qms: 3.5  },
-    g12h:        { Re: 6.5,  Le: 0.65, fs: 55,  RES: 32,   Qms: 4.0  },
-    c12k:        { Re: 5.5,  Le: 0.65, fs: 120, RES: 28,   Qms: 4.0  },
-    canrex:      { Re: 5.95, Le: 0.6,  fs: 90,  RES: 25,   Qms: 2.6  },
-    ideal:       { Re: 8.0,  Le: 0.0,  fs: 1,   RES: 1,    Qms: 1    },
-    g10n40_16:   { Re: 12.05, Le: 1.4, fs: 98,  RES: 50,   Qms: 4.5  },
-    greenback16: { Re: 13.5,  Le: 1.4, fs: 75,  RES: 60,   Qms: 4.0  },
-    v30_16:      { Re: 13.8,  Le: 0.8, fs: 75,  RES: 60,   Qms: 7.0  },
-    ideal16:     { Re: 16.0,  Le: 0.0, fs: 1,   RES: 1,    Qms: 1    }
-  };
-
-  function updateSpeakerMeta(val) {
-    const meta = SPEAKER_META[val];
-    const metaEl = document.getElementById('speakerMeta');
-    if (meta && metaEl) metaEl.textContent = meta;
-  }
+  function updateSpeakerMeta() {}   // header line is now driven by the hardware panel
 
   function applySpeakerPreset(val) {
     const p = SPEAKERS[val];
@@ -2243,6 +3092,7 @@ function wireSavedConfigs() {
 }
 
 populate();
+buildHardwareDOM();
 loadConfigsFromStore();
 wireSavedConfigs();
 renderConfigList();
