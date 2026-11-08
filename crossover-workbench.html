@@ -1,0 +1,1925 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="Free browser-based loudspeaker crossover simulator: passive, active and hybrid designs, FRD/ZMA import, baffle and open-baffle diffraction, spinorama estimates, live schematic and DSP biquad export.">
+<title>Crossover Workbench</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: measurement-printout workbench. Charts and the live circuit lead on the left; the editor rail on the right holds System, one tab per way, and Tools. Rail drops below the response chart on narrow screens. */
+:root{
+  --paper:#EEF2F4; --panel:#FFFFFF; --ink:#18232B; --muted:#5A6973; --faint:#8494A0; --rule:#D3DCE1;
+  --grid:#E8EDF0; --gridmaj:#C8D3D9; --field:#F6F8F9; --chipbg:#E9EFF2; --hover:#DDE6EB;
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100; --s5:#e87ba4; --ghost:#9AA8B1; --probe:#6250d6;
+  --good:#2F7A4F; --warn:#A8730B; --bad:#B23A3A;
+  --q1:#cde2fb; --q2:#9ec5f4; --q3:#6da7ec; --q4:#3987e5; --q5:#256abf; --q6:#184f95; --q7:#0d366b;
+  --display:"Barlow Semi Condensed","Arial Narrow",system-ui,sans-serif;
+  --body:"Source Sans 3",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0F1519; --panel:#162027; --ink:#E2EAEE; --muted:#93A3AD; --faint:#6E7F8A; --rule:#2A3742;
+    --grid:#1D2932; --gridmaj:#2F3E49; --field:#111A20; --chipbg:#1F2B34; --hover:#26343E;
+    --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181; --ghost:#5C6C77; --probe:#9085e9;
+    --good:#6CC08F; --warn:#E0B04A; --bad:#E77B7B;
+    --q1:#1a2a38; --q2:#104281; --q3:#184f95; --q4:#1c5cab; --q5:#2a78d6; --q6:#5598e7; --q7:#9ec5f4;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0F1519; --panel:#162027; --ink:#E2EAEE; --muted:#93A3AD; --faint:#6E7F8A; --rule:#2A3742;
+  --grid:#1D2932; --gridmaj:#2F3E49; --field:#111A20; --chipbg:#1F2B34; --hover:#26343E;
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181; --ghost:#5C6C77; --probe:#9085e9;
+  --good:#6CC08F; --warn:#E0B04A; --bad:#E77B7B;
+  --q1:#1a2a38; --q2:#104281; --q3:#184f95; --q4:#1c5cab; --q5:#2a78d6; --q6:#5598e7; --q7:#9ec5f4;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--body);font-size:14.5px;line-height:1.45}
+.wrap{max-width:1440px;margin:0 auto;padding-inline:16px;padding-block:18px 48px}
+header.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 20px;margin-bottom:14px}
+.brand{display:flex;flex-direction:column;gap:4px;min-width:0}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(26px,4.4vw,38px);line-height:1.05;margin:0;text-wrap:balance}
+.brand .projname{font-family:var(--body);font-size:15px;font-weight:600;border:1px solid transparent;background:transparent;color:var(--ink);padding:2px 6px;margin-left:-6px;border-radius:4px;width:min(420px,100%)}
+.brand .projname:hover{border-color:var(--rule)}
+.brand .projname:focus-visible{outline:2px solid var(--probe);outline-offset:1px;background:var(--field)}
+.toolbar{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+h2{font-family:var(--display);font-weight:600;font-size:19px;margin:0;letter-spacing:.01em}
+h3{font-family:var(--mono);font-weight:600;font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin:0}
+.note{font-size:13px;color:var(--muted);margin:0}
+.note.small{font-size:12px}
+.btn{font-family:var(--body);font-size:13.5px;font-weight:600;padding:6px 11px;border-radius:5px;border:1px solid var(--rule);background:var(--chipbg);color:var(--ink);cursor:pointer;white-space:nowrap;line-height:1.3}
+.btn:hover{border-color:var(--muted)}
+.btn:disabled{opacity:.45;cursor:default}
+.btn.sm{font-size:12.5px;padding:3px 8px}
+.btn.icon{padding:3px 7px;font-family:var(--mono);font-size:12px}
+.btn.primary{background:var(--ink);color:var(--panel);border-color:var(--ink)}
+.btn.on{background:var(--probe);border-color:var(--probe);color:#fff}
+select,input[type=text],input[type=number],textarea{font-family:var(--mono);font-size:13px;padding:4px 6px;border:1px solid var(--rule);border-radius:4px;background:var(--field);color:var(--ink);min-width:0}
+select{font-family:var(--body);font-size:13.5px}
+textarea{width:100%;font-size:12px;line-height:1.35}
+input[type=number]{width:78px;font-variant-numeric:tabular-nums}
+input[type=range]{accent-color:var(--probe);min-width:0}
+input[type=checkbox]{accent-color:var(--probe)}
+:is(select,input,textarea,.btn,button,summary):focus-visible{outline:2px solid var(--probe);outline-offset:2px}
+
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px}
+.tile{background:var(--panel);border:1px solid var(--rule);border-radius:6px;padding:9px 12px;display:flex;flex-direction:column;gap:1px;min-width:0}
+.tile .k{font-size:12px;color:var(--muted)}
+.tile .v{font-family:var(--mono);font-size:17px;font-weight:600;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.tile .s{font-size:11.5px;color:var(--muted);font-family:var(--mono);font-variant-numeric:tabular-nums}
+
+.layout{display:grid;gap:14px;grid-template-columns:minmax(0,1fr) 400px;align-items:start}
+.main{display:flex;flex-direction:column;gap:14px;min-width:0}
+.rail{position:sticky;top:calc(env(safe-area-inset-top,0px) + 10px);max-height:calc(100vh - 20px);overflow:auto;min-width:0}
+@media (max-width:1000px){.layout{grid-template-columns:minmax(0,1fr)}.rail{position:static;max-height:none;overflow:visible}}
+.panel{background:var(--panel);border:1px solid var(--rule);border-radius:6px;padding:14px;min-width:0;display:flex;flex-direction:column;gap:10px}
+.panel-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px 12px}
+.row{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px}
+.row.tight{gap:4px 6px}
+.grow{flex:1;min-width:0}
+
+.legend{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;padding:3px 9px 3px 7px;border-radius:999px;background:var(--chipbg);cursor:pointer;user-select:none;position:relative}
+.chip input{position:absolute;opacity:0;pointer-events:none}
+.chip .sw{width:14px;height:3px;border-radius:2px;background:currentColor;flex:none}
+.chip .sw.dash{background:repeating-linear-gradient(90deg,currentColor 0 4px,transparent 4px 7px)}
+.chip .sw.band{height:8px;opacity:.35}
+.chip.off{opacity:.42}
+.chip:focus-within{outline:2px solid var(--probe);outline-offset:1px}
+.chip .t{color:var(--ink)}
+
+.tabs{display:flex;flex-wrap:wrap;gap:4px;border-bottom:1px solid var(--rule);padding-bottom:6px}
+.tab{font-family:var(--body);font-size:13.5px;font-weight:600;padding:5px 10px;border-radius:5px 5px 0 0;border:1px solid transparent;background:transparent;color:var(--muted);cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.tab:hover{color:var(--ink);background:var(--chipbg)}
+.tab[aria-selected=true]{color:var(--ink);background:var(--chipbg);border-color:var(--rule)}
+.tab .dot{width:9px;height:9px;border-radius:2px}
+
+.chart{width:100%;position:relative;touch-action:pan-y;cursor:crosshair}
+.chart svg{display:block;width:100%;height:auto;overflow:visible}
+.tip{position:absolute;pointer-events:none;background:var(--panel);border:1px solid var(--rule);border-radius:5px;padding:6px 8px;font-size:12px;box-shadow:0 2px 10px rgb(0 0 0 / .12);min-width:130px;z-index:5}
+.tip .f{font-family:var(--mono);font-weight:600;margin-bottom:3px}
+.tip .r{display:flex;align-items:center;gap:6px;justify-content:space-between;font-family:var(--mono);font-variant-numeric:tabular-nums}
+.tip .r i{display:inline-block;width:10px;height:3px;border-radius:2px;flex:none}
+.tip .r span:first-child{display:inline-flex;align-items:center;gap:5px;font-family:var(--body);color:var(--muted)}
+.subchart-label{font-family:var(--mono);font-size:10.5px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.heat{display:block;width:100%;height:auto;border-radius:3px}
+.scale{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.scale .bar{height:8px;flex:1;max-width:260px;border-radius:2px}
+
+.schem-scroll{overflow-x:auto;border:1px solid var(--grid);border-radius:4px;background:var(--panel)}
+.sch{display:block}
+.sch .wire{stroke:var(--ink);stroke-width:1.5;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.sch .sym{stroke:currentColor;stroke-width:2.2;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.sch .sym.byp{color:var(--ghost);stroke-dasharray:3 3;stroke-width:1.6}
+.sch .box{stroke:var(--ink);stroke-width:1.4;fill:var(--chipbg)}
+.sch .dot{fill:var(--ink)}
+.sch .nm{font-family:var(--mono);font-size:11.5px;font-weight:600;fill:var(--ink)}
+.sch .vl{font-family:var(--mono);font-size:10.5px;fill:var(--muted)}
+.sch .drv{font-family:var(--body);font-size:12.5px;font-weight:600;fill:var(--ink)}
+.sch .db{font-family:var(--mono);font-size:11.5px;font-weight:600}
+.sch .hit{cursor:pointer;fill:transparent;stroke:none}
+.sch .hit:hover,.sch .hit:focus-visible{fill:var(--hover);outline:none}
+.sch :not(.hit){pointer-events:none}
+.r-pass{color:var(--good)}.r-mid{color:var(--warn)}.r-block{color:var(--bad)}.r-pad{color:var(--muted)}.r-byp{color:var(--ghost)}
+.keyrow{display:flex;flex-wrap:wrap;gap:6px 12px;font-size:12.5px;color:var(--muted)}
+.keyrow span{display:inline-flex;align-items:center;gap:5px}
+.keyrow i{display:inline-block;width:14px;height:3px;border-radius:2px;background:currentColor}
+.probe-ctl{display:flex;align-items:center;gap:10px}
+.probe-ctl input[type=range]{flex:1}
+.probe-f{font-family:var(--mono);font-weight:600;font-variant-numeric:tabular-nums;min-width:84px;text-align:right;color:var(--probe)}
+
+.tblwrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th{font-family:var(--mono);font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);text-align:left;font-weight:600;padding:6px 8px;border-bottom:1px solid var(--rule);white-space:nowrap}
+td{padding:6px 8px;border-bottom:1px solid var(--grid);vertical-align:top}
+td.num,th.num{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap;text-align:right}
+tr.grp td{background:var(--chipbg);font-weight:600;font-size:12.5px}
+.role{display:inline-block;font-size:12px;padding:0 8px;border-radius:999px;white-space:nowrap;border:1px solid currentColor}
+.pn{font-family:var(--mono);font-weight:600}
+#ptable td,#bom td{white-space:nowrap}
+.chk{display:flex;align-items:flex-start;gap:6px;font-size:13px;color:var(--muted)}
+.chk input{margin-top:3px;flex:none}
+.blk-ctl{display:inline-flex;align-items:center;gap:4px;margin-left:auto;flex-wrap:nowrap}
+.warn-txt{color:var(--warn)}.bad-txt{color:var(--bad)}
+
+/* rail editor */
+.sec{display:flex;flex-direction:column;gap:8px;padding-block:10px;border-top:1px solid var(--rule)}
+.sec:first-child{border-top:0;padding-top:2px}
+.sec-head{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.fgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(108px,1fr));gap:8px 10px}
+.fld{display:flex;flex-direction:column;gap:2px;min-width:0}
+.fld>span{font-size:11.5px;color:var(--muted)}
+.fld input[type=number],.fld select,.fld input[type=text]{width:100%}
+.fld.wide{grid-column:1/-1}
+.unit{font-family:var(--mono);font-size:11.5px;color:var(--muted)}
+.derived{font-family:var(--mono);font-size:11.5px;color:var(--muted);display:flex;flex-wrap:wrap;gap:4px 12px}
+.blk{border:1px solid var(--rule);border-radius:5px;padding:8px;display:flex;flex-direction:column;gap:6px;background:var(--panel)}
+.blk.flash{outline:2px solid var(--probe);outline-offset:1px}
+.blk.off{opacity:.6}
+.blk-head{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.blk-name{font-family:var(--mono);font-weight:600;font-size:13px;min-width:48px}
+.seg{display:inline-flex;border:1px solid var(--rule);border-radius:4px;overflow:hidden}
+.seg button{font-family:var(--body);font-size:12px;padding:2px 7px;border:0;background:transparent;color:var(--muted);cursor:pointer}
+.seg button[aria-pressed=true]{background:var(--ink);color:var(--panel)}
+.el{display:grid;grid-template-columns:22px minmax(0,1fr) 74px 28px;align-items:center;gap:6px}
+.el .lbl{font-family:var(--mono);font-size:12px;font-weight:600}
+.el input[type=number]{width:74px}
+.dcr{display:flex;align-items:center;gap:6px;padding-left:28px;font-size:12px;color:var(--muted)}
+.dcr input{width:64px!important}
+.inst{display:grid;grid-template-columns:28px repeat(3,minmax(0,1fr));gap:6px;align-items:center}
+.inst input{width:100%}
+.dspi{display:flex;flex-wrap:wrap;align-items:center;gap:6px;border:1px solid var(--rule);border-radius:5px;padding:6px 8px}
+.dspi .ty{font-family:var(--mono);font-size:12px;font-weight:600;min-width:42px}
+.dspi input[type=number]{width:70px}
+.calc{border:1px solid var(--rule);border-radius:5px;padding:10px;display:flex;flex-direction:column;gap:8px}
+.calc output,.out{font-family:var(--mono);font-size:12.5px;font-variant-numeric:tabular-nums;white-space:pre-wrap;color:var(--ink)}
+details.more>summary{cursor:pointer;font-size:13px;color:var(--muted);list-style:none}
+details.more>summary::before{content:"+ ";font-family:var(--mono)}
+details.more[open]>summary::before{content:"− "}
+.drop{border:1.5px dashed var(--rule);border-radius:5px;padding:8px;text-align:center;font-size:12.5px;color:var(--muted)}
+.drop.over{border-color:var(--probe);color:var(--ink)}
+.toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 18px);transform:translateX(-50%);background:var(--ink);color:var(--panel);padding:8px 14px;border-radius:6px;font-size:13.5px;z-index:50;max-width:min(90vw,520px)}
+.foot{margin-top:18px;font-size:12.5px;color:var(--muted);max-width:90ch;display:flex;flex-direction:column;gap:6px}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;scroll-behavior:auto!important}}
+</style>
+<style>body{margin:0}[hidden]{display:none!important}</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <span class="eyebrow">Passive · active · hybrid loudspeaker crossover simulator</span>
+      <h1>Crossover Workbench</h1>
+      <input class="projname" id="projname" type="text" aria-label="Project name">
+    </div>
+    <div class="toolbar">
+      <label class="note" for="example">Examples</label>
+      <select id="example"></select>
+      <button class="btn" id="undo" type="button" title="Undo (Ctrl+Z)">Undo</button>
+      <button class="btn" id="redo" type="button" title="Redo (Ctrl+Shift+Z)">Redo</button>
+      <button class="btn" id="capture" type="button" title="Hold the current sum and impedance as a gray reference">Capture</button>
+      <button class="btn" id="open" type="button">Open project</button>
+      <button class="btn primary" id="save" type="button">Save project</button>
+      <input type="file" id="openfile" accept=".json,.xwb,application/json" hidden>
+    </div>
+  </header>
+
+  <section class="tiles" id="tiles" aria-label="Summary"></section>
+
+  <div class="layout">
+    <div class="main">
+      <section class="panel" id="p-resp">
+        <div class="panel-head">
+          <h2>Acoustic response</h2>
+          <span class="note" id="resp-note"></span>
+        </div>
+        <div class="legend" id="leg-resp"></div>
+        <div class="chart" id="chart-resp"></div>
+        <p class="note small">Each colored line is one way: a driver heard through its crossover parts. The black sum is what you hear, the drivers added together with their phase. Where two ways overlap, they only add up to a flat sum if their levels and phases line up.</p>
+        <div class="row" style="justify-content:space-between">
+          <div class="row tight">
+            <label class="note" for="ang-h">Horizontal</label>
+            <input type="range" id="ang-h" min="-90" max="90" step="5" style="width:110px">
+            <span class="unit" id="ang-h-v"></span>
+            <label class="note" for="ang-v">Vertical</label>
+            <input type="range" id="ang-v" min="-60" max="60" step="5" style="width:110px">
+            <span class="unit" id="ang-v-v"></span>
+          </div>
+          <div class="row tight">
+            <label class="note" for="rng">Range</label>
+            <select id="rng"><option value="60">60 dB</option><option value="40">40 dB</option><option value="24">24 dB</option></select>
+            <label class="note" for="nullway">Reverse null</label>
+            <select id="nullway"></select>
+            <label class="note" for="tol">Tolerance</label>
+            <select id="tol"><option value="0">Off</option><option value="2">±2%</option><option value="5">±5%</option><option value="10">±10%</option></select>
+            <button class="btn sm" id="overlay-btn" type="button">Overlay FRD</button>
+            <input type="file" id="overlay-file" hidden accept=".frd,.txt,.csv,.dat">
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" id="p-sub">
+        <div class="tabs" role="tablist" id="subtabs">
+          <button class="tab" role="tab" data-sub="imp" aria-selected="true">Impedance</button>
+          <button class="tab" role="tab" data-sub="phase" aria-selected="false">Phase</button>
+          <button class="tab" role="tab" data-sub="xfer" aria-selected="false">Transfer</button>
+          <button class="tab" role="tab" data-sub="dir" aria-selected="false">Directivity</button>
+          <button class="tab" role="tab" data-sub="spin" aria-selected="false">Spinorama</button>
+        </div>
+        <div id="sub-body"></div>
+      </section>
+
+      <section class="panel" id="p-circ">
+        <div class="panel-head">
+          <h2>Circuit</h2>
+          <span class="note">Tap a part to edit it. Colors show each part's job at the probe frequency.</span>
+        </div>
+        <div class="schem-scroll" id="schem"></div>
+        <div class="keyrow" aria-hidden="true">
+          <span class="r-pass"><i></i>Passing or out of the way</span>
+          <span class="r-mid"><i></i>In transition</span>
+          <span class="r-block"><i></i>Blocking or shunting</span>
+          <span class="r-pad"><i></i>Resistor or padding</span>
+          <span class="r-byp"><i></i>Bypassed</span>
+        </div>
+        <div class="probe-ctl">
+          <label for="probe" class="note">Probe</label>
+          <input type="range" id="probe" min="0" max="1000" step="1">
+          <span class="probe-f" id="probe-f"></span>
+        </div>
+        <div class="tblwrap"><table id="ptable"></table></div>
+        <p class="note small">Series parts show the level lost across the part. Shunt parts show the share of arriving current sent to ground. Current and power are for a sine at the probe frequency at the test level set in Parts &amp; power.</p>
+      </section>
+
+      <section class="panel" id="p-bom">
+        <div class="panel-head">
+          <h2>Parts &amp; power</h2>
+          <div class="row tight">
+            <label class="note" for="testw">Test level</label>
+            <input type="number" id="testw" min="1" max="1000" step="1" style="width:70px">
+            <span class="unit">W into 8 Ω</span>
+            <button class="btn sm" id="snap" type="button">Round to stock values</button>
+          </div>
+        </div>
+        <div class="tblwrap"><table id="bom"></table></div>
+        <p class="note small">Pink noise spreads the test power evenly per octave from 20 Hz to 20 kHz, close to music. Worst sine is the highest dissipation from a single tone anywhere in that range. Pick resistor ratings above the pink figure with margin.</p>
+      </section>
+    </div>
+
+    <aside class="panel rail" aria-label="Editor">
+      <div class="tabs" role="tablist" id="railtabs"></div>
+      <div id="rail-body"></div>
+    </aside>
+  </div>
+
+  <footer class="foot">
+    <p>Feature set inspired by Jeff Bagby's Passive Crossover Designer (2001–2019), a gift to the DIY speaker community. This is an independent implementation and uses no code or data from it.</p>
+    <p>Model limits: ideal parts except inductor DCR, one flat rectangular baffle, piston directivity, and a simplified edge-diffraction model with a dipole option for open baffles. Spinorama curves are estimates built from the front hemisphere. Imported measurements with phase from a common mic position give the most trustworthy sums.</p>
+  </footer>
+</div>
+
+<script>
+/* Crossover Workbench engine: driver models, ladder networks, DSP, geometry, diffraction, spin metrics. */
+const XO = (() => {
+"use strict";
+const C_AIR = 343, RHO = 1.204, PREF = 20e-6, VREF = 2.83;
+const FMIN = 10, FMAX = 24000, PPO = 48;
+const NF = Math.round(Math.log2(FMAX / FMIN) * PPO) + 1;
+const F = new Float64Array(NF), W = new Float64Array(NF), K = new Float64Array(NF);
+for (let i = 0; i < NF; i++) { F[i] = FMIN * Math.pow(2, i / PPO); W[i] = 2 * Math.PI * F[i]; K[i] = W[i] / C_AIR; }
+const idxOf = f => Math.log2(f / FMIN) * PPO;
+
+/* ---------- complex scalars ---------- */
+const add = (a, b) => [a[0] + b[0], a[1] + b[1]];
+const sub = (a, b) => [a[0] - b[0], a[1] - b[1]];
+const mul = (a, b) => [a[0] * b[0] - a[1] * b[1], a[0] * b[1] + a[1] * b[0]];
+const div = (a, b) => { const d = b[0] * b[0] + b[1] * b[1]; if (d === 0) return [1e30, 0]; return [(a[0] * b[0] + a[1] * b[1]) / d, (a[1] * b[0] - a[0] * b[1]) / d]; };
+const par = (a, b) => { if (a === null) return b; if (b === null) return a; const s = add(a, b); if (s[0] === 0 && s[1] === 0) return [0, 0]; return div(mul(a, b), s); };
+const abs = a => Math.hypot(a[0], a[1]);
+const arg = a => Math.atan2(a[1], a[0]);
+const sc = (a, k) => [a[0] * k, a[1] * k];
+const polar = (m, ph) => [m * Math.cos(ph), m * Math.sin(ph)];
+const db = a => 20 * Math.log10(Math.max(abs(a), 1e-12));
+
+/* complex arrays */
+function CA(n = NF) { return { re: new Float64Array(n), im: new Float64Array(n) }; }
+const get = (A, i) => [A.re[i], A.im[i]];
+const put = (A, i, v) => { A.re[i] = v[0]; A.im[i] = v[1]; };
+function caFill(v) { const A = CA(); A.re.fill(v[0]); A.im.fill(v[1]); return A; }
+function caMul(A, B) { const C = CA(); for (let i = 0; i < NF; i++) { C.re[i] = A.re[i] * B.re[i] - A.im[i] * B.im[i]; C.im[i] = A.re[i] * B.im[i] + A.im[i] * B.re[i]; } return C; }
+function caAdd(A, B) { const C = CA(); for (let i = 0; i < NF; i++) { C.re[i] = A.re[i] + B.re[i]; C.im[i] = A.im[i] + B.im[i]; } return C; }
+function caScale(A, k) { const C = CA(); for (let i = 0; i < NF; i++) { C.re[i] = A.re[i] * k; C.im[i] = A.im[i] * k; } return C; }
+const DB0 = -20 * Math.log10(PREF);
+function caSpl(A) { const o = new Float64Array(NF); for (let i = 0; i < NF; i++) o[i] = 20 * Math.log10(Math.max(Math.hypot(A.re[i], A.im[i]), 1e-12)) + DB0; return o; }
+function caDb(A) { const o = new Float64Array(NF); for (let i = 0; i < NF; i++) o[i] = 20 * Math.log10(Math.max(Math.hypot(A.re[i], A.im[i]), 1e-12)); return o; }
+function caAbs(A) { const o = new Float64Array(NF); for (let i = 0; i < NF; i++) o[i] = Math.hypot(A.re[i], A.im[i]); return o; }
+function caDeg(A) { const o = new Float64Array(NF); for (let i = 0; i < NF; i++) o[i] = Math.atan2(A.im[i], A.re[i]) * 180 / Math.PI; return o; }
+const splToP = dB => PREF * Math.pow(10, dB / 20);
+
+/* ---------- minimum phase ---------- */
+/* dB on the program grid -> minimum phase (radians) via the Bode gain-phase integral in log frequency.
+   Tails extend with slopes in dB/octave for 16 octaves past each end. */
+const MP_E = 16 * PPO, MP_H = Math.LN2 / PPO, MP_K = (() => { const k = new Float64Array(NF + 2 * MP_E); k[0] = MP_H * (Math.log(4 / MP_H) + 1); for (let n = 1; n < k.length; n++) { const u = n * MP_H; k[n] = MP_H * Math.log(1 / Math.tanh(u / 2)); } return k; })();
+function minPhase(dbGrid, loSlope, hiSlope) {
+  const E = MP_E, T = NF + 2 * E, A = new Float64Array(T), c = Math.LN10 / 20;
+  for (let j = 0; j < T; j++) { const i = j - E; let v; if (i < 0) v = dbGrid[0] + loSlope * i / PPO; else if (i >= NF) v = dbGrid[NF - 1] + hiSlope * (i - NF + 1) / PPO; else v = dbGrid[i]; A[j] = v * c; }
+  const D = new Float64Array(T);
+  for (let j = 0; j < T; j++) { const a = A[Math.max(0, j - 1)], b = A[Math.min(T - 1, j + 1)]; D[j] = (b - a) / (((Math.min(T - 1, j + 1)) - Math.max(0, j - 1)) * MP_H); }
+  const out = new Float64Array(NF);
+  for (let i = 0; i < NF; i++) { const ji = i + E; let s = 0; for (let j = 0; j < T; j++) s += D[j] * MP_K[Math.abs(j - ji)]; out[i] = s / Math.PI; }
+  return out;
+}
+
+/* ---------- data import ---------- */
+function parseTable(text) {
+  const rows = [];
+  for (const raw of String(text).split(/\r?\n/)) {
+    const line = raw.trim(); if (!line || /^[*#;'"!%]/.test(line)) continue;
+    let s = line; if (s.includes(";")) s = s.replace(/,/g, ".").replace(/;/g, " "); else s = s.replace(/,/g, " ");
+    const parts = s.split(/\s+/).map(Number);
+    if (parts.length < 2 || parts.slice(0, 2).some(v => !isFinite(v))) continue;
+    if (parts[0] <= 0) continue;
+    rows.push([parts[0], parts[1], isFinite(parts[2]) ? parts[2] : null]);
+  }
+  rows.sort((a, b) => a[0] - b[0]);
+  const out = []; for (const r of rows) if (!out.length || r[0] > out[out.length - 1][0]) out.push(r);
+  return out;
+}
+function unwrapDeg(arr) { const o = arr.slice(); for (let i = 1; i < o.length; i++) { let d = o[i] - o[i - 1]; while (d > 180) { o[i] -= 360; d -= 360; } while (d < -180) { o[i] += 360; d += 360; } } return o; }
+function fitSlope(fs, vs, end, clampLo, clampHi) {
+  const n = fs.length; if (n < 3) return 0;
+  if (end === "lo") { const f0 = fs[0], f1 = f0 * Math.SQRT2; let j = 1; while (j < n - 1 && fs[j] < f1) j++; const oct = Math.log2(fs[j] / f0); if (oct <= 0) return 0; return Math.min(clampHi, Math.max(clampLo, (vs[j] - vs[0]) / oct)); }
+  const f1 = fs[n - 1], f0 = f1 / Math.pow(2, 1 / 3); let j = n - 2; while (j > 0 && fs[j] > f0) j--; const oct = Math.log2(f1 / fs[j]); if (oct <= 0) return 0; return Math.min(clampHi, Math.max(clampLo, (vs[n - 1] - vs[j]) / oct));
+}
+/* table [[f, val, phaseDeg|null]] -> grid values + phase. kind: 'frd' (val dB) or 'zma' (val ohms) */
+function tableToGrid(rows, kind, usePhase) {
+  const fs = rows.map(r => r[0]);
+  const vals = rows.map(r => kind === "zma" ? 20 * Math.log10(Math.max(r[1], 1e-6)) : r[1]);
+  const hasPhase = rows.some(r => r[2] !== null && r[2] !== 0);
+  const ph = hasPhase ? unwrapDeg(rows.map(r => r[2] || 0)) : null;
+  const lo = kind === "zma" ? 0 : fitSlope(fs, vals, "lo", 0, 24);
+  const hi = kind === "zma" ? fitSlope(fs, vals, "hi", 0, 6) : fitSlope(fs, vals, "hi", -24, 0);
+  const g = new Float64Array(NF), inRange = new Uint8Array(NF), pg = new Float64Array(NF);
+  const n = fs.length; let j = 0;
+  for (let i = 0; i < NF; i++) {
+    const f = F[i];
+    if (f < fs[0]) g[i] = vals[0] + lo * Math.log2(f / fs[0]);
+    else if (f > fs[n - 1]) g[i] = vals[n - 1] + hi * Math.log2(f / fs[n - 1]);
+    else {
+      while (j < n - 2 && fs[j + 1] < f) j++;
+      const t = Math.log(f / fs[j]) / Math.log(fs[j + 1] / fs[j]);
+      g[i] = vals[j] * (1 - t) + vals[j + 1] * t; inRange[i] = 1;
+      if (ph) pg[i] = ph[j] * (1 - t) + ph[j + 1] * t;
+    }
+  }
+  const mp = minPhase(g, lo, hi);
+  let phase;
+  if (ph && usePhase) {
+    phase = new Float64Array(NF);
+    let first = -1, last = -1; for (let i = 0; i < NF; i++) if (inRange[i]) { if (first < 0) first = i; last = i; }
+    for (let i = 0; i < NF; i++) {
+      if (inRange[i]) phase[i] = pg[i] * Math.PI / 180;
+      else if (i < first) phase[i] = mp[i] + (pg[first] * Math.PI / 180 - mp[first]);
+      else phase[i] = mp[i] + (pg[last] * Math.PI / 180 - mp[last]);
+    }
+  } else phase = mp;
+  const A = CA();
+  for (let i = 0; i < NF; i++) {
+    const m = kind === "zma" ? Math.pow(10, g[i] / 20) : splToP(g[i]);
+    A.re[i] = m * Math.cos(phase[i]); A.im[i] = m * Math.sin(phase[i]);
+  }
+  return { A, hasPhase, lo, hi, fmin: fs[0], fmax: fs[n - 1] };
+}
+
+/* ---------- driver models ---------- */
+function analogPeak(w, f0, q, gDb) { const A = Math.pow(10, gDb / 40), w0 = 2 * Math.PI * f0; const num = [w0 * w0 - w * w, w * w0 * A / q], den = [w0 * w0 - w * w, w * w0 / (A * q)]; return div(num, den); }
+function analogLP2(w, f0, q) { const w0 = 2 * Math.PI * f0; return div([w0 * w0, 0], [w0 * w0 - w * w, w * w0 / q]); }
+function modelDriver(m) {
+  const Re = +m.Re || 6, Le = (+m.Le || 0) * 1e-3, n = Math.min(1, Math.max(0.3, +m.leN || 0.67));
+  const Fs = +m.Fs || 50, Qms = +m.Qms || 3, Qes = +m.Qes || 0.5;
+  const Sd = (+m.Sd || 50) * 1e-4, Vas = (+m.Vas || 10) * 1e-3;
+  const ws = 2 * Math.PI * Fs, rc2 = RHO * C_AIR * C_AIR;
+  const Cms = Vas / (rc2 * Sd * Sd), Mms = 1 / (ws * ws * Cms), Rms = ws * Mms / Qms, Bl = Math.sqrt(ws * Mms * Re / Qes);
+  const box = m.box || "ib";
+  const Vb = Math.max(0.05, +m.Vb || 10) * 1e-3, Cab = Vb / rc2;
+  const Fb = +m.Fb || 40, wb = 2 * Math.PI * Fb, Map = 1 / (wb * wb * Cab), Ql = +m.Ql || 7, Ral = Ql / (wb * Cab), Rap = wb * Map / 60;
+  const Kle = Le * Math.pow(2 * Math.PI * 1000, 1 - n);
+  const pRef = RHO * Sd * Bl * VREF / (2 * Math.PI * Re * Mms);
+  const trim = (m.sens !== "" && m.sens != null && isFinite(+m.sens)) ? Math.pow(10, (+m.sens - 20 * Math.log10(pRef / PREF)) / 20) : 1;
+  const Z = CA(), P = CA();
+  for (let i = 0; i < NF; i++) {
+    const w = W[i];
+    const zle = n >= 0.999 ? [0, w * Le] : polar(Kle * Math.pow(w, n), n * Math.PI / 2);
+    const Ze = add([Re, 0], zle);
+    let Zm = [Rms, w * Mms - 1 / (w * Cms)], Uf = [1, 0];
+    if (box === "sealed") Zm = add(Zm, [0, -Sd * Sd / (w * Cab)]);
+    else if (box === "vented") {
+      const Zp = [Rap, w * Map];
+      const Y = add(add([0, w * Cab], div([1, 0], Zp)), [1 / Ral, 0]);
+      const Zbox = div([1, 0], Y);
+      Zm = add(Zm, sc(Zbox, Sd * Sd));
+      Uf = sub([1, 0], div(Zbox, Zp));
+    }
+    const Zvc = add(Ze, div([Bl * Bl, 0], Zm));
+    const I = div([VREF, 0], Zvc);
+    const u = div(sc(I, Bl), Zm);
+    let p = mul([0, w * RHO * Sd / (2 * Math.PI)], mul(u, Uf));
+    if (+m.hfF > 0) p = mul(p, analogLP2(w, +m.hfF, +m.hfQ || 0.707));
+    if (+m.brF > 0 && +m.brDb) p = mul(p, analogPeak(w, +m.brF, +m.brQ || 3, +m.brDb));
+    p = sc(p, trim);
+    put(Z, i, Zvc); put(P, i, p);
+  }
+  const sensModel = 20 * Math.log10(pRef * trim / PREF);
+  return { Z, P, info: { Bl, Mms, Cms, Rms, sens: sensModel, Qts: Qms * Qes / (Qms + Qes), fc: box === "sealed" ? Fs * Math.sqrt(1 + Vas / Vb) : null } };
+}
+function idealDriver(d) { const R = +d.R || 8, spl = +d.spl || 90; return { Z: caFill([R, 0]), P: caFill([splToP(spl), 0]), info: {} }; }
+/* measured directivity: dB re on-axis at each measured angle, held flat outside the shared data range */
+function offAxisTable(fr, list) {
+  if (!list || !list.length) return null;
+  const on = new Float64Array(NF); for (let i = 0; i < NF; i++) on[i] = 20 * Math.log10(Math.max(Math.hypot(fr.A.re[i], fr.A.im[i]), 1e-15));
+  const rows = [{ ang: 0, db: new Float64Array(NF) }];
+  for (const o of list) {
+    const a = Math.abs(+o.ang); if (!(a > 0 && a <= 90) || !o.rows || o.rows.length < 3) continue;
+    const g = tableToGrid(o.rows, "frd", false), lo = Math.max(fr.fmin, g.fmin), hi = Math.min(fr.fmax, g.fmax), d = new Float64Array(NF);
+    let i0 = -1, i1 = -1;
+    for (let i = 0; i < NF; i++) { if (F[i] >= lo && F[i] <= hi) { d[i] = Math.max(-40, Math.min(4, 20 * Math.log10(Math.max(Math.hypot(g.A.re[i], g.A.im[i]), 1e-15)) - on[i])); if (i0 < 0) i0 = i; i1 = i; } }
+    if (i0 < 0) continue;
+    for (let i = 0; i < i0; i++) d[i] = d[i0]; for (let i = i1 + 1; i < NF; i++) d[i] = d[i1];
+    const ex = rows.findIndex(r => r.ang === a); if (ex >= 0) rows[ex] = { ang: a, db: d }; else rows.push({ ang: a, db: d });
+  }
+  if (rows.length < 2) return null;
+  rows.sort((x, y) => x.ang - y.ang);
+  return { angs: rows.map(r => r.ang), db: rows.map(r => r.db) };
+}
+const driverCache = new Map();
+function driverData(drv) {
+  const key = JSON.stringify([drv.source, drv.source === "model" ? drv.model : drv.source === "ideal" ? drv.ideal : [drv.measured && drv.measured.frdName, drv.measured && drv.measured.zmaName, drv.measured && drv.measured.usePhase, drv.measured && drv.measured.zUsePhase, drv.measured && drv.measured.frd && drv.measured.frd.length, drv.measured && drv.measured.zma && drv.measured.zma.length, drv.measured && drv.measured.frd && drv.measured.frd[0], drv.measured && drv.measured.zma && drv.measured.zma[0], drv.measured && (drv.measured.offaxis || []).map(o => [o.ang, o.name, o.rows && o.rows.length])], drv.trim]);
+  if (driverCache.has(key)) return driverCache.get(key);
+  let out;
+  if (drv.source === "model") out = modelDriver(drv.model || {});
+  else if (drv.source === "measured") {
+    const ms = drv.measured || {};
+    const fr = ms.frd && ms.frd.length > 2 ? tableToGrid(ms.frd, "frd", ms.usePhase !== false) : null;
+    const zr = ms.zma && ms.zma.length > 2 ? tableToGrid(ms.zma, "zma", ms.zUsePhase !== false) : null;
+    out = { P: fr ? fr.A : caFill([splToP(85), 0]), Z: zr ? zr.A : caFill([+ms.Rfallback || 8, 0]), info: { frd: fr && { hasPhase: fr.hasPhase, fmin: fr.fmin, fmax: fr.fmax }, zma: zr && { hasPhase: zr.hasPhase, fmin: zr.fmin, fmax: zr.fmax }, missing: !fr ? "frd" : !zr ? "zma" : null } };
+    out.dir = fr ? offAxisTable(fr, ms.offaxis) : null;
+    out.info.offaxis = out.dir ? out.dir.angs.slice(1) : [];
+  } else out = idealDriver(drv.ideal || {});
+  if (+drv.trim) out = { ...out, P: caScale(out.P, Math.pow(10, +drv.trim / 20)) };
+  if (driverCache.size > 60) driverCache.clear();
+  driverCache.set(key, out);
+  return out;
+}
+
+/* ---------- passive networks ---------- */
+function elemZ(kind, b, w) {
+  if (kind === "R") return [Math.max(+b.R, 0), 0];
+  if (kind === "L") return [Math.max(+b.Rl || 0, 0), w * Math.max(+b.L, 0) * 1e-3];
+  const C = Math.max(+b.C, 1e-6) * 1e-6; return [Math.max(+b.Rc || 0, 0), -1 / (w * C)];
+}
+function blockElems(b) { const e = []; if (b.hasR) e.push("R"); if (b.hasL) e.push("L"); if (b.hasC) e.push("C"); return e; }
+function blockZ(b, w) {
+  if (b.off) return b.kind === "series" ? [0, 0] : null;
+  const els = blockElems(b); if (!els.length) return b.kind === "series" ? [0, 0] : null;
+  if (b.arr === "p" && els.length > 1) { let y = [0, 0]; for (const k of els) y = add(y, div([1, 0], elemZ(k, b, w))); return div([1, 0], y); }
+  let z = [0, 0]; for (const k of els) z = add(z, elemZ(k, b, w)); return z;
+}
+/* solve ladder at one frequency with 1 V at the input */
+function ladderAt(blocks, Zload, w) {
+  const n = blocks.length, Zd = new Array(n + 1), Zb = new Array(n); Zd[n] = Zload;
+  for (let i = n - 1; i >= 0; i--) { const b = blocks[i], z = blockZ(b, w); Zb[i] = z; Zd[i] = b.kind === "series" ? add(z, Zd[i + 1]) : par(z, Zd[i + 1]); }
+  let V = [1, 0]; const Vin = new Array(n), Vout = new Array(n), I = new Array(n);
+  for (let i = 0; i < n; i++) {
+    const b = blocks[i]; Vin[i] = V;
+    if (b.kind === "series") { const tot = add(Zb[i], Zd[i + 1]); I[i] = div(V, tot); V = mul(I[i], Zd[i + 1]); }
+    else I[i] = Zb[i] === null ? [0, 0] : div(V, Zb[i]);
+    Vout[i] = V;
+  }
+  return { Zin: Zd[0], H: V, Zb, Zd, Vin, Vout, I };
+}
+function wiringOf(way) {
+  const n = Math.max(1, Math.min(4, way.instances ? way.instances.length : 1));
+  let zf = 1, vf = 1;
+  if (n > 1) { if (way.wiring === "series") { zf = n; vf = 1 / n; } else if (way.wiring === "sp" && n === 4) { zf = 1; vf = 0.5; } else { zf = 1 / n; vf = 1; } }
+  return { n, zf, vf };
+}
+function waySweep(way, dd, opts) {
+  const wr = wiringOf(way), blocks = (opts && opts.blocks) || way.network || [];
+  const Zin = CA(), H = CA(), Zl = CA();
+  for (let i = 0; i < NF; i++) {
+    const Zload = sc(get(dd.Z, i), wr.zf); put(Zl, i, Zload);
+    const r = ladderAt(blocks, Zload, W[i]);
+    put(Zin, i, r.Zin); put(H, i, r.H);
+  }
+  return { Zin, H, Zload: Zl, vf: wr.vf };
+}
+
+/* ---------- textbook normalized ladders (singly terminated, R=1, w=1); series element first ---------- */
+const LADDER = {
+  BW1: [1], BW2: [1.414214, 0.707107], LR2: [2, 0.5], BES2: [1.361654, 0.453885],
+  BW3: [1.5, 1.333333, 0.5], BES3: [1.46306, 0.842723, 0.292612],
+  BW4: [1.530734, 1.577161, 1.082392, 0.382683], LR4: [1.885618, 1.59099, 0.942809, 0.353553], BES4: [1.501188, 0.978072, 0.61273, 0.211392]
+};
+function textbookBlocks(kind, key, fc, R) {
+  const g = LADDER[key]; if (!g) return [];
+  const w = 2 * Math.PI * fc, out = [];
+  g.forEach((v, i) => {
+    const series = i % 2 === 0;
+    if (kind === "lp") out.push(series ? mkBlock("series", { L: +(v * R / w * 1e3).toFixed(3) }) : mkBlock("shunt", { C: +(v / (R * w) * 1e6).toFixed(2) }));
+    else out.push(series ? mkBlock("series", { C: +(1 / (v * R * w) * 1e6).toFixed(2) }) : mkBlock("shunt", { L: +(R / (v * w) * 1e3).toFixed(3) }));
+  });
+  return out;
+}
+let blockSeq = 1;
+function mkBlock(kind, v) {
+  const b = { id: "b" + (blockSeq++) + Math.random().toString(36).slice(2, 6), kind, arr: v.arr || "s", hasR: v.R != null, hasL: v.L != null, hasC: v.C != null, R: v.R != null ? v.R : 4, L: v.L != null ? v.L : 0.5, C: v.C != null ? v.C : 4.7, Rl: v.Rl != null ? v.Rl : (v.L != null ? estDCR(v.L) : 0.2), off: false };
+  return b;
+}
+function estDCR(LmH) { return +(0.12 + 0.28 * Math.pow(Math.max(LmH, 0.01), 0.75)).toFixed(2); } /* ~18 AWG air core */
+
+/* driver parameter extraction from impedance */
+function zParams(Zarr) {
+  const mag = caAbs(Zarr);
+  let iMax = 0, best = -1; for (let i = 0; i < NF; i++) if (F[i] < 2500 && F[i] > 12 && mag[i] > best) { best = mag[i]; iMax = i; }
+  let Re = 1e9; for (let i = iMax; i < NF && F[i] < Math.max(F[iMax] * 8, 400); i++) Re = Math.min(Re, mag[i]);
+  for (let i = 0; i < iMax; i++) if (F[i] < F[iMax] / 3) Re = Math.min(Re, mag[i]);
+  Re = Math.max(Re * 0.95, 0.5);
+  const fs = F[iMax], r0 = Math.max(best / Re, 1.01), zt = Math.sqrt(best * Re);
+  let f1 = fs, f2 = fs; for (let i = iMax; i > 0; i--) if (mag[i] < zt) { f1 = F[i]; break; } for (let i = iMax; i < NF; i++) if (mag[i] < zt) { f2 = F[i]; break; }
+  const Qms = fs * Math.sqrt(r0) / Math.max(f2 - f1, fs * 0.05), Qes = Qms / (r0 - 1);
+  return { Re, Fs: fs, Qms, Qes, Zmax: best };
+}
+
+/* ---------- DSP ---------- */
+const BES = { 2: [[1.27201965, 0.57735027]], 3: [[1.44761713, 0.69104663], [1.3226758, -1]], 4: [[1.43017156, 0.52193458], [1.60335752, 0.80553828]] };
+function xoSections(shape, order, type, fc) {
+  const S = [], add2 = (f, q) => S.push({ k: type + "2", f, q }), add1 = f => S.push({ k: type + "1", f });
+  order = Math.max(1, Math.min(8, order | 0));
+  const bw = (n, f) => { for (let k = 1; k <= Math.floor(n / 2); k++) add2(f, 1 / (2 * Math.cos((2 * k - 1) * Math.PI / (2 * n)))); if (n % 2) add1(f); };
+  if (shape === "LR") { const h = Math.max(1, Math.round(order / 2)); bw(h, fc); bw(h, fc); }
+  else if (shape === "BES" && BES[order]) { for (const [w0, q] of BES[order]) { const f = type === "lp" ? fc * w0 : fc / w0; q < 0 ? add1(f) : add2(f, q); } }
+  else bw(order, fc);
+  return S;
+}
+function biquad(spec, fs) {
+  const w0 = 2 * Math.PI * Math.min(spec.f, fs * 0.49) / fs, cw = Math.cos(w0), sw = Math.sin(w0), q = spec.q || 0.7071, al = sw / (2 * q);
+  let b0, b1, b2, a0, a1, a2;
+  const Ag = Math.pow(10, (spec.g || 0) / 40);
+  switch (spec.k) {
+    case "lp2": b0 = (1 - cw) / 2; b1 = 1 - cw; b2 = b0; a0 = 1 + al; a1 = -2 * cw; a2 = 1 - al; break;
+    case "hp2": b0 = (1 + cw) / 2; b1 = -(1 + cw); b2 = b0; a0 = 1 + al; a1 = -2 * cw; a2 = 1 - al; break;
+    case "lp1": case "hp1": case "ap1": { const Kt = Math.tan(w0 / 2); a0 = 1; a1 = (Kt - 1) / (Kt + 1); a2 = 0; b2 = 0; if (spec.k === "lp1") { b0 = Kt / (1 + Kt); b1 = b0; } else if (spec.k === "hp1") { b0 = 1 / (1 + Kt); b1 = -b0; } else { b0 = a1; b1 = 1; } break; }
+    case "peq": b0 = 1 + al * Ag; b1 = -2 * cw; b2 = 1 - al * Ag; a0 = 1 + al / Ag; a1 = -2 * cw; a2 = 1 - al / Ag; break;
+    case "ls": { const s = 2 * Math.sqrt(Ag) * al; b0 = Ag * ((Ag + 1) - (Ag - 1) * cw + s); b1 = 2 * Ag * ((Ag - 1) - (Ag + 1) * cw); b2 = Ag * ((Ag + 1) - (Ag - 1) * cw - s); a0 = (Ag + 1) + (Ag - 1) * cw + s; a1 = -2 * ((Ag - 1) + (Ag + 1) * cw); a2 = (Ag + 1) + (Ag - 1) * cw - s; break; }
+    case "hs": { const s = 2 * Math.sqrt(Ag) * al; b0 = Ag * ((Ag + 1) + (Ag - 1) * cw + s); b1 = -2 * Ag * ((Ag - 1) + (Ag + 1) * cw); b2 = Ag * ((Ag + 1) + (Ag - 1) * cw - s); a0 = (Ag + 1) - (Ag - 1) * cw + s; a1 = 2 * ((Ag - 1) - (Ag + 1) * cw); a2 = (Ag + 1) - (Ag - 1) * cw - s; break; }
+    case "ap2": b0 = 1 - al; b1 = -2 * cw; b2 = 1 + al; a0 = 1 + al; a1 = -2 * cw; a2 = 1 - al; break;
+    case "lt": { /* Linkwitz transform via bilinear, prewarped at the geometric mean */
+      const w0a = 2 * Math.PI * spec.f0, wpa = 2 * Math.PI * spec.fp, wm = Math.sqrt(w0a * wpa), c = wm / Math.tan(wm / (2 * fs));
+      const B2 = 1, B1 = w0a / spec.q0, B0 = w0a * w0a, A2 = 1, A1 = wpa / spec.qp, A0 = wpa * wpa;
+      b0 = B2 * c * c + B1 * c + B0; b1 = 2 * B0 - 2 * B2 * c * c; b2 = B2 * c * c - B1 * c + B0; a0 = A2 * c * c + A1 * c + A0; a1 = 2 * A0 - 2 * A2 * c * c; a2 = A2 * c * c - A1 * c + A0;
+      /* normalize DC gain so the LT is unity well above fp: analog gain at HF = B2/A2 = 1 already */
+      break; }
+    default: b0 = 1; b1 = 0; b2 = 0; a0 = 1; a1 = 0; a2 = 0;
+  }
+  return { b0: b0 / a0, b1: b1 / a0, b2: b2 / a0, a1: a1 / a0, a2: a2 / a0 };
+}
+function dspDesign(items, fs) {
+  const out = { bq: [], gain: 0, delay: 0, invert: false };
+  for (const it of items || []) {
+    if (it.off) continue;
+    if (it.t === "hp" || it.t === "lp") for (const s of xoSections(it.shape, +it.order, it.t, +it.f)) out.bq.push({ ...biquad(s, fs), label: `${it.t.toUpperCase()} ${it.shape}${it.order} ${fmtNum(it.f)} Hz`, spec: s });
+    else if (["peq", "ls", "hs", "ap2"].includes(it.t)) out.bq.push({ ...biquad({ k: it.t, f: +it.f, q: +it.q || 0.707, g: +it.g || 0 }, fs), label: `${it.t.toUpperCase()} ${fmtNum(it.f)} Hz`, spec: it });
+    else if (it.t === "ap1") out.bq.push({ ...biquad({ k: "ap1", f: +it.f }, fs), label: `AP1 ${fmtNum(it.f)} Hz`, spec: it });
+    else if (it.t === "lt") out.bq.push({ ...biquad({ k: "lt", f0: +it.f0, q0: +it.q0, fp: +it.fp, qp: +it.qp }, fs), label: `LT ${fmtNum(it.f0)}→${fmtNum(it.fp)} Hz`, spec: it });
+    else if (it.t === "gain") out.gain += +it.g || 0;
+    else if (it.t === "delay") out.delay += +it.ms || 0;
+    else if (it.t === "invert") out.invert = !out.invert;
+  }
+  return out;
+}
+function fmtNum(v) { v = +v; return v >= 1000 ? (v / 1000).toFixed(v % 1000 ? 2 : 0).replace(/\.?0+$/, "") + "k" : String(+v.toFixed(1)); }
+function dspEval(design, fs, linear) {
+  const H = CA(); const g = Math.pow(10, design.gain / 20) * (design.invert ? -1 : 1), tau = design.delay / 1000;
+  for (let i = 0; i < NF; i++) {
+    const wT = W[i] / fs; let h = [g, 0];
+    if (wT < Math.PI) {
+      const z1 = [Math.cos(wT), -Math.sin(wT)], z2 = [Math.cos(2 * wT), -Math.sin(2 * wT)];
+      for (const q of design.bq) { const num = add(add([q.b0, 0], sc(z1, q.b1)), sc(z2, q.b2)), den = add(add([1, 0], sc(z1, q.a1)), sc(z2, q.a2)); h = mul(h, div(num, den)); }
+    }
+    if (linear) h = [abs(h) * (design.invert ? -1 : 1), 0];
+    if (tau) h = mul(h, polar(1, -W[i] * tau));
+    put(H, i, h);
+  }
+  return H;
+}
+/* analog target curve (dB) */
+function analogSection(s, w) { const w0 = 2 * Math.PI * s.f; if (s.k === "lp2") return div([w0 * w0, 0], [w0 * w0 - w * w, w * w0 / s.q]); if (s.k === "hp2") return div([-w * w, 0], [w0 * w0 - w * w, w * w0 / s.q]); if (s.k === "lp1") return div([w0, 0], [w0, w]); return div([0, w], [w0, w]); }
+function targetCurve(t) {
+  if (!t || t.kind === "none" || !t.kind) return null;
+  const secs = [];
+  if (t.kind === "hp" || t.kind === "bp") secs.push(...xoSections(t.shape, +t.order, "hp", +t.f));
+  if (t.kind === "lp") secs.push(...xoSections(t.shape, +t.order, "lp", +t.f));
+  if (t.kind === "bp") secs.push(...xoSections(t.shape2 || t.shape, +(t.order2 || t.order), "lp", +t.f2));
+  const o = new Float64Array(NF);
+  for (let i = 0; i < NF; i++) { let h = [1, 0]; for (const s of secs) h = mul(h, analogSection(s, W[i])); o[i] = db(h) + (+t.level || 0); }
+  return o;
+}
+
+/* ---------- geometry, directivity, diffraction ---------- */
+function bessj1(x) {
+  const ax = Math.abs(x);
+  if (ax < 8) { const y = x * x; return x * (72362614232.0 + y * (-7895059235.0 + y * (242396853.1 + y * (-2972611.439 + y * (15704.48260 + y * (-30.16036606)))))) / (144725228442.0 + y * (2300535178.0 + y * (18583304.74 + y * (99447.43394 + y * (376.9991397 + y))))); }
+  const z = 8 / ax, y = z * z, xx = ax - 2.356194491;
+  const a1 = 1 + y * (0.183105e-2 + y * (-0.3516396496e-4 + y * (0.2457520174e-5 + y * (-0.240337019e-6))));
+  const a2 = 0.04687499995 + y * (-0.2002690873e-3 + y * (0.8449199096e-5 + y * (-0.88228987e-6 + y * 0.105787412e-6)));
+  const r = Math.sqrt(0.636619772 / ax) * (Math.cos(xx) * a1 - z * Math.sin(xx) * a2); return x < 0 ? -r : r;
+}
+const jinc = x => Math.abs(x) < 1e-6 ? 1 : 2 * bessj1(x) / x;
+function edgePoints(Wm, Hm, step) {
+  const pts = [], perim = [[0, 0], [Wm, 0], [Wm, Hm], [0, Hm], [0, 0]];
+  for (let s = 0; s < 4; s++) {
+    const [x0, y0] = perim[s], [x1, y1] = perim[s + 1], L = Math.hypot(x1 - x0, y1 - y0), n = Math.max(2, Math.round(L / step));
+    for (let k = 0; k < n; k++) { const t0 = k / n, t1 = (k + 1) / n; pts.push({ a: [x0 + (x1 - x0) * t0, y0 + (y1 - y0) * t0], b: [x0 + (x1 - x0) * t1, y0 + (y1 - y0) * t1] }); }
+  }
+  return pts;
+}
+/* returns complex geometry factor array for one driver instance and direction */
+function geomFactor(inst, dir, g) {
+  const out = CA();
+  const s = [inst.x / 1000, inst.y / 1000, inst.z / 1000];
+  const h = dir.h * Math.PI / 180, v = dir.v * Math.PI / 180;
+  const M = [g.ref[0] + g.dist * Math.sin(h) * Math.cos(v), g.ref[1] + g.dist * Math.sin(v), g.dist * Math.cos(h) * Math.cos(v)];
+  const dx = M[0] - s[0], dy = M[1] - s[1], dz = M[2] - s[2], rm = Math.hypot(dx, dy, dz);
+  const sinT = Math.min(1, Math.hypot(dx, dy) / rm), a = inst.dia / 2000;
+  let ed = null;
+  if (inst.diffr && g.baffle) {
+    const kap = inst.dipole ? -1 : -0.5;
+    const sx = s[0], sy = s[1];
+    const d = [], amp = [];
+    let wsum = 0;
+    for (const e of g.edges) {
+      const ex = (e.a[0] + e.b[0]) / 2, ey = (e.a[1] + e.b[1]) / 2;
+      let dphi = Math.atan2(e.b[1] - sy, e.b[0] - sx) - Math.atan2(e.a[1] - sy, e.a[0] - sx);
+      while (dphi > Math.PI) dphi -= 2 * Math.PI; while (dphi < -Math.PI) dphi += 2 * Math.PI;
+      const wgt = Math.abs(dphi) / (2 * Math.PI); wsum += wgt;
+      const r1 = Math.hypot(ex - s[0], ey - s[1], s[2]), r2 = Math.hypot(M[0] - ex, M[1] - ey, M[2]);
+      d.push(r1 + r2 - g.dist); amp.push(wgt * g.dist / r2);
+    }
+    ed = { d: Float64Array.from(d), amp: Float64Array.from(amp), kap, wsum };
+  }
+  const ne = ed ? ed.d.length : 0;
+  const dirAt = inst.dir ? dirLookup(inst.dir, Math.asin(sinT) * 180 / Math.PI, a) : null;
+  const d90 = inst.dir && ed ? dirLookup(inst.dir, 90, a) : null;
+  for (let i = 0; i < NF; i++) {
+    const k = K[i];
+    const D = (dirAt ? dirAt(i) : jinc(k * a * sinT)) * g.dist / rm, ph = -k * (rm - g.dist);
+    let re = D * Math.cos(ph), im = D * Math.sin(ph);
+    if (ed) {
+      let sr = 0, si = 0;
+      for (let e = 0; e < ne; e++) { const p = -k * ed.d[e]; sr += ed.amp[e] * Math.cos(p); si += ed.amp[e] * Math.sin(p); }
+      const D90 = (d90 ? d90(i) : jinc(k * a)) * ed.kap;
+      re += D90 * sr; im += D90 * si;
+    }
+    out.re[i] = re; out.im[i] = im;
+  }
+  return out;
+}
+/* measured table up to its widest angle, then piston roll-off relative to that angle */
+function dirLookup(t, deg, a) {
+  const A = t.angs, n = A.length, amax = A[n - 1];
+  if (deg <= amax) {
+    let j = 0; while (j < n - 2 && A[j + 1] < deg) j++;
+    const w = (deg - A[j]) / (A[j + 1] - A[j] || 1), d0 = t.db[j], d1 = t.db[j + 1];
+    return i => Math.pow(10, (d0[i] * (1 - w) + d1[i] * w) / 20);
+  }
+  const s0 = Math.sin(amax * Math.PI / 180), s1 = Math.sin(deg * Math.PI / 180), top = t.db[n - 1];
+  return i => { const ka = K[i] * a, r = Math.max(0.03, Math.abs(jinc(ka * s1))) / Math.max(0.03, Math.abs(jinc(ka * s0))); return Math.max(0.01, Math.pow(10, top[i] / 20) * Math.min(1, r)); };
+}
+const HSTEP = 5, ANG = []; for (let a = -90; a <= 90; a += HSTEP) ANG.push(a);
+function geoContext(sys) {
+  const b = sys.baffle || {}, dist = Math.max(0.2, (+sys.listen.dist || 2000) / 1000);
+  const ctx = { dist, ref: [(+sys.listen.refX || 0) / 1000, (+sys.listen.refY || 0) / 1000], baffle: b.on !== false && +b.w > 0 && +b.h > 0 };
+  if (ctx.baffle) ctx.edges = edgePoints(+b.w / 1000, +b.h / 1000, 0.012);
+  return ctx;
+}
+function instList(way) {
+  const drv = way.driver || {};
+  const dipole = drv.source === "model" ? (drv.model && drv.model.box === "ob") : drv.radiation === "dipole";
+  const diffr = drv.baffleSim !== undefined ? !!drv.baffleSim : drv.source === "model";
+  const dir = drv.source === "measured" ? (driverData(drv).dir || null) : null;
+  return (way.instances || [{ x: 0, y: 0, z: 0 }]).map(p => ({ x: +p.x || 0, y: +p.y || 0, z: +p.z || 0, dia: Math.max(1, +drv.dia || 25), diffr: diffr || dipole, dipole, dir }));
+}
+function wayGeom(way, dir, ctx) {
+  const L = instList(way); let A = null;
+  for (const inst of L) { const g = geomFactor(inst, dir, ctx); A = A ? caAdd(A, g) : g; }
+  return A;
+}
+
+/* ---------- system solve ---------- */
+function sysSolve(project, opts = {}) {
+  const sys = project.system, active = sys.mode === "active", fs = +sys.fs || 96000;
+  const Rs = Math.max(0, (+sys.ampZ || 0) + (+sys.cableR || 0));
+  const ways = project.ways.filter(w => !w.mute);
+  const res = { F, ways: [], active, fs };
+  const gDsp = dspDesign(sys.dsp, fs), Hg = dspEval(gDsp, fs, !!sys.dspLinear);
+  for (const way of project.ways) {
+    const dd = driverData(way.driver);
+    const sw = waySweep(way, dd, { blocks: opts.blocksFor ? opts.blocksFor(way) : null });
+    const wd = active ? dspDesign(way.dsp, fs) : { bq: [], gain: 0, delay: 0, invert: false };
+    const Hd = dspEval(wd, fs, !!way.dspLinear);
+    res.ways.push({ id: way.id, way, dd, sw, Hd, wd, mute: !!way.mute });
+  }
+  /* terminal voltages */
+  if (!active) {
+    const Zsys = CA(), Vt = CA();
+    for (let i = 0; i < NF; i++) {
+      let z = null; for (const r of res.ways) if (!r.mute) z = par(z, get(r.sw.Zin, i));
+      for (const b of (sys.inputComp || [])) { const bz = blockZ({ ...b, kind: "shunt" }, W[i]); z = par(z, bz); }
+      if (z === null) z = [1e9, 0];
+      put(Zsys, i, z); put(Vt, i, div(z, add(z, [Rs, 0])));
+    }
+    res.Zsys = Zsys; for (const r of res.ways) r.Vt = Vt;
+  } else {
+    for (const r of res.ways) { const Vt = CA(); for (let i = 0; i < NF; i++) { const z = get(r.sw.Zin, i); put(Vt, i, div(z, add(z, [Rs, 0]))); } r.Vt = Vt; }
+  }
+  /* electrical gain to each driver instance terminal (relative to 2.83 V input), and on-axis-free acoustic source */
+  for (const r of res.ways) {
+    const pol = r.way.polarity === -1 ? -1 : 1;
+    const G = CA(), pre = CA();
+    for (let i = 0; i < NF; i++) { const p = mul(mul(get(Hg, i), get(r.Hd, i)), get(r.Vt, i)); put(pre, i, p); put(G, i, sc(mul(p, get(r.sw.H, i)), r.sw.vf * pol)); }
+    r.pre = pre; r.G = G; r.src = caMul(G, r.dd.P);
+  }
+  return res;
+}
+const geoCache = new Map();
+function geoKey(project) {
+  const s = project.system; return JSON.stringify([s.baffle, s.listen.dist, s.listen.refX, s.listen.refY, project.ways.map(w => [w.id, w.instances, w.driver.dia, w.driver.baffleSim, w.driver.source, w.driver.radiation, w.driver.model && w.driver.model.box, w.driver.measured && w.driver.measured.frdName, w.driver.measured && (w.driver.measured.offaxis || []).map(o => o.ang + o.name)])]);
+}
+function geomFor(project, dirs) {
+  const key = geoKey(project); let ent = geoCache.get(key);
+  if (!ent) { if (geoCache.size > 6) geoCache.clear(); ent = { ctx: geoContext(project.system), d: new Map() }; geoCache.set(key, ent); }
+  const out = [];
+  for (const dir of dirs) {
+    const dk = dir.h + "," + dir.v;
+    if (!ent.d.has(dk)) { const m = new Map(); for (const w of project.ways) m.set(w.id, wayGeom(w, dir, ent.ctx)); ent.d.set(dk, m); }
+    out.push(ent.d.get(dk));
+  }
+  return out;
+}
+function sumAt(res, gm, opts = {}) {
+  const tot = CA(), per = [];
+  for (const r of res.ways) {
+    const A = gm.get(r.id); const P = caMul(r.src, A); per.push(P);
+    if (r.mute) continue;
+    const s = opts.invertId === r.id ? -1 : 1;
+    for (let i = 0; i < NF; i++) { tot.re[i] += s * P.re[i]; tot.im[i] += s * P.im[i]; }
+  }
+  return { tot, per };
+}
+/* raw driver (no network) at a direction */
+function rawAt(r, gm) { return caMul(r.dd.P, gm.get(r.id)); }
+
+/* spin estimate from horizontal and vertical orbits (front hemisphere) */
+function spin(res, project) {
+  const hd = ANG.map(a => ({ h: a, v: 0 })), vd = ANG.map(a => ({ h: 0, v: a }));
+  const gh = geomFor(project, hd), gv = geomFor(project, vd);
+  const Ph = gh.map(g => caAbs(sumAt(res, g).tot)), Pv = gv.map(g => caAbs(sumAt(res, g).tot));
+  const at = (arr, a) => arr[ANG.indexOf(a)];
+  const pw = (list) => { const o = new Float64Array(NF); for (const a of list) for (let i = 0; i < NF; i++) o[i] += a[i] * a[i]; for (let i = 0; i < NF; i++) o[i] /= list.length; return o; };
+  const on = at(Ph, 0);
+  const LW = pw([on, at(Pv, 10), at(Pv, -10), at(Ph, 10), at(Ph, -10), at(Ph, 20), at(Ph, -20), at(Ph, 30), at(Ph, -30)]);
+  const floor = pw([at(Pv, -20), at(Pv, -30), at(Pv, -40)]), ceil = pw([at(Pv, 40), at(Pv, 50), at(Pv, 60)]);
+  const front = pw([on, at(Ph, 10), at(Ph, -10), at(Ph, 20), at(Ph, -20), at(Ph, 30), at(Ph, -30)]);
+  const side = pw([40, 50, 60, 70, 80].flatMap(a => [at(Ph, a), at(Ph, -a)])), rear = pw([at(Ph, 90), at(Ph, -90)]);
+  const ER = new Float64Array(NF); for (let i = 0; i < NF; i++) ER[i] = (floor[i] + ceil[i] + front[i] + side[i] + rear[i]) / 5;
+  /* sound power over the front hemisphere using ring areas from the two orbits */
+  const SP = new Float64Array(NF); let wt = 0; const dth = 10 * Math.PI / 180;
+  for (let th = 0; th <= 90; th += 10) {
+    const t = th * Math.PI / 180;
+    const area = th === 0 ? 2 * Math.PI * (1 - Math.cos(dth / 2)) : th === 90 ? 2 * Math.PI * (Math.cos(t - dth / 2)) : 2 * Math.PI * (Math.cos(t - dth / 2) - Math.cos(t + dth / 2));
+    const pts = th === 0 ? [on] : [at(Ph, th), at(Ph, -th), at(Pv, th), at(Pv, -th)];
+    const p = pw(pts); for (let i = 0; i < NF; i++) SP[i] += area * p[i]; wt += area;
+  }
+  for (let i = 0; i < NF; i++) SP[i] /= wt;
+  const PIR = new Float64Array(NF); for (let i = 0; i < NF; i++) PIR[i] = 0.12 * LW[i] + 0.44 * ER[i] + 0.44 * SP[i];
+  const toDb = a => { const o = new Float64Array(NF); for (let i = 0; i < NF; i++) o[i] = 10 * Math.log10(Math.max(a[i], 1e-24) / (PREF * PREF)); return o; };
+  const onDb = new Float64Array(NF); for (let i = 0; i < NF; i++) onDb[i] = 20 * Math.log10(Math.max(on[i], 1e-12) / PREF);
+  const lw = toDb(LW), er = toDb(ER), sp = toDb(SP), pir = toDb(PIR);
+  const DI = new Float64Array(NF), ERDI = new Float64Array(NF); for (let i = 0; i < NF; i++) { DI[i] = lw[i] - sp[i]; ERDI[i] = lw[i] - er[i]; }
+  return { on: onDb, lw, er, sp, pir, di: DI, erdi: ERDI, Ph, Pv };
+}
+
+/* ---------- loads and power ---------- */
+const EPDR_T = (() => { const t = []; for (let d = -90; d <= 90; d++) { const ph = d * Math.PI / 180; let m = 0; for (let k = 0; k < 2000; k++) { const x = k / 2000 * 2 * Math.PI, s = Math.sin(x - ph); if (s > 0) m = Math.max(m, (1 - Math.sin(x)) * s); } t.push(m); } return t; })();
+function epdr(z) { const ph = Math.max(-90, Math.min(90, arg(z) * 180 / Math.PI)), i = Math.floor(ph + 90), t = ph + 90 - i; const fm = EPDR_T[i] * (1 - t) + EPDR_T[Math.min(180, i + 1)] * t; return abs(z) / (4 * fm); }
+function elemCurrents(b, Vb, Ib, w) {
+  const els = blockElems(b), out = {};
+  if (b.off) return out;
+  if (b.arr === "p" && els.length > 1) for (const k of els) out[k] = div(Vb, elemZ(k, b, w)); else for (const k of els) out[k] = Ib;
+  return out;
+}
+/* per-element dissipation at a given input level; pink noise 20 Hz - 20 kHz and worst-case sine */
+function powerReport(project, res, watts, nominal) {
+  const Vrms = Math.sqrt(Math.max(0, watts) * (nominal || 8));
+  const band = []; for (let i = 0; i < NF; i++) if (F[i] >= 20 && F[i] <= 20000) band.push(i);
+  const nb = band.length, rows = [];
+  for (const r of res.ways) {
+    const blocks = r.way.network || [], acc = {}, peak = {};
+    let drvP = 0, drvPk = 0;
+    for (const i of band) {
+      const Zl = get(r.sw.Zload, i), lad = ladderAt(blocks, Zl, W[i]);
+      const Vin = sc(get(r.pre, i), Vrms);
+      blocks.forEach((b, bi) => {
+        const Vb = b.kind === "series" ? sub(lad.Vin[bi], lad.Vout[bi]) : lad.Vin[bi];
+        const cur = elemCurrents(b, Vb, lad.I[bi], W[i]);
+        for (const k in cur) {
+          const I = abs(mul(cur[k], Vin)); const R = k === "R" ? +b.R : k === "L" ? +b.Rl || 0 : +b.Rc || 0;
+          const p = I * I * R, id = b.id + k; acc[id] = (acc[id] || 0) + p / nb; peak[id] = Math.max(peak[id] || 0, p);
+        }
+      });
+      const Id = div(mul(lad.H, Vin), Zl), pd = abs(Id) * abs(Id) * Math.max(0, Zl[0]);
+      drvP += pd / nb; drvPk = Math.max(drvPk, pd);
+    }
+    rows.push({ id: r.id, acc, peak, drvP, drvPk });
+  }
+  return rows;
+}
+
+/* ---------- metrics ---------- */
+function bandMean(arr, f0, f1) { let s = 0, n = 0; for (let i = 0; i < NF; i++) if (F[i] >= f0 && F[i] <= f1) { s += arr[i]; n++; } return n ? s / n : NaN; }
+function crossing(a, b, f0, f1) { for (let i = 1; i < NF; i++) { if (F[i] < f0 || F[i] > f1) continue; const d0 = a[i - 1] - b[i - 1], d1 = a[i] - b[i]; if (d0 === 0 || d0 * d1 < 0) return F[i - 1] * Math.pow(F[i] / F[i - 1], Math.abs(d0) / (Math.abs(d0) + Math.abs(d1) || 1)); } return NaN; }
+
+/* ---------- tolerance band ---------- */
+function tolerance(project, res, gm, tolPct, runs) {
+  const lo = new Float64Array(NF).fill(1e9), hi = new Float64Array(NF).fill(-1e9);
+  let seed = 12345; const rnd = () => { seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed / 0x7fffffff; };
+  const t = tolPct / 100;
+  for (let k = 0; k < runs; k++) {
+    const jit = new Map();
+    for (const w of project.ways) jit.set(w.id, (w.network || []).map(b => ({ ...b, R: b.R * (1 + t * (2 * rnd() - 1)), L: b.L * (1 + t * (2 * rnd() - 1)), C: b.C * (1 + t * (2 * rnd() - 1)) })));
+    const r2 = sysSolve(project, { blocksFor: w => jit.get(w.id) });
+    const s = caDb(sumAt(r2, gm).tot);
+    for (let i = 0; i < NF; i++) { lo[i] = Math.min(lo[i], s[i]); hi[i] = Math.max(hi[i], s[i]); }
+  }
+  return { lo, hi };
+}
+
+/* ---------- export helpers ---------- */
+function toFRD(A, title) { const L = ["* " + title, "* Freq(Hz)  SPL(dB)  Phase(deg)"]; for (let i = 0; i < NF; i++) L.push(F[i].toFixed(3) + "\t" + (db(get(A, i)) + DB0).toFixed(3) + "\t" + (arg(get(A, i)) * 180 / Math.PI).toFixed(2)); return L.join("\n") + "\n"; }
+function toZMA(A, title) { const L = ["* " + title, "* Freq(Hz)  Ohms  Phase(deg)"]; for (let i = 0; i < NF; i++) L.push(F[i].toFixed(3) + "\t" + abs(get(A, i)).toFixed(4) + "\t" + (arg(get(A, i)) * 180 / Math.PI).toFixed(2)); return L.join("\n") + "\n"; }
+
+return { DB0, caSpl, F, W, NF, FMIN, FMAX, PPO, idxOf, C_AIR, PREF, VREF, CA, get, put, add, sub, mul, div, par, abs, arg, sc, db, caDb, caAbs, caDeg, caMul, caAdd, caScale,
+  parseTable, tableToGrid, minPhase, modelDriver, driverData, blockZ, blockElems, elemZ, ladderAt, waySweep, wiringOf, textbookBlocks, LADDER, mkBlock, estDCR, zParams,
+  xoSections, biquad, dspDesign, dspEval, targetCurve, jinc, geomFor, ANG, HSTEP, sysSolve, sumAt, rawAt, spin, epdr, powerReport, bandMean, crossing, tolerance, toFRD, toZMA, fmtNum, elemCurrents };
+})();
+if (typeof module !== "undefined") module.exports = XO;
+
+</script>
+<script>
+(function () {
+"use strict";
+const $ = s => document.querySelector(s);
+const esc = s => String(s == null ? "" : s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const clone = o => JSON.parse(JSON.stringify(o));
+const uid = () => "w" + Math.random().toString(36).slice(2, 8);
+const F = XO.F, NF = XO.NF;
+const fmtF = f => !isFinite(f) ? "n/a" : f >= 1000 ? (f >= 9995 ? (f / 1000).toFixed(1) : (f / 1000).toFixed(2)) + " kHz" : Math.round(f) + " Hz";
+const fmtFs = f => !isFinite(f) ? "n/a" : f >= 1000 ? +(f / 1000).toFixed(f >= 9995 ? 1 : 2) + "k" : String(Math.round(f));
+const fmtZ = z => !isFinite(z) ? "open" : z >= 1000 ? (z / 1000).toFixed(1) + " kΩ" : z >= 100 ? z.toFixed(0) + " Ω" : z.toFixed(1) + " Ω";
+const fmtDB = d => (d <= -120 ? "< −120" : (d >= 0 ? "+" : "−") + Math.abs(d).toFixed(1)) + " dB";
+const fmtW = w => w >= 100 ? w.toFixed(0) + " W" : w >= 10 ? w.toFixed(1) + " W" : w >= 0.01 ? w.toFixed(2) + " W" : "< 0.01 W";
+const fmtA = a => a >= 10 ? a.toFixed(1) + " A" : a.toFixed(2) + " A";
+const num = (v, d = 2) => (+(+v).toFixed(d)).toString();
+const SLOTS = ["--s1", "--s2", "--s3", "--s4"];
+const wayColor = w => `var(${SLOTS[(w.slot || 0) % 4]})`;
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+function toast(msg) { let t = $(".toast"); if (!t) { t = document.createElement("div"); t.className = "toast"; t.setAttribute("role", "status"); document.body.appendChild(t); } t.textContent = msg; t.hidden = false; clearTimeout(t._h); t._h = setTimeout(() => t.hidden = true, 3200); }
+
+/* ---------- defaults and examples ---------- */
+const MODEL_DEF = {
+  woofer: { Re: 5.6, Le: 0.7, leN: 0.67, Fs: 40, Qms: 3, Qes: 0.42, Vas: 20, Sd: 125, box: "sealed", Vb: 14, Fb: 40, Ql: 7, sens: "", hfF: "", hfQ: 0.7, brF: "", brQ: 4, brDb: 0 },
+  mid: { Re: 5.8, Le: 0.4, leN: 0.67, Fs: 70, Qms: 3, Qes: 0.55, Vas: 4, Sd: 55, box: "sealed", Vb: 3, Fb: 60, Ql: 7, sens: "", hfF: "", hfQ: 0.7, brF: "", brQ: 4, brDb: 0 },
+  tweeter: { Re: 3.4, Le: 0.05, leN: 0.67, Fs: 800, Qms: 2.5, Qes: 1.1, Vas: 0.03, Sd: 7.5, box: "ib", Vb: 1, Fb: 40, Ql: 7, sens: 90, hfF: "", hfQ: 0.7, brF: "", brQ: 4, brDb: 0 }
+};
+function newWay(role, slot, over = {}) {
+  const dia = { woofer: 110, mid: 80, tweeter: 28 }[role] || 80;
+  return Object.assign({
+    id: uid(), name: role[0].toUpperCase() + role.slice(1), slot, mute: false, polarity: 1,
+    driver: { name: "", source: "model", model: clone(MODEL_DEF[role] || MODEL_DEF.mid), measured: { frd: null, zma: null, frdName: "", zmaName: "", usePhase: true, zUsePhase: true }, ideal: { R: 8, spl: 88 }, dia, trim: 0, baffleSim: true, radiation: "monopole" },
+    instances: [{ x: 100, y: role === "tweeter" ? 240 : 110, z: 0 }], wiring: "parallel", network: [], dsp: [], dspLinear: false,
+    target: { kind: "none", shape: "LR", order: 4, f: 2500, f2: 5000, shape2: "LR", order2: 4, level: 86 }
+  }, over);
+}
+const B = (k, v) => XO.mkBlock(k, v);
+function baseSystem(over = {}) {
+  return Object.assign({ mode: "passive", ampZ: 0, cableR: 0, fs: 96000, testW: 20, listen: { dist: 2000, refX: 100, refY: 240, h: 0, v: 0 }, baffle: { on: true, w: 200, h: 320 }, inputComp: [], dsp: [], dspLinear: false }, over);
+}
+const EXAMPLES = {
+  cnote: () => {
+    const w = newWay("woofer", 0, { name: "Woofer" }), t = newWay("tweeter", 1, { name: "Tweeter" });
+    w.driver.name = "Dayton DSA135-8 (T/S model)";
+    Object.assign(w.driver.model, { Re: 5.9, Le: 0.78, leN: 0.64, Fs: 51.8, Qms: 2.04, Qes: 0.47, Vas: 7.93, Sd: 75.4, box: "vented", Vb: 7, Fb: 45, Ql: 7, sens: "", brF: 2000, brQ: 0.5, brDb: 5, hfF: 8200, hfQ: 3 });
+    w.driver.dia = 98; w.instances = [{ x: 95, y: 145, z: -20 }];
+    t.driver.name = "Dayton ND25FW-4 (T/S model)";
+    Object.assign(t.driver.model, { Re: 3.24, Le: 0.04, Fs: 1363, Qms: 3.64, Qes: 2.49, Vas: 0.02, Sd: 7, box: "ib", sens: 92.6, brF: 4560, brQ: 1.17, brDb: 3.1, hfF: 13000, hfQ: 1.1 });
+    t.driver.dia = 73; t.instances = [{ x: 95, y: 245, z: -8 }];
+    w.network = [B("series", { L: 1.4, Rl: 0.45 }), B("shunt", { C: 6.8 })];
+    t.network = [B("series", { R: 6 }), B("series", { C: 5.1 }), B("shunt", { L: 0.25, Rl: 0.25 }), B("series", { C: 2 }), B("shunt", { C: 2 })];
+    return { format: "crossover-workbench", version: 1, name: "C-Note (Paul Carmody) with modeled drivers", notes: "Network from the published C-Note schematic. Drivers use Dayton DATS T/S data, with the cone and waveguide shaping fitted to Dayton's measured on-axis curves (within about 1 dB from 150 Hz to 8 kHz for the woofer and 800 Hz to 20 kHz for the tweeter). Depths: woofer acoustic center 20 mm behind the baffle (from Dayton's 3D model), tweeter 8 mm (estimate). Box volume, tuning and baffle size are estimates. For best accuracy, load Dayton's FRD/ZMA files", system: baseSystem({ listen: { dist: 2000, refX: 95, refY: 245, h: 0, v: 0 }, baffle: { on: true, w: 190, h: 305 } }), ways: [w, t] };
+  },
+  cnoteR: () => {
+    const p = EXAMPLES.cnote();
+    p.name = "C-Note network on resistor loads"; p.notes = "Same network driving plain 8 Ω and 4 Ω resistors, matching the original C-Note Crossover Lab. The tweeter's resistor load is set 11 dB hotter so the acoustic sum shows the electrical alignment.";
+    p.system.baffle.on = false;
+    p.ways[0].driver = Object.assign(p.ways[0].driver, { source: "ideal", ideal: { R: 8, spl: 90 }, name: "8 Ω resistor", baffleSim: false });
+    p.ways[1].driver = Object.assign(p.ways[1].driver, { source: "ideal", ideal: { R: 4, spl: 101 }, name: "4 Ω resistor", baffleSim: false });
+    p.ways[0].network[0].Rl = 0; p.ways[1].network[2].Rl = 0;
+    p.ways.forEach(w => w.instances = [{ x: 95, y: 245, z: 0 }]);
+    return p;
+  },
+  lr4: () => {
+    const w = newWay("woofer", 0), t = newWay("tweeter", 1);
+    for (const x of [w, t]) { x.driver.source = "ideal"; x.driver.ideal = { R: 8, spl: 88 }; x.driver.baffleSim = false; x.instances = [{ x: 100, y: 240, z: 0 }]; }
+    w.driver.name = "8 Ω ideal"; t.driver.name = "8 Ω ideal";
+    w.network = XO.textbookBlocks("lp", "LR4", 2500, 8).map(b => (b.Rl = 0, b));
+    t.network = XO.textbookBlocks("hp", "LR4", 2500, 8).map(b => (b.Rl = 0, b));
+    w.target = { kind: "lp", shape: "LR", order: 4, f: 2500, f2: 5000, shape2: "LR", order2: 4, level: 88 };
+    t.target = { kind: "hp", shape: "LR", order: 4, f: 2500, f2: 5000, shape2: "LR", order2: 4, level: 88 };
+    return { format: "crossover-workbench", version: 1, name: "Textbook LR4 at 2.5 kHz", notes: "Ideal 8 Ω drivers at the same point. The sum is flat, and the dashed targets sit under the driver curves. Flip the tweeter to see the reverse null.", system: baseSystem({ baffle: { on: false, w: 200, h: 320 } }), ways: [w, t] };
+  },
+  threeway: () => {
+    const w = newWay("woofer", 0), m = newWay("mid", 2, { name: "Mid" }), t = newWay("tweeter", 1);
+    w.driver.name = "8 in woofer (generic model)"; Object.assign(w.driver.model, { Re: 5.5, Le: 1.1, Fs: 30, Qms: 3.5, Qes: 0.4, Vas: 45, Sd: 220, box: "vented", Vb: 40, Fb: 32, sens: "", brF: 3500, brQ: 4, brDb: 5, hfF: 4500, hfQ: 0.7 }); w.driver.dia = 165; w.instances = [{ x: 120, y: 330, z: -25 }];
+    m.driver.name = "4 in midrange (generic model)"; Object.assign(m.driver.model, { Re: 5.8, Le: 0.4, Fs: 70, Qms: 3, Qes: 0.55, Vas: 4, Sd: 55, box: "sealed", Vb: 3, hfF: 9000 }); m.driver.dia = 80; m.instances = [{ x: 120, y: 640, z: -10 }];
+    t.driver.name = "1 in dome (generic model)"; Object.assign(t.driver.model, { Re: 4.7, Le: 0.05, Fs: 650, Qms: 2, Qes: 0.9, Vas: 0.05, Sd: 8, box: "ib", sens: 91 }); t.driver.dia = 28; t.instances = [{ x: 120, y: 790, z: 0 }];
+    w.network = [B("series", { L: 8.2, Rl: 0.6 }), B("shunt", { C: 56 })];
+    m.network = [B("series", { C: 56 }), B("shunt", { L: 8.2, Rl: 0.5 }), B("series", { L: 0.68, Rl: 0.25 }), B("shunt", { C: 12 }), B("series", { R: 1.8 })];
+    m.polarity = -1;
+    t.network = [B("series", { C: 5.6 }), B("shunt", { L: 0.33, Rl: 0.2 }), B("series", { R: 3 }), B("shunt", { R: 20 })];
+    t.polarity = -1;
+    return { format: "crossover-workbench", version: 1, name: "Three-way, modeled drivers", notes: "Generic modeled drivers with 2nd-order networks throughout: woofer low-pass near 250 Hz, padded band-pass midrange, and a 2nd-order tweeter with an L-pad. Mid and tweeter are both wired inverted. Values were tuned for a flat on-axis and listening-window response with these models, so treat them as a demonstration rather than a recipe.", system: baseSystem({ listen: { dist: 2500, refX: 120, refY: 790, h: 0, v: 0 }, baffle: { on: true, w: 240, h: 950 } }), ways: [w, m, t] };
+  },
+  ob: () => {
+    const w = newWay("woofer", 0, { name: "Woofer" }), f = newWay("mid", 2, { name: "Wideband" });
+    w.driver.name = "12 in high-Qts woofer (generic model)"; Object.assign(w.driver.model, { Re: 5.6, Le: 1.5, Fs: 30, Qms: 6, Qes: 0.7, Vas: 150, Sd: 500, box: "ob", sens: "", hfF: 1500, hfQ: 0.7 }); w.driver.dia = 260; w.instances = [{ x: 200, y: 260, z: 0 }];
+    f.driver.name = "6.5 in wideband (generic model)"; Object.assign(f.driver.model, { Re: 6, Le: 0.25, Fs: 45, Qms: 3, Qes: 0.6, Vas: 20, Sd: 130, box: "ob", sens: "", hfF: 16000, hfQ: 0.7, brF: 7000, brQ: 3, brDb: 3 }); f.driver.dia = 115; f.instances = [{ x: 200, y: 760, z: 0 }];
+    w.dsp = [{ t: "lp", shape: "LR", order: 4, f: 220 }, { t: "ls", f: 110, g: 9, q: 0.6 }, { t: "hp", shape: "BW", order: 2, f: 22 }];
+    f.dsp = [{ t: "hp", shape: "LR", order: 4, f: 220 }, { t: "gain", g: -1 }];
+    return { format: "crossover-workbench", version: 1, name: "Open-baffle two-way, active", notes: "Both drivers on a 400 × 1000 mm open baffle, modeled as dipoles. The woofer uses DSP shelving to make up for dipole low-end loss. Export the biquads from the Export tab.", system: baseSystem({ mode: "active", listen: { dist: 2500, refX: 200, refY: 760, h: 0, v: 0 }, baffle: { on: true, w: 400, h: 1000 } }), ways: [w, f] };
+  }
+};
+const EX_LIST = [["cnote", "C-Note, modeled drivers"], ["cnoteR", "C-Note on resistors"], ["lr4", "Textbook LR4, 2.5 kHz"], ["threeway", "Three-way, modeled drivers"], ["ob", "Open baffle, active DSP"]];
+
+/* ---------- state ---------- */
+let P = null;
+const V = { probeF: 3000, rail: "sys", sub: "imp", rng: 60, tol: 0, nullWay: "", capture: null, overlay: null, show: { sum: true, ways: true, targets: true, raw: false, ghost: true, band: true, nullc: true, ovl: true, zsys: true, epdr: true, zway: true, zraw: false }, dirNorm: "on", flash: null };
+let R = null, MIC = null, SUM = null, TOL = null, SPIN = null;
+const HIST = { stack: [], i: -1 };
+function commit() {
+  const s = JSON.stringify(P);
+  if (HIST.stack[HIST.i] === s) return;
+  HIST.stack = HIST.stack.slice(0, HIST.i + 1); HIST.stack.push(s); if (HIST.stack.length > 60) HIST.stack.shift(); HIST.i = HIST.stack.length - 1;
+  try { if (s.length < 4e6) localStorage.setItem("xwb.project", s); } catch (_) {}
+  $("#undo").disabled = HIST.i <= 0; $("#redo").disabled = HIST.i >= HIST.stack.length - 1;
+}
+function restore(i) { HIST.i = i; P = JSON.parse(HIST.stack[i]); $("#undo").disabled = HIST.i <= 0; $("#redo").disabled = HIST.i >= HIST.stack.length - 1; try { localStorage.setItem("xwb.project", HIST.stack[i]); } catch (_) {} fullRender(); }
+function normalize(p) {
+  p.system = Object.assign(baseSystem(), p.system || {}); p.system.listen = Object.assign(baseSystem().listen, p.system.listen || {}); p.system.baffle = Object.assign({ on: true, w: 200, h: 320 }, p.system.baffle || {});
+  p.system.inputComp = p.system.inputComp || []; p.system.dsp = p.system.dsp || [];
+  p.ways = (p.ways || []).slice(0, 4).map((w, i) => { const d = newWay("mid", i); const o = Object.assign(d, w); o.driver = Object.assign(d.driver, w.driver || {}); o.driver.model = Object.assign(clone(MODEL_DEF.mid), (w.driver || {}).model || {}); o.driver.measured = Object.assign({ frd: null, zma: null, frdName: "", zmaName: "", usePhase: true, zUsePhase: true }, (w.driver || {}).measured || {}); o.target = Object.assign(d.target, w.target || {}); o.network = o.network || []; o.dsp = o.dsp || []; if (!o.instances || !o.instances.length) o.instances = [{ x: 100, y: 120, z: 0 }]; return o; });
+  if (!p.ways.length) p.ways = [newWay("woofer", 0), newWay("tweeter", 1)];
+  return p;
+}
+function loadProject(p, keepView) {
+  P = normalize(p); HIST.stack = []; HIST.i = -1; commit();
+  if (!keepView) { V.rail = "sys"; V.capture = null; V.nullWay = ""; }
+  fullRender();
+}
+
+/* ---------- labels ---------- */
+function labelMap() {
+  const m = new Map(), cnt = { R: 0, L: 0, C: 0 };
+  const walk = bl => { for (const b of bl) { const L = []; for (const k of XO.blockElems(b)) { cnt[k]++; L.push(k + cnt[k]); } m.set(b.id, L); } };
+  for (const w of P.ways) walk(w.network || []);
+  walk(P.system.inputComp || []);
+  return m;
+}
+function blockLabel(b, lm) { const L = lm.get(b.id) || []; return L.length ? L.join("+") : "empty"; }
+
+/* ---------- compute ---------- */
+function micDir() { return { h: +P.system.listen.h || 0, v: +P.system.listen.v || 0 }; }
+let tolTimer = null, spinTimer = null;
+function compute() {
+  R = XO.sysSolve(P);
+  MIC = XO.geomFor(P, [micDir()])[0];
+  SUM = XO.sumAt(R, MIC, { invertId: null });
+  SUM.spl = XO.caSpl(SUM.tot);
+  SUM.ways = SUM.per.map(p => XO.caSpl(p));
+  SUM.nullc = V.nullWay ? XO.caSpl(XO.sumAt(R, MIC, { invertId: V.nullWay }).tot) : null;
+  SUM.raw = R.ways.map(r => XO.caSpl(XO.rawAt(r, MIC)));
+  SPIN = null; TOL = null;
+  clearTimeout(tolTimer);
+  if (V.tol > 0) tolTimer = setTimeout(() => { TOL = XO.tolerance(P, R, MIC, V.tol, 32); drawResp(); }, 160);
+}
+function spinNow() { if (!SPIN) SPIN = XO.spin(R, P); return SPIN; }
+
+/* ---------- generic chart ---------- */
+const XT = [20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000];
+const XM = [30, 40, 60, 70, 80, 90, 300, 400, 600, 700, 800, 900, 3000, 4000, 6000, 7000, 8000, 9000];
+const FLO = 20, FHI = 20000;
+const I0 = Math.max(0, Math.floor(XO.idxOf(FLO))), I1 = Math.min(NF - 1, Math.ceil(XO.idxOf(FHI)));
+function lineChart(el, cfg) {
+  if (!el._init) {
+    el._init = true; el.innerHTML = '<div class="svgbox"></div><div class="tip" hidden></div>';
+    let drag = false;
+    const fAt = e => { const svg = el.querySelector("svg"); if (!svg) return null; const r = svg.getBoundingClientRect(), k = el._map; const x = (e.clientX - r.left) * (k.W / r.width); const t = Math.min(1, Math.max(0, (x - k.m.l) / k.pw)); return FLO * Math.pow(FHI / FLO, t); };
+    el.addEventListener("pointerdown", e => { if (!el._cfg.probe) return; drag = true; try { el.setPointerCapture(e.pointerId); } catch (_) {} const f = fAt(e); if (f) setProbe(f); el.querySelector(".tip").hidden = true; });
+    el.addEventListener("pointermove", e => { const f = fAt(e); if (drag && f) { setProbe(f); return; } if (e.pointerType === "mouse" && f) showTip(el, f, e); });
+    ["pointerup", "pointercancel"].forEach(t => el.addEventListener(t, () => drag = false));
+    el.addEventListener("pointerleave", () => { drag = false; el.querySelector(".tip").hidden = true; });
+  }
+  el._cfg = cfg;
+  const box = el.querySelector(".svgbox");
+  const Wd = Math.max(300, Math.round(el.clientWidth || 640)), H = cfg.height || (Wd < 560 ? 230 : 300);
+  const m = { l: 42, r: 10, t: 22, b: 24 }, pw = Wd - m.l - m.r, ph = H - m.t - m.b;
+  const X = f => m.l + pw * Math.log(f / FLO) / Math.log(FHI / FLO);
+  const Y = v => m.t + ph * (cfg.ymax - v) / (cfg.ymax - cfg.ymin);
+  el._map = { m, pw, W: Wd, X, Y };
+  const cid = "c" + Math.random().toString(36).slice(2, 7);
+  let s = `<svg viewBox="0 0 ${Wd} ${H}" width="${Wd}" height="${H}" role="img" aria-label="${esc(cfg.aria || "")}"><defs><clipPath id="${cid}"><rect x="${m.l}" y="${m.t}" width="${pw}" height="${ph}"/></clipPath></defs>`;
+  s += `<rect x="${m.l}" y="${m.t}" width="${pw}" height="${ph}" fill="var(--panel)" stroke="var(--gridmaj)"/>`;
+  XM.forEach(f => s += `<line x1="${X(f).toFixed(1)}" x2="${X(f).toFixed(1)}" y1="${m.t}" y2="${m.t + ph}" stroke="var(--grid)"/>`);
+  for (let v = Math.ceil(cfg.ymin / cfg.ystep) * cfg.ystep; v <= cfg.ymax + 1e-9; v += cfg.ystep) {
+    const y = Y(v).toFixed(1);
+    s += `<line x1="${m.l}" x2="${m.l + pw}" y1="${y}" y2="${y}" stroke="var(--grid)"/>`;
+    s += `<text x="${m.l - 6}" y="${+y + 3.5}" text-anchor="end" font-size="10.5" font-family="var(--mono)" fill="var(--muted)">${cfg.yfmt ? cfg.yfmt(v) : v}</text>`;
+  }
+  XT.forEach(f => { const x = X(f).toFixed(1); s += `<line x1="${x}" x2="${x}" y1="${m.t}" y2="${m.t + ph}" stroke="var(--gridmaj)"/>`; });
+  (Wd < 520 ? [20, 100, 1000, 10000, 20000] : XT).forEach(f => { const x = X(f).toFixed(1); s += `<text x="${x}" y="${H - 7}" text-anchor="${f === 20 ? "start" : f === 20000 ? "end" : "middle"}" font-size="10.5" font-family="var(--mono)" fill="var(--muted)">${f >= 1000 ? f / 1000 + "k" : f}</text>`; });
+  s += `<text x="${m.l + 4}" y="${m.t - 8}" font-size="10.5" font-family="var(--mono)" fill="var(--muted)">${esc(cfg.yunit || "")}</text>`;
+  s += `<g clip-path="url(#${cid})">`;
+  const lo = cfg.ymin - 40, hi = cfg.ymax + 40, clampY = v => Y(Math.min(hi, Math.max(lo, v)));
+  for (const b of cfg.bands || []) {
+    let d = ""; for (let i = I0; i <= I1; i++) d += (i === I0 ? "M" : "L") + X(F[i]).toFixed(1) + "," + clampY(b.hi[i]).toFixed(1);
+    for (let i = I1; i >= I0; i--) d += "L" + X(F[i]).toFixed(1) + "," + clampY(b.lo[i]).toFixed(1);
+    s += `<path d="${d}Z" fill="${b.color}" fill-opacity="${b.opacity || 0.16}" stroke="none"/>`;
+  }
+  for (const tr of cfg.traces) {
+    let d = "", pen = false, prev = null;
+    for (let i = I0; i <= I1; i++) {
+      const v = tr.data[i];
+      if (!isFinite(v)) { pen = false; prev = null; continue; }
+      if (cfg.wrap && prev !== null && Math.abs(v - prev) > 180) pen = false;
+      d += (pen ? "L" : "M") + X(F[i]).toFixed(1) + "," + clampY(v).toFixed(1); pen = true; prev = v;
+    }
+    s += `<path d="${d}" fill="none" stroke="${tr.color}" stroke-width="${tr.w || 2}" ${tr.dash ? `stroke-dasharray="${tr.dash}"` : ""} ${tr.opacity ? `stroke-opacity="${tr.opacity}"` : ""} stroke-linejoin="round" stroke-linecap="round"/>`;
+  }
+  if (cfg.probe) {
+    const px = X(V.probeF).toFixed(1), pi = Math.round(XO.idxOf(V.probeF));
+    s += `<line x1="${px}" x2="${px}" y1="${m.t}" y2="${m.t + ph}" stroke="var(--probe)" stroke-width="1.25" stroke-dasharray="3 3"/>`;
+    for (const tr of cfg.traces) if (tr.dot) { const v = tr.data[pi]; if (isFinite(v) && v >= cfg.ymin && v <= cfg.ymax) s += `<circle cx="${px}" cy="${Y(v).toFixed(1)}" r="4" fill="${tr.color}" stroke="var(--panel)" stroke-width="2"/>`; }
+  }
+  s += `</g>`;
+  if (cfg.probe) { const px = X(V.probeF), right = px > m.l + pw - 80; s += `<text x="${right ? px - 5 : px + 5}" y="${m.t - 8}" text-anchor="${right ? "end" : "start"}" font-size="11" font-weight="600" font-family="var(--mono)" fill="var(--probe)">${fmtF(V.probeF)}</text>`; }
+  s += `</svg>`;
+  box.innerHTML = s;
+}
+function showTip(el, f, e) {
+  const cfg = el._cfg, tip = el.querySelector(".tip"), i = Math.round(XO.idxOf(f));
+  const rows = cfg.traces.filter(t => t.name && t.tip !== false).map(t => `<div class="r"><span><i style="background:${t.color}"></i>${esc(t.name)}</span><span>${isFinite(t.data[i]) ? (cfg.tfmt ? cfg.tfmt(t.data[i]) : t.data[i].toFixed(1)) : "–"}</span></div>`);
+  if (!rows.length) { tip.hidden = true; return; }
+  tip.innerHTML = `<div class="f">${fmtF(F[i])}</div>` + rows.join("");
+  tip.hidden = false;
+  const r = el.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top, tw = tip.offsetWidth;
+  tip.style.left = (x + 14 + tw > r.width ? Math.max(0, x - tw - 14) : x + 14) + "px"; tip.style.top = Math.max(0, y - 20) + "px";
+}
+function legend(id, items) {
+  const el = $(id);
+  el.innerHTML = items.map(it => `<label class="chip" style="color:${it.color}" data-k="${it.k}"><input type="checkbox" ${V.show[it.k] ? "checked" : ""}><span class="sw ${it.cls || ""}"></span><span class="t">${esc(it.label)}</span></label>`).join("");
+  el.querySelectorAll(".chip").forEach(ch => { const k = ch.dataset.k, inp = ch.querySelector("input"); ch.classList.toggle("off", !V.show[k]); inp.addEventListener("change", () => { V.show[k] = inp.checked; ch.classList.toggle("off", !inp.checked); drawResp(); drawSub(); }); });
+}
+
+/* ---------- response chart ---------- */
+function drawResp() {
+  if (!R) return;
+  const tr = [], bands = [];
+  const ref = XO.bandMean(SUM.spl, 300, 3000);
+  const ymax = Math.ceil((ref + (V.rng >= 60 ? 14 : V.rng >= 40 ? 10 : 6)) / 2) * 2, ymin = ymax - V.rng;
+  if (V.show.band && TOL) bands.push({ lo: TOL.lo, hi: TOL.hi, color: "var(--ink)", opacity: 0.13 });
+  if (V.show.ghost && V.capture) tr.push({ name: "Captured", data: V.capture.spl, color: "var(--ghost)", w: 1.8, dash: "5 4" });
+  if (V.show.ovl && V.overlay) tr.push({ name: V.overlay.name, data: V.overlay.db, color: "var(--ghost)", w: 1.6 });
+  R.ways.forEach((r, k) => {
+    if (r.mute) return;
+    const col = wayColor(r.way);
+    if (V.show.raw && V.show["w:" + r.way.id] !== false) tr.push({ name: r.way.name + " raw", data: SUM.raw[k], color: col, w: 1.2, opacity: 0.45 });
+    if (V.show.targets) { const t = XO.targetCurve(r.way.target); if (t) tr.push({ name: r.way.name + " target", data: t, color: col, w: 1.4, dash: "6 4" }); }
+    if (V.show["w:" + r.way.id] !== false) tr.push({ name: r.way.name + " with crossover", data: SUM.ways[k], color: col, w: 2.2, dot: true });
+  });
+  if (V.show.nullc && SUM.nullc) tr.push({ name: "Reverse null", data: SUM.nullc, color: "var(--ink)", w: 1.4, dash: "2 3" });
+  if (V.show.sum) tr.push({ name: "Sum", data: SUM.spl, color: "var(--ink)", w: 2.6, dot: true });
+  lineChart($("#chart-resp"), { ymin, ymax, ystep: V.rng >= 60 ? 10 : V.rng >= 40 ? 5 : 3, yunit: "dB SPL", traces: tr, bands, probe: true, aria: "Acoustic response of each way and the sum versus frequency" });
+  const L = P.system.listen;
+  $("#resp-note").textContent = `${(L.dist / 1000).toFixed(2)} m, ${L.h}° H, ${L.v}° V · 2.83 V input, levels referenced to 1 m`;
+}
+function respLegend() {
+  const items = [{ k: "sum", label: "Sum", color: "var(--ink)" }];
+  P.ways.forEach(w => { const k = "w:" + w.id; if (V.show[k] === undefined) V.show[k] = true; items.push({ k, label: w.name + (w.mute ? " (muted)" : ""), color: wayColor(w) }); });
+  if (P.ways.some(w => w.target && w.target.kind && w.target.kind !== "none")) items.push({ k: "targets", label: "Targets", color: "var(--muted)", cls: "dash" });
+  items.push({ k: "raw", label: "Raw drivers (no crossover)", color: "var(--muted)" });
+  if (V.nullWay) items.push({ k: "nullc", label: "Reverse null", color: "var(--ink)", cls: "dash" });
+  if (V.tol) items.push({ k: "band", label: `±${V.tol}% spread`, color: "var(--ink)", cls: "band" });
+  if (V.capture) items.push({ k: "ghost", label: "Captured", color: "var(--ghost)", cls: "dash" });
+  if (V.overlay) items.push({ k: "ovl", label: V.overlay.name, color: "var(--ghost)" });
+  legend("#leg-resp", items);
+}
+
+/* ---------- secondary charts ---------- */
+function subLegend(items) { return `<div class="legend sublegend">${items.map(it => `<label class="chip" style="color:${it.color}" data-k="${it.k}"><input type="checkbox" ${V.show[it.k] ? "checked" : ""}><span class="sw ${it.cls || ""}"></span><span class="t">${esc(it.label)}</span></label>`).join("")}</div>`; }
+function bindSubLegend() { document.querySelectorAll("#sub-body .sublegend .chip").forEach(ch => { const k = ch.dataset.k, inp = ch.querySelector("input"); ch.classList.toggle("off", !V.show[k]); inp.addEventListener("change", () => { V.show[k] = inp.checked; drawSub(); }); }); }
+function drawSub() {
+  if (!R) return;
+  document.querySelectorAll("#subtabs .tab").forEach(t => t.setAttribute("aria-selected", t.dataset.sub === V.sub ? "true" : "false"));
+  const body = $("#sub-body"), sub = V.sub;
+  if (body.dataset.sub !== sub) { body.dataset.sub = sub; body.innerHTML = subSkeleton(sub); bindSubLegend(); bindSubExtras(); }
+  if (sub === "imp") drawImp(); else if (sub === "phase") drawPhase(); else if (sub === "xfer") drawXfer(); else if (sub === "dir") drawDir(); else drawSpin();
+}
+function subSkeleton(sub) {
+  if (sub === "imp") return (R.active ? `<p class="note">Active mode: each way has its own amplifier, so each load is shown separately.</p>` : "") + subLegend(R.active ? [{ k: "zway", label: "Way loads", color: "var(--muted)" }, { k: "epdr", label: "EPDR", color: "var(--muted)", cls: "dash" }, { k: "zraw", label: "Raw drivers", color: "var(--muted)" }] : [{ k: "zsys", label: "Amp load", color: "var(--ink)" }, { k: "epdr", label: "EPDR", color: "var(--ink)", cls: "dash" }, { k: "zway", label: "Way branches", color: "var(--muted)", cls: "dash" }, { k: "zraw", label: "Raw drivers", color: "var(--muted)" }]) + `<div class="chart" id="ch-imp"></div><span class="subchart-label">Impedance phase</span><div class="chart" id="ch-impph"></div><p class="note small">EPDR is the resistive load that would stress a class-AB output stage as much as this speaker does. Low EPDR means a harder load than the impedance curve suggests.</p>`;
+  if (sub === "phase") return `<div class="chart" id="ch-ph"></div><p class="note small" id="ph-note"></p>`;
+  if (sub === "xfer") return `<div class="chart" id="ch-x"></div><p class="note small">Voltage reaching each driver's terminals relative to the 2.83 V input, including amp output impedance and any DSP. This is the electrical filter before the driver's own response.</p>`;
+  if (sub === "dir") return `<div class="row" style="justify-content:space-between"><span class="note">Front hemisphere. Bands are 3 dB apart.</span><span class="row tight"><label class="note" for="dirnorm">Normalize</label><select id="dirnorm"><option value="on">To on-axis</option><option value="abs">Absolute</option></select></span></div><span class="subchart-label">Horizontal</span><div class="chart" id="hm-h"></div><span class="subchart-label">Vertical (up is positive)</span><div class="chart" id="hm-v"></div><div class="scale" id="hm-scale"></div>`;
+  return `<div class="legend" id="spin-leg"></div><div class="chart" id="ch-spin"></div><span class="subchart-label">Directivity index</span><div class="chart" id="ch-di"></div><p class="note small">Estimated CTA-2034 curves from the simulated horizontal and vertical orbits. Early reflections use ±90° in place of the rear wall. Predicted in-room is 12% listening window, 44% early reflections, 44% sound power.</p>`;
+}
+function bindSubExtras() { const dn = $("#dirnorm"); if (dn) { dn.value = V.dirNorm; dn.addEventListener("change", () => { V.dirNorm = dn.value; drawDir(); }); } }
+function drawImp() {
+  const tr = []; let zmax = 10;
+  const mags = [];
+  if (!R.active) {
+    const z = XO.caAbs(R.Zsys); mags.push(z);
+    if (V.show.ghost && V.capture && V.capture.z) tr.push({ name: "Captured", data: V.capture.z, color: "var(--ghost)", w: 1.6, dash: "5 4" });
+    R.ways.forEach(r => { if (r.mute) return; const zw = XO.caAbs(r.sw.Zin); if (V.show.zway) tr.push({ name: r.way.name + " branch", data: zw, color: wayColor(r.way), w: 1.4, dash: "6 4" }); if (V.show.zraw) tr.push({ name: r.way.name + " raw", data: XO.caAbs(r.sw.Zload), color: wayColor(r.way), w: 1.1, opacity: 0.5 }); });
+    if (V.show.epdr) { const e = new Float64Array(NF); for (let i = 0; i < NF; i++) e[i] = XO.epdr(XO.get(R.Zsys, i)); tr.push({ name: "EPDR", data: e, color: "var(--ink)", w: 1.5, dash: "3 3" }); }
+    if (V.show.zsys) tr.push({ name: "Amp load", data: z, color: "var(--ink)", w: 2.4, dot: true });
+  } else {
+    R.ways.forEach(r => {
+      if (r.mute) return; const zw = XO.caAbs(r.sw.Zin); mags.push(zw);
+      if (V.show.zraw) tr.push({ name: r.way.name + " raw", data: XO.caAbs(r.sw.Zload), color: wayColor(r.way), w: 1.1, opacity: 0.5 });
+      if (V.show.epdr) { const e = new Float64Array(NF); for (let i = 0; i < NF; i++) e[i] = XO.epdr(XO.get(r.sw.Zin, i)); tr.push({ name: r.way.name + " EPDR", data: e, color: wayColor(r.way), w: 1.4, dash: "3 3" }); }
+      if (V.show.zway) tr.push({ name: r.way.name + " load", data: zw, color: wayColor(r.way), w: 2.2, dot: true });
+    });
+  }
+  for (const z of mags) for (let i = I0; i <= I1; i++) zmax = Math.max(zmax, Math.min(z[i], 200));
+  const top = zmax <= 20 ? 20 : zmax <= 30 ? 30 : zmax <= 50 ? 50 : zmax <= 100 ? 100 : 200;
+  lineChart($("#ch-imp"), { ymin: 0, ymax: top, ystep: top / 5, yunit: "Ω", traces: tr, probe: true, tfmt: v => v.toFixed(2) + " Ω", aria: "Impedance versus frequency" });
+  const pt = [];
+  if (!R.active) pt.push({ name: "Amp load", data: XO.caDeg(R.Zsys), color: "var(--ink)", w: 2, dot: true });
+  else R.ways.forEach(r => { if (!r.mute) pt.push({ name: r.way.name, data: XO.caDeg(r.sw.Zin), color: wayColor(r.way), w: 2, dot: true }); });
+  lineChart($("#ch-impph"), { ymin: -90, ymax: 90, ystep: 45, yunit: "deg", traces: pt, probe: true, height: 150, tfmt: v => v.toFixed(0) + "°", aria: "Impedance phase" });
+}
+function drawPhase() {
+  const tr = [];
+  R.ways.forEach((r, k) => { if (!r.mute) tr.push({ name: r.way.name, data: XO.caDeg(SUM.per[k]), color: wayColor(r.way), w: 2, dot: true }); });
+  tr.push({ name: "Sum", data: XO.caDeg(SUM.tot), color: "var(--ink)", w: 2.4, dot: true });
+  lineChart($("#ch-ph"), { ymin: -180, ymax: 180, ystep: 90, yunit: "deg", traces: tr, wrap: true, probe: true, tfmt: v => v.toFixed(0) + "°", aria: "Acoustic phase of each way and the sum" });
+  const live = R.ways.filter(r => !r.mute), i = Math.round(XO.idxOf(V.probeF));
+  const parts = [];
+  for (let k = 0; k + 1 < live.length; k++) {
+    const a = SUM.per[R.ways.indexOf(live[k])], b = SUM.per[R.ways.indexOf(live[k + 1])];
+    let d = (Math.atan2(a.im[i], a.re[i]) - Math.atan2(b.im[i], b.re[i])) * 180 / Math.PI; d = ((d + 540) % 360) - 180;
+    parts.push(`${live[k].way.name} vs ${live[k + 1].way.name}: ${d.toFixed(0)}°`);
+  }
+  $("#ph-note").textContent = `Phase with the ${(P.system.listen.dist / 1000).toFixed(2)} m flight time removed. Phase difference at ${fmtF(V.probeF)}: ${parts.join(" · ") || "n/a"}. Near 0° through the crossover region means the ways add cleanly.`;
+}
+function drawXfer() {
+  const tr = [];
+  R.ways.forEach(r => { if (r.mute) return; tr.push({ name: r.way.name, data: XO.caDb(r.G), color: wayColor(r.way), w: 2.2, dot: true }); if (R.active && r.wd.bq.length) tr.push({ name: r.way.name + " DSP", data: XO.caDb(r.Hd), color: wayColor(r.way), w: 1.4, dash: "6 4" }); });
+  lineChart($("#ch-x"), { ymin: -50, ymax: 15, ystep: 10, yunit: "dB re 2.83 V", traces: tr, probe: true, tfmt: v => fmtDB(v), aria: "Electrical transfer function to each driver" });
+}
+function drawSpin() {
+  const sp = spinNow();
+  const items = [["on", "On-axis", "var(--ink)"], ["lw", "Listening window", "var(--s1)"], ["er", "Early reflections", "var(--s3)"], ["sp", "Sound power", "var(--s2)"], ["pir", "Predicted in-room", "var(--s5)"]];
+  V.spinShow = V.spinShow || { on: true, lw: true, er: true, sp: true, pir: true };
+  const lg = $("#spin-leg");
+  lg.innerHTML = items.map(([k, l, c]) => `<label class="chip" style="color:${c}" data-k="${k}"><input type="checkbox" ${V.spinShow[k] ? "checked" : ""}><span class="sw"></span><span class="t">${l}</span></label>`).join("");
+  lg.querySelectorAll(".chip").forEach(ch => { const k = ch.dataset.k, inp = ch.querySelector("input"); ch.classList.toggle("off", !V.spinShow[k]); inp.addEventListener("change", () => { V.spinShow[k] = inp.checked; drawSpin(); }); });
+  const tr = items.filter(([k]) => V.spinShow[k]).map(([k, l, c]) => ({ name: l, data: sp[k], color: c, w: k === "on" ? 2.4 : 2, dot: true }));
+  const ref = XO.bandMean(sp.on, 300, 3000), ymax = Math.ceil((ref + 10) / 5) * 5;
+  lineChart($("#ch-spin"), { ymin: ymax - 50, ymax, ystep: 10, yunit: "dB SPL", traces: tr, probe: true, aria: "Estimated spinorama" });
+  lineChart($("#ch-di"), { ymin: -5, ymax: 15, ystep: 5, yunit: "dB", traces: [{ name: "Sound power DI", data: sp.di, color: "var(--s2)", w: 2, dot: true }, { name: "Early reflections DI", data: sp.erdi, color: "var(--s3)", w: 2, dot: true }], probe: true, height: 170, aria: "Directivity index" });
+}
+/* directivity heat maps */
+function ramp() { return ["--q1", "--q2", "--q3", "--q4", "--q5", "--q6", "--q7"].map(n => { const h = css(n).replace("#", ""); return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)]; }); }
+function rampColor(R7, t) { t = Math.min(1, Math.max(0, t)) * 6; const i = Math.min(5, Math.floor(t)), u = t - i; return R7[i].map((c, k) => Math.round(c + (R7[i + 1][k] - c) * u)); }
+function drawDir() {
+  const sp = spinNow(), R7 = ramp(), norm = V.dirNorm === "on";
+  const onDb = sp.Ph[XO.ANG.indexOf(0)].map(v => 20 * Math.log10(Math.max(v, 1e-12)) + XO.DB0);
+  const top = norm ? 0 : Math.ceil((XO.bandMean(onDb, 300, 3000) + 6) / 3) * 3;
+  const draw = (id, rows) => {
+    const el = $(id); const Wd = Math.max(300, el.clientWidth || 640), H = Wd < 560 ? 150 : 190, dpr = Math.min(2, window.devicePixelRatio || 1);
+    const m = { l: 42, r: 10, t: 6, b: 22 }, pw = Wd - m.l - m.r, ph = H - m.t - m.b;
+    if (!el._cv) { el.innerHTML = '<canvas class="heat"></canvas><div class="tip" hidden></div>'; el._cv = el.querySelector("canvas"); el.addEventListener("pointermove", e => hmTip(el, e)); el.addEventListener("pointerleave", () => el.querySelector(".tip").hidden = true); }
+    const cv = el._cv; cv.width = Wd * dpr; cv.height = H * dpr; cv.style.height = H + "px";
+    const ctx = cv.getContext("2d"); ctx.scale(dpr, dpr); ctx.clearRect(0, 0, Wd, H);
+    const img = ctx.createImageData(Math.round(pw * dpr), Math.round(ph * dpr)), iw = img.width, ih = img.height;
+    const nA = XO.ANG.length, vals = [];
+    for (let a = 0; a < nA; a++) { const row = new Float64Array(NF); for (let i = 0; i < NF; i++) { const d = 20 * Math.log10(Math.max(rows[a][i], 1e-12)) + XO.DB0; row[i] = norm ? d - onDb[i] : d; } vals.push(row); }
+    el._hm = { m, pw, ph, vals, norm, Wd };
+    for (let px = 0; px < iw; px++) {
+      const f = FLO * Math.pow(FHI / FLO, px / (iw - 1)), x = XO.idxOf(f), i0 = Math.min(NF - 2, Math.floor(x)), u = x - i0;
+      for (let py = 0; py < ih; py++) {
+        const ang = 90 - 180 * py / (ih - 1), ay = (ang + 90) / XO.HSTEP, a0 = Math.min(nA - 2, Math.floor(ay)), w = ay - a0;
+        const v = (vals[a0][i0] * (1 - u) + vals[a0][i0 + 1] * u) * (1 - w) + (vals[a0 + 1][i0] * (1 - u) + vals[a0 + 1][i0 + 1] * u) * w;
+        const rel = v - top, band = Math.min(0, Math.round(rel / 3) * 3);
+        const c = rampColor(R7, 1 + band / 30), o = (py * iw + px) * 4;
+        img.data[o] = c[0]; img.data[o + 1] = c[1]; img.data[o + 2] = c[2]; img.data[o + 3] = 255;
+      }
+    }
+    ctx.putImageData(img, Math.round(m.l * dpr), Math.round(m.t * dpr));
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.font = "10.5px " + css("--mono"); ctx.fillStyle = css("--muted"); ctx.strokeStyle = css("--gridmaj");
+    ctx.textAlign = "right"; for (const a of [90, 45, 0, -45, -90]) { const y = m.t + ph * (90 - a) / 180; ctx.fillText(a + "°", m.l - 6, y + 3.5); }
+    ctx.textAlign = "center"; for (const f of (Wd < 520 ? [20, 100, 1000, 10000, 20000] : XT)) { const x = m.l + pw * Math.log(f / FLO) / Math.log(FHI / FLO); ctx.textAlign = f === 20 ? "left" : f === 20000 ? "right" : "center"; ctx.fillText(f >= 1000 ? f / 1000 + "k" : String(f), x, H - 6); }
+    ctx.strokeStyle = css("--probe"); ctx.setLineDash([3, 3]); const px = m.l + pw * Math.log(V.probeF / FLO) / Math.log(FHI / FLO); ctx.beginPath(); ctx.moveTo(px, m.t); ctx.lineTo(px, m.t + ph); ctx.stroke(); ctx.setLineDash([]);
+  };
+  draw("#hm-h", sp.Ph); draw("#hm-v", sp.Pv);
+  const st = []; for (let k = 0; k <= 10; k++) { const c = rampColor(R7, k / 10); st.push(`rgb(${c}) ${k * 10}%`); }
+  $("#hm-scale").innerHTML = `<span>${norm ? "−30 dB" : top - 30 + " dB"}</span><span class="bar" style="background:linear-gradient(90deg,${st.join(",")})"></span><span>${norm ? "0 dB (on-axis)" : top + " dB SPL"}</span>`;
+}
+function hmTip(el, e) {
+  const k = el._hm; if (!k) return; const r = el.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top, tip = el.querySelector(".tip");
+  const tx = (x - k.m.l) / k.pw, ty = (y - k.m.t) / k.ph; if (tx < 0 || tx > 1 || ty < 0 || ty > 1) { tip.hidden = true; return; }
+  const f = FLO * Math.pow(FHI / FLO, tx), ang = Math.round((90 - 180 * ty) / XO.HSTEP) * XO.HSTEP, i = Math.round(XO.idxOf(f)), v = k.vals[(ang + 90) / XO.HSTEP][i];
+  tip.innerHTML = `<div class="f">${fmtF(f)} · ${ang}°</div><div class="r"><span>${k.norm ? "Re on-axis" : "SPL"}</span><span>${k.norm ? fmtDB(v) : v.toFixed(1) + " dB"}</span></div>`;
+  tip.hidden = false; const tw = tip.offsetWidth; tip.style.left = (x + 14 + tw > r.width ? x - tw - 14 : x + 14) + "px"; tip.style.top = Math.max(0, y - 20) + "px";
+}
+
+/* ---------- summary tiles ---------- */
+function tiles() {
+  const s = SUM.spl, ref = XO.bandMean(s, 300, 3000);
+  let f3 = NaN, f6 = NaN; const i300 = Math.round(XO.idxOf(300));
+  for (let i = i300; i >= 0; i--) { if (isNaN(f3) && s[i] < ref - 3) f3 = F[i]; if (s[i] < ref - 6) { f6 = F[i]; break; } }
+  let mn = 1e9, mx = -1e9; for (let i = 0; i < NF; i++) if (F[i] >= 200 && F[i] <= 16000) { mn = Math.min(mn, s[i]); mx = Math.max(mx, s[i]); }
+  const live = R.ways.map((r, k) => ({ r, k })).filter(o => !o.r.mute);
+  const cen = o => { let a = 0, b = 0; for (let i = 0; i < NF; i++) { const p = Math.pow(10, SUM.ways[o.k][i] / 10); a += p * Math.log(F[i]); b += p; } return a / b; };
+  live.sort((a, b) => cen(a) - cen(b));
+  const xo = [], gaps = [];
+  for (let j = 0; j + 1 < live.length; j++) {
+    const a = SUM.ways[live[j].k], b = SUM.ways[live[j + 1].k];
+    let f = NaN; for (let i = 1; i < NF; i++) { if (F[i] < 40 || F[i] > 18000) continue; if (a[i] < ref - 25 && b[i] < ref - 25) continue; const d0 = a[i - 1] - b[i - 1], d1 = a[i] - b[i]; if (d0 * d1 <= 0 && d0 !== d1) { f = F[i]; break; } }
+    xo.push(f);
+    if (isFinite(f)) { const i = Math.round(XO.idxOf(f)), pa = SUM.per[live[j].k], pb = SUM.per[live[j + 1].k]; let d = (Math.atan2(pa.im[i], pa.re[i]) - Math.atan2(pb.im[i], pb.re[i])) * 180 / Math.PI; d = ((d + 540) % 360) - 180; gaps.push(Math.round(d) + "°"); }
+  }
+  let zt, et;
+  if (!R.active) {
+    let zm = 1e9, fz = 0, em = 1e9, fe = 0; for (let i = 0; i < NF; i++) { if (F[i] < 20 || F[i] > 20000) continue; const z = XO.get(R.Zsys, i), a = XO.abs(z), e = XO.epdr(z); if (a < zm) { zm = a; fz = F[i]; } if (e < em) { em = e; fe = F[i]; } }
+    zt = ["Minimum impedance", fmtZ(zm), "at " + fmtF(fz)]; et = ["Minimum EPDR", fmtZ(em), "at " + fmtF(fe)];
+  } else {
+    const parts = R.ways.filter(r => !r.mute).map(r => { let zm = 1e9; for (let i = 0; i < NF; i++) if (F[i] >= 20 && F[i] <= 20000) zm = Math.min(zm, XO.abs(XO.get(r.sw.Zin, i))); return r.way.name[0] + " " + zm.toFixed(1); });
+    zt = ["Minimum impedance", parts.join(" · ") + " Ω", "per amplifier channel"]; et = ["Mode", "Active", (R.ways.filter(r => !r.mute).length) + " amp channels, DSP at " + (R.fs / 1000) + " kHz"];
+  }
+  const T = [
+    ["Sensitivity", ref.toFixed(1) + " dB", "2.83 V, 300 Hz–3 kHz"],
+    ["Low-frequency −3 dB", fmtF(f3), "−6 dB at " + fmtF(f6)],
+    ["Deviation", "±" + ((mx - mn) / 2).toFixed(1) + " dB", "200 Hz–16 kHz on this axis"],
+    ["Acoustic crossover", xo.length === 1 ? fmtF(xo[0]) : xo.length ? xo.map(fmtFs).join(" · ") + " Hz" : "n/a", gaps.length ? "phase gap " + gaps.join(" · ") : "one way only"],
+    zt, et
+  ];
+  $("#tiles").innerHTML = T.map(([k, v, s]) => `<div class="tile"><span class="k">${k}</span><span class="v">${v}</span><span class="s">${s}</span></div>`).join("");
+}
+
+/* ---------- probe analysis ---------- */
+function blockRole(b, lad, i) {
+  if (b.off) return { cls: "r-byp", txt: "Bypassed", eff: b.kind === "series" ? "shorted" : "removed" };
+  const els = XO.blockElems(b), onlyR = els.length === 1 && els[0] === "R";
+  if (b.kind === "series") {
+    const loss = XO.db(XO.div(lad.Zd[i + 1], XO.add(lad.Zb[i], lad.Zd[i + 1])));
+    if (onlyR) return { cls: "r-pad", txt: "Padding", eff: fmtDB(loss) + " across it" };
+    return { cls: loss > -1 ? "r-pass" : loss > -6 ? "r-mid" : "r-block", txt: loss > -1 ? "Passing" : loss > -6 ? "Partly blocking" : "Blocking", eff: fmtDB(loss) + " across it" };
+  }
+  const z = lad.Zb[i], other = lad.Zd[i + 1];
+  if (!z) return { cls: "r-byp", txt: "Open", eff: "" };
+  const share = XO.abs(XO.div(other, XO.add(z, other))) * 100;
+  if (onlyR) return { cls: "r-pad", txt: "Padding", eff: Math.min(share, 999).toFixed(0) + "% to ground" };
+  return { cls: share < 20 ? "r-pass" : share < 70 ? "r-mid" : "r-block", txt: share < 20 ? "Out of the way" : share < 70 ? "Partly shunting" : "Shunting to ground", eff: Math.min(share, 999).toFixed(0) + "% to ground" };
+}
+function probeData() {
+  const w = 2 * Math.PI * V.probeF, i = Math.round(XO.idxOf(V.probeF));
+  const Vrms = Math.sqrt(Math.max(0, +P.system.testW || 20) * 8);
+  return R.ways.map((r, k) => {
+    const blocks = r.way.network || [], Zl = XO.get(r.sw.Zload, i), lad = XO.ladderAt(blocks, Zl, w);
+    const pre = XO.sc(XO.get(r.pre, i), Vrms);
+    const rows = blocks.map((b, bi) => {
+      const role = blockRole(b, lad, bi);
+      const Vb = b.kind === "series" ? XO.sub(lad.Vin[bi], lad.Vout[bi]) : lad.Vin[bi];
+      const cur = XO.elemCurrents(b, Vb, lad.I[bi], w);
+      let pw = 0; for (const e in cur) { const I = XO.abs(XO.mul(cur[e], pre)); const Rr = e === "R" ? +b.R : e === "L" ? +b.Rl || 0 : 0; pw += I * I * Rr; }
+      return { b, role, z: lad.Zb[bi] ? XO.abs(lad.Zb[bi]) : Infinity, I: XO.abs(XO.mul(lad.I[bi], pre)), pw };
+    });
+    return { r, k, rows, drvDb: SUM.ways[k][i], vdrv: XO.db(XO.get(r.G, i)) };
+  });
+}
+function setProbe(f) { V.probeF = Math.min(20000, Math.max(20, f)); $("#probe").value = 1000 * Math.log(V.probeF / 20) / Math.log(1000); $("#probe-f").textContent = fmtF(V.probeF); drawResp(); drawSub(); drawCircuit(); }
+
+/* ---------- schematic ---------- */
+function drawCircuit() {
+  if (!R) return;
+  const pd = probeData(), lm = labelMap(), active = R.active;
+  const resH = (x0, x1, y) => { const n = 6, st = (x1 - x0 - 8) / n; let p = `${x0},${y} ${x0 + 4},${y}`; for (let i = 0; i < n; i++) p += ` ${(x0 + 4 + st * (i + 0.5)).toFixed(1)},${y + (i % 2 ? 6 : -6)}`; return `<polyline points="${p} ${x1 - 4},${y} ${x1},${y}"/>`; };
+  const resV = (x, y0, y1) => { const n = 6, st = (y1 - y0 - 8) / n; let p = `${x},${y0} ${x},${y0 + 4}`; for (let i = 0; i < n; i++) p += ` ${x + (i % 2 ? 6 : -6)},${(y0 + 4 + st * (i + 0.5)).toFixed(1)}`; return `<polyline points="${p} ${x},${y1 - 4} ${x},${y1}"/>`; };
+  const capH = (cx, y) => `<line x1="${cx - 3}" y1="${y - 9}" x2="${cx - 3}" y2="${y + 9}"/><line x1="${cx + 3}" y1="${y - 9}" x2="${cx + 3}" y2="${y + 9}"/>`;
+  const capV = (x, cy) => `<line x1="${x - 9}" y1="${cy - 3}" x2="${x + 9}" y2="${cy - 3}"/><line x1="${x - 9}" y1="${cy + 3}" x2="${x + 9}" y2="${cy + 3}"/>`;
+  const indH = (x0, x1, y) => { const r = (x1 - x0) / 8; return `<path d="M${x0} ${y}${(" a" + r + " " + r + " 0 0 1 " + 2 * r + " 0").repeat(4)}"/>`; };
+  const indV = (x, y0, y1) => { const r = (y1 - y0) / 8; return `<path d="M${x} ${y0}${(" a" + r + " " + r + " 0 0 1 0 " + 2 * r).repeat(4)}"/>`; };
+  const W_ = (x1, y1, x2, y2) => `<line class="wire" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/>`;
+  const valTxt = (b, e) => e === "R" ? num(b.R, 2) + "Ω" : e === "L" ? num(b.L, 3) + "mH" : num(b.C, 2) + "µF";
+  const elH = (e, x0, x1, y) => e === "R" ? resH(x0, x1, y) : e === "L" ? indH(x0, x1, y) : `<line class="wire" x1="${x0}" y1="${y}" x2="${(x0 + x1) / 2 - 3}" y2="${y}"/><line class="wire" x1="${(x0 + x1) / 2 + 3}" y1="${y}" x2="${x1}" y2="${y}"/>` + capH((x0 + x1) / 2, y);
+  const elV = (e, x, y0, y1) => e === "R" ? resV(x, y0, y1) : e === "L" ? indV(x, y0, y1) : `<line class="wire" x1="${x}" y1="${y0}" x2="${x}" y2="${(y0 + y1) / 2 - 3}"/><line class="wire" x1="${x}" y1="${(y0 + y1) / 2 + 3}" x2="${x}" y2="${y1}"/>` + capV(x, (y0 + y1) / 2);
+  const RH = 150, X0 = active ? 96 : 76;
+  let rows = "", maxX = 0, y0 = 6;
+  const comp = P.system.inputComp || [];
+  const rowsData = [];
+  if (comp.length && !active) rowsData.push({ input: true });
+  pd.forEach(d => rowsData.push(d));
+  rowsData.forEach((d, ri) => {
+    const yr = y0 + 58, yg = y0 + 132; let x = X0 + 18;
+    let g = "", gEnd = 0;
+    const blocks = d.input ? comp : d.r.way.network || [];
+    const roleOf = (b, bi) => d.input ? { cls: b.off ? "r-byp" : "r-pad" } : d.rows[bi].role;
+    if (active) { g += `<rect class="box" x="8" y="${yr - 16}" width="66" height="${yg - yr + 32}" rx="3"/><text class="drv" x="41" y="${(yr + yg) / 2 - 3}" text-anchor="middle">DSP</text><text class="vl" x="41" y="${(yr + yg) / 2 + 12}" text-anchor="middle">+ amp</text>` + W_(74, yr, X0 + 18, yr) + W_(74, yg, X0 + 18, yg); }
+    blocks.forEach((b, bi) => {
+      const els = XO.blockElems(b), role = roleOf(b, bi), cls = "sym " + (b.off ? "byp" : role.cls), L = lm.get(b.id) || [];
+      const startX = x; let w;
+      if (b.kind === "series") {
+        if (b.arr === "p" && els.length > 1) {
+          w = 104; const xa = x + 8, xb = x + 52;
+          g += W_(x, yr, xa, yr) + W_(xb, yr, x + w, yr);
+          els.forEach((e, k) => { const y = yr - k * 24; if (k) g += W_(xa, y + 24, xa, y) + W_(xb, y + 24, xb, y); g += `<g class="${cls}">${elH(e, xa, xb, y)}</g><text class="vl" x="${xb + 4}" y="${y + 4}">${L[k]} ${valTxt(b, e)}</text>`; });
+        } else {
+          const n = Math.max(1, els.length); w = 50 * n;
+          if (!els.length) g += W_(x, yr, x + w, yr);
+          els.forEach((e, k) => { const xa = x + k * 50 + 6, xb = xa + 38; g += W_(x + k * 50, yr, xa, yr) + W_(xb, yr, x + (k + 1) * 50, yr) + `<g class="${cls}">${elH(e, xa, xb, yr)}</g><text class="nm" x="${(xa + xb) / 2}" y="${yr - 26}" text-anchor="middle">${L[k]}</text><text class="vl" x="${(xa + xb) / 2}" y="${yr - 14}" text-anchor="middle">${b.off ? "shorted" : valTxt(b, e)}</text>`; });
+        }
+        g += `<rect class="hit" data-way="${d.input ? "sys" : d.r.id}" data-bid="${b.id}" x="${startX}" y="${yr - 40}" width="${w}" height="56" rx="4" tabindex="0" role="button" aria-label="Edit ${L.join(" ")}"/>`;
+      } else {
+        if (b.arr === "p" && els.length > 1) {
+          w = 74 * els.length; g += W_(x, yr, x + w, yr);
+          els.forEach((e, k) => { const xs = x + 20 + k * 74; g += `<circle class="dot" cx="${xs}" cy="${yr}" r="2.6"/><circle class="dot" cx="${xs}" cy="${yg}" r="2.6"/>` + W_(xs, yr, xs, yr + 22) + `<g class="${cls}">${elV(e, xs, yr + 22, yr + 52)}</g>` + W_(xs, yr + 52, xs, yg) + `<text class="nm" x="${xs + 12}" y="${yr + 34}">${L[k]}</text><text class="vl" x="${xs + 12}" y="${yr + 47}">${valTxt(b, e)}</text>`; });
+        } else {
+          w = 80; const xs = x + 22, n = Math.max(1, els.length), seg = 66 / n;
+          g += W_(x, yr, x + w, yr) + `<circle class="dot" cx="${xs}" cy="${yr}" r="2.6"/><circle class="dot" cx="${xs}" cy="${yg}" r="2.6"/>` + W_(xs, yr, xs, yr + 4);
+          els.forEach((e, k) => { const ya = yr + 4 + k * seg, yb = ya + seg; g += `<g class="${cls}">${elV(e, xs, ya + 3, yb - 3)}</g>` + W_(xs, ya, xs, ya + 3) + W_(xs, yb - 3, xs, yb) + `<text class="nm" x="${xs + 12}" y="${(ya + yb) / 2 - 1}">${L[k]}</text><text class="vl" x="${xs + 12}" y="${(ya + yb) / 2 + 11}">${b.off ? "removed" : valTxt(b, e)}</text>`; });
+          g += W_(xs, yr + 70, xs, yg);
+        }
+        g += `<rect class="hit" data-way="${d.input ? "sys" : d.r.id}" data-bid="${b.id}" x="${startX}" y="${yr + 2}" width="${w}" height="${yg - yr - 4}" rx="4" tabindex="0" role="button" aria-label="Edit ${L.join(" ")}"/>`;
+      }
+      x += w;
+    });
+    if (d.input) { g += W_(x, yr, x + 10, yr); g += `<text class="drv" x="${X0 + 18}" y="${y0 + 14}">Input compensation</text>`; }
+    else {
+      const way = d.r.way, col = wayColor(way), dx = x + 30;
+      g += W_(x, yr, dx, yr) + W_(dx, yr, dx, yr + 18) + `<rect class="box" x="${dx - 7}" y="${yr + 18}" width="14" height="38" rx="1.5"/><polygon class="box" points="${dx + 7},${yr + 23} ${dx + 22},${yr + 10} ${dx + 22},${yr + 64} ${dx + 7},${yr + 51}"/>` + W_(dx, yr + 56, dx, yg);
+      if (way.polarity === -1) g += `<text class="nm" x="${dx - 12}" y="${yr + 30}" text-anchor="end">−</text><text class="nm" x="${dx - 12}" y="${yr + 54}" text-anchor="end">+</text>`;
+      g += `<text class="drv" x="${dx + 30}" y="${yr + 28}">${esc(way.name)}${way.instances.length > 1 ? " ×" + way.instances.length + (way.wiring === "series" ? " series" : way.wiring === "sp" ? " series-parallel" : " parallel") : ""}</text><text class="vl" x="${dx + 30}" y="${yr + 42}">${esc((way.driver.name || "").slice(0, 34))}</text><text class="db" x="${dx + 30}" y="${yr + 57}" fill="${col}">${d.r.mute ? "muted" : fmtDB(d.vdrv) + " at terminals"}</text>`;
+      g += `<text class="drv" x="${X0 + 18}" y="${y0 + 14}" fill="${col}">${esc(way.name)}</text>`;
+      gEnd = dx; x = dx + 210;
+    }
+    g += W_(X0 + 18, yg, d.input ? x + 10 : gEnd, yg);
+    if (!active) g += W_(X0, yr, X0 + 18, yr) + W_(X0 - 12, yg, X0 + 18, yg) + `<circle class="dot" cx="${X0}" cy="${yr}" r="3"/><circle class="dot" cx="${X0 - 12}" cy="${yg}" r="3"/>`;
+    rows += g; maxX = Math.max(maxX, x + 10); y0 += RH;
+  });
+  const H = y0 + 4;
+  let head = "";
+  if (!active) { const yA = 28; head += `<rect class="box" x="6" y="${yA - 20}" width="44" height="54" rx="3"/><text class="drv" x="28" y="${yA + 11}" text-anchor="middle">Amp</text><text class="vl" x="44" y="${yA - 4}" text-anchor="end">+</text><text class="vl" x="44" y="${yA + 28}" text-anchor="end">−</text>`;
+    head += `<line class="wire" x1="50" y1="${yA - 8}" x2="${X0}" y2="${yA - 8}"/><line class="wire" x1="${X0}" y1="${yA - 8}" x2="${X0}" y2="${y0 - RH + 58}"/><line class="wire" x1="50" y1="${yA + 24}" x2="${X0 - 12}" y2="${yA + 24}"/><line class="wire" x1="${X0 - 12}" y1="${yA + 24}" x2="${X0 - 12}" y2="${y0 - RH + 132}"/>`;
+    if ((+P.system.ampZ || 0) + (+P.system.cableR || 0) > 0) head += `<text class="vl" x="6" y="${yA + 50}">Rs ${num((+P.system.ampZ || 0) + (+P.system.cableR || 0), 2)} Ω</text>`; }
+  $("#schem").innerHTML = `<svg class="sch" viewBox="0 0 ${maxX} ${H}" width="${maxX}" height="${H}" role="img" aria-label="Crossover schematic for all ways, colored by each part's role at ${fmtF(V.probeF)}">${head}${rows}</svg>`;
+  $("#schem").querySelectorAll(".hit").forEach(h => { const go = () => focusBlock(h.dataset.way, h.dataset.bid); h.addEventListener("click", go); h.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); } }); });
+  /* probe table */
+  let t = `<thead><tr><th>Part</th><th>Value</th><th class="num">|Z|</th><th>Effect</th><th>Role</th><th class="num">Current</th><th class="num">Power</th></tr></thead><tbody>`;
+  pd.forEach(d => {
+    t += `<tr class="grp"><td colspan="7"><span style="color:${wayColor(d.r.way)}">■</span> ${esc(d.r.way.name)} · ${d.r.mute ? "muted" : fmtDB(d.drvDb - XO.bandMean(SUM.spl, 300, 3000)) + " acoustic re sum level, " + fmtDB(d.vdrv) + " at terminals"}</td></tr>`;
+    if (!d.rows.length) t += `<tr><td colspan="7" class="note">No passive parts. ${R.active ? "Filtering happens in DSP." : "Driver connects straight to the amp."}</td></tr>`;
+    d.rows.forEach(rw => {
+      const b = rw.b, L = lm.get(b.id) || [];
+      const vals = XO.blockElems(b).map(e => e === "R" ? num(b.R) + " Ω" : e === "L" ? num(b.L, 3) + " mH" + (+b.Rl ? " (" + num(b.Rl) + " Ω)" : "") : num(b.C) + " µF").join(b.arr === "p" ? " ∥ " : " + ");
+      t += `<tr><td><span class="pn">${L.join("+") || "–"}</span><br><span class="note small">${b.kind === "series" ? "series" : "shunt"}</span></td><td>${vals}</td><td class="num">${fmtZ(rw.z)}</td><td class="num">${rw.role.eff}</td><td><span class="role ${rw.role.cls}">${rw.role.txt}</span></td><td class="num">${fmtA(rw.I)}</td><td class="num">${rw.pw > 0.005 ? fmtW(rw.pw) : "–"}</td></tr>`;
+    });
+  });
+  $("#ptable").innerHTML = t + "</tbody>";
+}
+
+/* ---------- parts and power ---------- */
+const E24 = [1.0, 1.1, 1.2, 1.3, 1.5, 1.6, 1.8, 2.0, 2.2, 2.4, 2.7, 3.0, 3.3, 3.6, 3.9, 4.3, 4.7, 5.1, 5.6, 6.2, 6.8, 7.5, 8.2, 9.1];
+const E12 = [1.0, 1.2, 1.5, 1.8, 2.2, 2.7, 3.3, 3.9, 4.7, 5.6, 6.8, 8.2];
+const LSTK = [0.1, 0.12, 0.15, 0.18, 0.2, 0.22, 0.25, 0.27, 0.3, 0.33, 0.35, 0.39, 0.4, 0.47, 0.5, 0.56, 0.6, 0.68, 0.7, 0.75, 0.82, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.8, 2.0, 2.2, 2.5, 2.7, 3.0, 3.3, 3.5, 3.9, 4.0, 4.7, 5.0, 5.6, 6.0, 6.8, 7.0, 8.2, 10, 12, 15, 18, 20];
+function nearestSeries(v, base) { if (!(v > 0)) return v; const dec = Math.pow(10, Math.floor(Math.log10(v))); let best = v, be = 1e9; for (const d of [dec / 10, dec, dec * 10]) for (const b of base) { const c = b * d, e = Math.abs(Math.log(c / v)); if (e < be) { be = e; best = c; } } return +best.toPrecision(3); }
+function nearestL(v) { let best = v, be = 1e9; for (const c of LSTK) { const e = Math.abs(Math.log(c / v)); if (e < be) { be = e; best = c; } } return v < 0.1 ? +v.toFixed(3) : best; }
+const ratingFor = w => [2, 5, 10, 15, 20, 25, 50, 100].find(r => r >= w * 2) || 100;
+function drawBOM() {
+  const lm = labelMap(), rep = XO.powerReport(P, R, +P.system.testW || 20, 8);
+  let t = `<thead><tr><th>Part</th><th>Way</th><th class="num">Value</th><th class="num">Stock</th><th class="num">Pink noise</th><th class="num">Worst sine</th><th>Note</th></tr></thead><tbody>`;
+  let count = 0;
+  R.ways.forEach((r, k) => {
+    const pr = rep[k];
+    (r.way.network || []).forEach(b => {
+      const L = lm.get(b.id) || [];
+      XO.blockElems(b).forEach((e, j) => {
+        count++;
+        const id = b.id + e, pk = pr.acc[id] || 0, sp = pr.peak[id] || 0;
+        let val, stock, note = "";
+        if (e === "R") { val = num(b.R) + " Ω"; stock = nearestSeries(+b.R, E24) + " Ω"; note = `${ratingFor(pk)} W or more`; }
+        else if (e === "L") { val = num(b.L, 3) + " mH"; stock = nearestL(+b.L) + " mH"; note = `DCR ${num(b.Rl || 0)} Ω`; }
+        else { val = num(b.C) + " µF"; stock = nearestSeries(+b.C, E12) + " µF"; note = "film, 100 V+"; }
+        t += `<tr${b.off ? ' class="note"' : ""}><td class="pn">${L[j]}</td><td>${esc(r.way.name)}</td><td class="num">${val}</td><td class="num">${stock}</td><td class="num">${e === "C" ? "–" : fmtW(pk)}</td><td class="num">${e === "C" ? "–" : fmtW(sp)}</td><td>${b.off ? "bypassed" : note}</td></tr>`;
+      });
+    });
+  });
+  (P.system.inputComp || []).forEach(b => { const L = lm.get(b.id) || []; XO.blockElems(b).forEach((e, j) => { count++; t += `<tr><td class="pn">${L[j]}</td><td>Input</td><td class="num">${e === "R" ? num(b.R) + " Ω" : e === "L" ? num(b.L, 3) + " mH" : num(b.C) + " µF"}</td><td class="num">${e === "R" ? nearestSeries(+b.R, E24) + " Ω" : e === "L" ? nearestL(+b.L) + " mH" : nearestSeries(+b.C, E12) + " µF"}</td><td class="num">–</td><td class="num">–</td><td>input compensation</td></tr>`; }); });
+  t += `<tr class="grp"><td colspan="7">Drivers (power into each voice coil)</td></tr>`;
+  R.ways.forEach((r, k) => { const n = r.way.instances.length; t += `<tr><td class="pn">${esc(r.way.name)}</td><td>${n > 1 ? n + " drivers" : "1 driver"}</td><td colspan="2">${esc(r.way.driver.name || "")}</td><td class="num">${fmtW(rep[k].drvP / n)}</td><td class="num">${fmtW(rep[k].drvPk / n)}</td><td>per driver</td></tr>`; });
+  if (!count) t += `<tr><td colspan="7" class="note">No passive parts yet.</td></tr>`;
+  $("#bom").innerHTML = t + "</tbody>";
+}
+
+/* ---------- path helpers ---------- */
+function getPath(o, p) { return p.split(".").reduce((a, k) => a == null ? a : a[k], o); }
+function setPath(o, p, v) { const ks = p.split("."), last = ks.pop(); const t = ks.reduce((a, k) => a[k], o); t[last] = v; }
+const LOG = { R: [0.1, 100], L: [0.01, 20], C: [0.1, 1000] };
+const toPos = (e, v) => { const [a, b] = LOG[e]; return Math.round(1000 * Math.log(Math.max(a, Math.min(b, v)) / a) / Math.log(b / a)); };
+const fromPos = (e, p) => { const [a, b] = LOG[e]; const v = a * Math.pow(b / a, p / 1000); return +v.toPrecision(v < 1 ? 2 : 3); };
+
+/* ---------- field builders ---------- */
+const fnum = (label, k, opts = {}) => { const v = getPath(P, k); return `<label class="fld${opts.wide ? " wide" : ""}"><span>${label}</span><input type="number" data-k="${k}" value="${v === "" || v == null ? "" : v}" step="${opts.step || "any"}" ${opts.min != null ? `min="${opts.min}"` : ""} ${opts.ph ? `placeholder="${opts.ph}"` : ""} ${opts.rr ? 'data-rr="1"' : ""} id="f-${k.replace(/\./g, "-")}"></label>`; };
+const ftext = (label, k, opts = {}) => `<label class="fld${opts.wide ? " wide" : ""}"><span>${label}</span><input type="text" data-k="${k}" data-str="1" value="${esc(getPath(P, k) || "")}" id="f-${k.replace(/\./g, "-")}" ${opts.rr ? 'data-rr="1"' : ""}></label>`;
+const fsel = (label, k, options, opts = {}) => { const v = String(getPath(P, k)); return `<label class="fld${opts.wide ? " wide" : ""}"><span>${label}</span><select data-k="${k}" ${opts.numv ? 'data-num="1"' : 'data-str="1"'} ${opts.rr !== false ? 'data-rr="1"' : ""} id="f-${k.replace(/\./g, "-")}">${options.map(([val, l]) => `<option value="${val}" ${String(val) === v ? "selected" : ""}>${l}</option>`).join("")}</select></label>`; };
+const fchk = (label, k, opts = {}) => `<label class="chk"><input type="checkbox" data-k="${k}" ${getPath(P, k) ? "checked" : ""} ${opts.rr ? 'data-rr="1"' : ""} id="f-${k.replace(/\./g, "-")}"> ${label}</label>`;
+const seg = (act, cur, items, extra = "") => `<span class="seg">${items.map(([v, l]) => `<button type="button" data-act="${act}" data-v="${v}" ${extra} aria-pressed="${String(cur) === String(v)}">${l}</button>`).join("")}</span>`;
+const SHAPES = [["BW", "Butterworth"], ["LR", "Linkwitz-Riley"], ["BES", "Bessel"]];
+const ordersFor = sh => sh === "LR" ? [2, 4, 6, 8] : sh === "BES" ? [2, 3, 4] : [1, 2, 3, 4, 5, 6, 7, 8];
+
+/* ---------- rail ---------- */
+function renderRailTabs() {
+  const tabs = [["sys", "System", null]].concat(P.ways.map(w => [w.id, w.name, wayColor(w)]));
+  let h = tabs.map(([id, l, c]) => `<button class="tab" role="tab" data-rail="${id}" aria-selected="${V.rail === id}">${c ? `<span class="dot" style="background:${c}"></span>` : ""}${esc(l)}</button>`).join("");
+  if (P.ways.length < 4) h += `<button class="tab" type="button" data-act="addway" title="Add a way">+ Way</button>`;
+  h += `<button class="tab" role="tab" data-rail="tools" aria-selected="${V.rail === "tools"}">Tools</button><button class="tab" role="tab" data-rail="export" aria-selected="${V.rail === "export"}">Export</button>`;
+  $("#railtabs").innerHTML = h;
+}
+function renderRail() {
+  if (!P.ways.some(w => w.id === V.rail) && !["sys", "tools", "export"].includes(V.rail)) V.rail = "sys";
+  const body = $("#rail-body");
+  if (V.rail === "sys") body.innerHTML = sysPanel();
+  else if (V.rail === "tools") { body.innerHTML = toolsPanel(); calcAll(); }
+  else if (V.rail === "export") body.innerHTML = exportPanel();
+  else body.innerHTML = wayPanel(P.ways.findIndex(w => w.id === V.rail));
+  V.open = V.open || {};
+  body.querySelectorAll("details[data-dk]").forEach(d => { if (V.open[d.dataset.dk]) d.open = true; d.addEventListener("toggle", () => { V.open[d.dataset.dk] = d.open; }); });
+  refreshDerived();
+}
+function blockList(path, blocks, shuntOnly) {
+  const lm = labelMap();
+  let h = blocks.map((b, bi) => {
+    const p = `${path}.${bi}`, els = XO.blockElems(b);
+    let s = `<div class="blk${b.off ? " off" : ""}" id="blk-${b.id}"><div class="blk-head"><span class="blk-name">${blockLabel(b, lm)}</span>`;
+    if (!shuntOnly) s += seg("bkind", b.kind, [["series", "Series"], ["shunt", "Shunt"]], `data-p="${p}"`);
+    s += `<span class="seg">${["R", "L", "C"].map(e => `<button type="button" data-act="belem" data-e="${e}" data-p="${p}" aria-pressed="${!!b["has" + e]}" title="${e === "R" ? "Resistor" : e === "L" ? "Inductor" : "Capacitor"}">${e}</button>`).join("")}</span>`;
+    if (els.length > 1) s += seg("barr", b.arr, [["s", "in series"], ["p", "in parallel"]], `data-p="${p}"`);
+    s += `<span class="blk-ctl"><label class="row tight note" title="Short a series part or remove a shunt part"><input type="checkbox" data-k="${p}.off" data-rr="1" ${b.off ? "checked" : ""}> Bypass</label>`;
+    s += `<button class="btn icon" type="button" data-act="bmove" data-p="${p}" data-d="-1" aria-label="Move toward amp" ${bi === 0 ? "disabled" : ""}>↑</button><button class="btn icon" type="button" data-act="bmove" data-p="${p}" data-d="1" aria-label="Move toward driver" ${bi === blocks.length - 1 ? "disabled" : ""}>↓</button><button class="btn icon" type="button" data-act="bdel" data-p="${p}" aria-label="Delete part">×</button></span></div>`;
+    for (const e of els) {
+      const unit = e === "R" ? "Ω" : e === "L" ? "mH" : "µF", v = +b[e];
+      s += `<div class="el"><span class="lbl">${e}</span><input type="range" min="0" max="1000" data-k="${p}.${e}" data-log="${e}" value="${toPos(e, v)}" aria-label="${e} value"><input type="number" step="any" min="0" data-k="${p}.${e}" value="${v}" aria-label="${e} value in ${unit}"><span class="unit">${unit}</span></div>`;
+      if (e === "L") s += `<div class="dcr">DCR <input type="number" step="0.01" min="0" data-k="${p}.Rl" value="${+b.Rl || 0}" aria-label="Inductor DC resistance"> Ω <button class="btn sm" type="button" data-act="bdcr" data-p="${p}" title="Estimate for an 18 AWG air-core coil">Estimate</button></div>`;
+    }
+    return s + `</div>`;
+  }).join("");
+  return h || `<p class="note">No parts. Add one below${shuntOnly ? "" : " or generate a starting network"}.</p>`;
+}
+function addPartSelect(path, shuntOnly) {
+  const opts = shuntOnly ? [["shC", "Shunt capacitor"], ["shR", "Shunt resistor"], ["zob", "Series R + C (Zobel style)"], ["trap", "Series R + L + C trap"]]
+    : [["seC", "Series capacitor"], ["seL", "Series inductor"], ["seR", "Series resistor"], ["shC", "Shunt capacitor"], ["shL", "Shunt inductor"], ["shR", "Shunt resistor"], ["zob", "Zobel (shunt R + C)"], ["trap", "Resonance trap (shunt R + L + C)"], ["notch", "Notch (series R ∥ L ∥ C)"], ["crc", "Contour (series R ∥ C)"], ["crl", "Contour (series R ∥ L)"], ["lpad", "L-pad (series R, shunt R)"]];
+  return `<select data-act-sel="addpart" data-p="${path}" aria-label="Add a part"><option value="">Add part…</option>${opts.map(([v, l]) => `<option value="${v}">${l}</option>`).join("")}</select>`;
+}
+function dspList(path, items) {
+  const h = (items || []).map((it, i) => {
+    const p = `${path}.${i}`, n = (label, key, step = "any", w = 70) => `<label class="row tight note">${label}<input type="number" data-k="${p}.${key}" value="${it[key]}" step="${step}" style="width:${w}px"></label>`;
+    let s = `<div class="dspi"><span class="ty">${{ hp: "HP", lp: "LP", peq: "PEQ", ls: "Shelf L", hs: "Shelf H", ap1: "AP1", ap2: "AP2", lt: "LT", gain: "Gain", delay: "Delay", invert: "Invert" }[it.t]}</span>`;
+    if (it.t === "hp" || it.t === "lp") s += `<select data-k="${p}.shape" data-str="1" data-rr="1" aria-label="Alignment">${SHAPES.map(([v, l]) => `<option value="${v}" ${it.shape === v ? "selected" : ""}>${l}</option>`).join("")}</select><select data-k="${p}.order" data-num="1" aria-label="Order">${ordersFor(it.shape).map(o => `<option value="${o}" ${+it.order === o ? "selected" : ""}>${o * 6} dB/oct</option>`).join("")}</select>` + n("Hz", "f", "1", 78);
+    else if (["peq", "ls", "hs"].includes(it.t)) s += n("Hz", "f", "1", 72) + n("dB", "g", "0.1", 56) + n("Q", "q", "0.01", 56);
+    else if (it.t === "ap1") s += n("Hz", "f", "1", 78);
+    else if (it.t === "ap2") s += n("Hz", "f", "1", 72) + n("Q", "q", "0.01", 56);
+    else if (it.t === "lt") s += n("F0", "f0", "1", 60) + n("Q0", "q0", "0.01", 52) + n("Fp", "fp", "1", 60) + n("Qp", "qp", "0.01", 52);
+    else if (it.t === "gain") s += n("dB", "g", "0.1", 64);
+    else if (it.t === "delay") s += n("ms", "ms", "0.001", 70) + `<span class="unit">${(it.ms * 343).toFixed(0)} mm</span>`;
+    s += `<span class="grow"></span><label class="row tight note"><input type="checkbox" data-k="${p}.off" ${it.off ? "checked" : ""}> Off</label><button class="btn icon" type="button" data-act="dmove" data-p="${p}" data-d="-1" aria-label="Move up" ${i === 0 ? "disabled" : ""}>↑</button><button class="btn icon" type="button" data-act="ddel" data-p="${p}" aria-label="Delete filter">×</button></div>`;
+    return s;
+  }).join("");
+  return (h || `<p class="note">No DSP filters.</p>`) + `<div class="row"><select data-act-sel="adddsp" data-p="${path}" aria-label="Add a DSP filter"><option value="">Add filter…</option><option value="hp">High-pass</option><option value="lp">Low-pass</option><option value="peq">Parametric EQ</option><option value="ls">Low shelf</option><option value="hs">High shelf</option><option value="ap1">All-pass, 1st order</option><option value="ap2">All-pass, 2nd order</option><option value="lt">Linkwitz transform</option><option value="gain">Gain</option><option value="delay">Delay</option><option value="invert">Invert polarity</option></select></div>`;
+}
+function sysPanel() {
+  const s = P.system, active = s.mode === "active";
+  let h = `<div class="sec"><div class="sec-head"><h3>Amplification</h3>${seg("mode", s.mode, [["passive", "Passive, one amp"], ["active", "Active, amp per way"]])}</div>
+  <p class="note small">${active ? "Each way gets its own DSP chain (in its tab) and amplifier channel. Passive parts in a way still apply, so hybrid designs work, such as a protection cap on a DSP-driven tweeter." : "One amplifier drives every way through its passive network. Switch to active to give each way its own DSP and amp."}</p>
+  <div class="fgrid">${fnum("Amp output impedance (Ω)", "system.ampZ", { step: 0.01, min: 0 })}${fnum("Cable resistance (Ω)", "system.cableR", { step: 0.01, min: 0 })}${fsel("DSP sample rate", "system.fs", [[48000, "48 kHz"], [96000, "96 kHz"]], { numv: 1 })}</div>
+  <p class="note small">Tube amps often sit between 1 and 3 Ω output impedance. Solid-state amps are near 0.05 Ω.</p></div>`;
+  h += `<div class="sec"><div class="sec-head"><h3>Listening position</h3><button class="btn sm" type="button" data-act="reftw">Use top driver axis</button></div>
+  <div class="fgrid">${fnum("Distance (mm)", "system.listen.dist", { step: 50, min: 200 })}${fnum("Axis X on baffle (mm)", "system.listen.refX", { step: 1 })}${fnum("Axis Y on baffle (mm)", "system.listen.refY", { step: 1 })}</div>
+  <p class="note small">Driver positions are measured from the baffle's bottom-left corner, viewed from the front. The listening axis starts at the X/Y point above and points straight out; the angle sliders under the response chart swing it.</p></div>`;
+  h += `<div class="sec"><div class="sec-head"><h3>Baffle</h3>${fchk("Simulate edge diffraction", "system.baffle.on")}</div>
+  <div class="fgrid">${fnum("Width (mm)", "system.baffle.w", { step: 1, min: 20 })}${fnum("Height (mm)", "system.baffle.h", { step: 1, min: 20 })}</div>
+  <p class="note small">Applies to drivers with “Simulate baffle” ticked, usually modeled drivers. Drivers set to open baffle radiate as dipoles from this baffle. Baffle-step frequency ≈ ${Math.round(115 / Math.max(0.05, s.baffle.w / 1000))} Hz.</p></div>`;
+  if (!active) h += `<div class="sec"><div class="sec-head"><h3>Input compensation</h3></div><p class="note small">Shunt networks across the speaker terminals, for flattening the load a tube amp sees. They only change the response when amp output impedance is above zero.</p>${blockList("system.inputComp", s.inputComp, true)}<div class="row">${addPartSelect("system.inputComp", true)}</div></div>`;
+  h += `<div class="sec"><div class="sec-head"><h3>Global DSP</h3>${fchk("Linear phase", "system.dspLinear")}</div><p class="note small">Applies ahead of everything, in both modes. Use it for room or baffle-step EQ in front of a passive speaker.</p>${dspList("system.dsp", s.dsp)}</div>`;
+  h += `<div class="sec"><h3>Project notes</h3><textarea rows="4" data-k="notes" data-str="1" id="f-notes" aria-label="Project notes">${esc(P.notes || "")}</textarea></div>`;
+  return h;
+}
+function wayPanel(wi) {
+  const w = P.ways[wi], k = `ways.${wi}`, d = w.driver, active = P.system.mode === "active";
+  let h = `<div class="sec"><div class="row">${ftext("Way name", k + ".name", { rr: 1 })}<span class="grow"></span>${fchk("Mute", k + ".mute")}</div>
+  <div class="row"><span class="note">Polarity</span>${seg("pol", w.polarity, [[1, "Normal +"], [-1, "Inverted −"]], `data-w="${wi}"`)}<span class="grow"></span><button class="btn sm" type="button" data-act="delway" data-w="${wi}" ${P.ways.length < 2 ? "disabled" : ""}>Delete way</button></div></div>`;
+  /* driver */
+  h += `<div class="sec"><div class="sec-head"><h3>Driver</h3>${seg("src", d.source, [["model", "T/S model"], ["measured", "Measured"], ["ideal", "Resistor"]], `data-w="${wi}"`)}</div>${ftext("Driver name", k + ".driver.name", { wide: 1 })}`;
+  if (d.source === "model") {
+    const m = k + ".driver.model", box = d.model.box;
+    h += `<div class="fgrid">${fnum("Re (Ω)", m + ".Re", { step: 0.01 })}${fnum("Le @1 kHz (mH)", m + ".Le", { step: 0.01 })}${fnum("Fs (Hz)", m + ".Fs", { step: 0.1 })}${fnum("Qms", m + ".Qms", { step: 0.01 })}${fnum("Qes", m + ".Qes", { step: 0.01 })}${fnum("Vas (L)", m + ".Vas", { step: 0.01 })}${fnum("Sd (cm²)", m + ".Sd", { step: 0.1 })}${fnum("Sensitivity (dB, 2.83 V)", m + ".sens", { step: 0.1, ph: "from T/S" })}
+    ${fsel("Mounting", m + ".box", [["ib", "Closed back / infinite baffle"], ["sealed", "Sealed box"], ["vented", "Vented box"], ["ob", "Open baffle (dipole)"]])}
+    ${box === "sealed" || box === "vented" ? fnum("Box volume (L)", m + ".Vb", { step: 0.1 }) : ""}${box === "vented" ? fnum("Tuning Fb (Hz)", m + ".Fb", { step: 0.5 }) + fnum("Leakage Ql", m + ".Ql", { step: 0.5 }) : ""}</div>
+    <details class="more" data-dk="shape"><summary>Voice coil and cone shaping</summary><div class="fgrid" style="margin-top:8px">${fnum("Le exponent n", m + ".leN", { step: 0.01 })}${fnum("HF roll-off (Hz)", m + ".hfF", { step: 10, ph: "off" })}${fnum("Roll-off Q", m + ".hfQ", { step: 0.05 })}${fnum("Breakup (Hz)", m + ".brF", { step: 10, ph: "off" })}${fnum("Breakup Q", m + ".brQ", { step: 0.1 })}${fnum("Breakup (dB)", m + ".brDb", { step: 0.5 })}</div><p class="note small">The voice coil is modeled as a lossy inductor, K·(jω)ⁿ, matched to Le at 1 kHz. n = 1 is a pure inductor; real drivers sit near 0.6–0.7. Leave sensitivity blank to use the value the T/S data implies.</p></details>
+    <div class="derived" data-derived="model" data-w="${wi}"></div>`;
+  } else if (d.source === "measured") {
+    const ms = d.measured;
+    h += `<div class="drop" data-drop="${wi}">Drop .frd and .zma files here (several at once is fine), or <button class="btn sm" type="button" data-act="loadfile" data-w="${wi}" data-kind="frd">Load FRD</button> <button class="btn sm" type="button" data-act="loadfile" data-w="${wi}" data-kind="zma">Load ZMA</button></div>
+    <div class="out">${ms.frd ? `FRD: ${esc(ms.frdName || "pasted")} · ${ms.frd.length} points` : "FRD: none loaded (flat 85 dB placeholder)"}\n${ms.zma ? `ZMA: ${esc(ms.zmaName || "pasted")} · ${ms.zma.length} points` : "ZMA: none loaded (flat 8 Ω placeholder)"}\n${(ms.offaxis || []).length ? `Off-axis: ${ms.offaxis.map(o => o.ang + "°").join(", ")}` : "Off-axis: none (piston model)"}</div>
+    ${(ms.offaxis || []).length ? `<div class="row"><button class="btn sm" type="button" data-act="clearoff" data-w="${wi}">Clear off-axis</button></div>` : ""}
+    <div class="derived" data-derived="meas" data-w="${wi}"></div>
+    <div class="row">${fchk("Use FRD phase", k + ".driver.measured.usePhase")}${fchk("Use ZMA phase", k + ".driver.measured.zUsePhase")}</div>
+    ${fsel("Radiation", k + ".driver.radiation", [["monopole", "Monopole (box or closed back)"], ["dipole", "Dipole (open baffle)"]])}
+    <details class="more" data-dk="paste"><summary>Paste data instead</summary><textarea rows="5" id="paste-${wi}" placeholder="freq  value  phase (one row per line)"></textarea><div class="row" style="margin-top:6px"><button class="btn sm" type="button" data-act="paste" data-w="${wi}" data-kind="frd">Use as FRD</button><button class="btn sm" type="button" data-act="paste" data-w="${wi}" data-kind="zma">Use as ZMA</button></div></details>
+    <p class="note small">FRD names with an angle, such as “@30” or “30deg”, load as off-axis curves; the simulator then uses the measured directivity up to the widest angle and a piston model beyond. Without phase in the file, minimum phase is calculated from the magnitude, which suits traced datasheet curves. File phase measured from one mic position for all drivers keeps their real time offsets; then set Z offsets to 0.</p>`;
+  } else {
+    h += `<div class="fgrid">${fnum("Resistance (Ω)", k + ".driver.ideal.R", { step: 0.1 })}${fnum("Flat SPL (dB)", k + ".driver.ideal.spl", { step: 0.1 })}</div><p class="note small">A plain resistor with a flat acoustic output. Good for textbook checks.</p>`;
+  }
+  h += `<div class="fgrid">${fnum("Radiating diameter (mm)", k + ".driver.dia", { step: 1 })}${fnum("Level trim (dB)", k + ".driver.trim", { step: 0.1 })}</div>${fchk("Simulate baffle (turn off when the data already includes it)", k + ".driver.baffleSim")}</div>`;
+  /* placement */
+  h += `<div class="sec"><div class="sec-head"><h3>Placement</h3><span class="row tight"><label class="fld"><span>Drivers</span><select data-act-sel="count" data-w="${wi}" aria-label="Number of drivers">${[1, 2, 3, 4].map(n => `<option value="${n}" ${w.instances.length === n ? "selected" : ""}>${n}</option>`).join("")}</select></label>${w.instances.length > 1 ? fsel("Wiring", k + ".wiring", [["parallel", "Parallel"], ["series", "Series"]].concat(w.instances.length === 4 ? [["sp", "Series-parallel"]] : [])) : ""}</span></div>
+  <div class="inst note small"><span></span><span>X (mm)</span><span>Y (mm)</span><span>Z offset (mm)</span></div>
+  ${w.instances.map((p, i) => `<div class="inst"><span class="unit">#${i + 1}</span><input type="number" step="1" data-k="${k}.instances.${i}.x" value="${p.x}" aria-label="Driver ${i + 1} X"><input type="number" step="1" data-k="${k}.instances.${i}.y" value="${p.y}" aria-label="Driver ${i + 1} Y"><input type="number" step="1" data-k="${k}.instances.${i}.z" value="${p.z}" aria-label="Driver ${i + 1} Z offset"></div>`).join("")}
+  <p class="note small">Z offset is the acoustic center's depth: negative is behind the tweeter plane. Woofers usually sit 10–30 mm back.</p></div>`;
+  /* network */
+  const tb = V.tb || (V.tb = { kind: "lp", key: "LR4", f: 2500, f2: 5000, R: "" });
+  h += `<div class="sec"><div class="sec-head"><h3>Passive network</h3><span class="note small">amp → driver</span></div>${blockList(k + ".network", w.network || [])}
+  <div class="row">${addPartSelect(k + ".network")}<button class="btn sm" type="button" data-act="clearnet" data-w="${wi}" ${w.network.length ? "" : "disabled"}>Clear</button></div>
+  <details class="more" data-dk="gen"><summary>Generate starting values</summary><div style="display:flex;flex-direction:column;gap:8px;margin-top:8px">
+  <div class="fgrid"><label class="fld"><span>Filter</span><select id="tb-kind"><option value="lp" ${tb.kind === "lp" ? "selected" : ""}>Low-pass</option><option value="hp" ${tb.kind === "hp" ? "selected" : ""}>High-pass</option><option value="bp" ${tb.kind === "bp" ? "selected" : ""}>Band-pass</option></select></label>
+  <label class="fld"><span>Alignment</span><select id="tb-key">${Object.keys(XO.LADDER).map(x => `<option value="${x}" ${tb.key === x ? "selected" : ""}>${x.replace("BES", "Bessel ").replace("BW", "Butterworth ").replace("LR", "L-R ")}</option>`).join("")}</select></label>
+  <label class="fld"><span>${tb.kind === "bp" ? "High-pass at (Hz)" : "Frequency (Hz)"}</span><input type="number" id="tb-f" value="${tb.f}" step="10"></label>
+  <label class="fld"><span>Low-pass at (Hz)</span><input type="number" id="tb-f2" value="${tb.f2}" step="10"></label>
+  <label class="fld"><span>Design load (Ω)</span><input type="number" id="tb-R" value="${tb.R}" step="0.1" placeholder="driver |Z|"></label></div>
+  <div class="row"><button class="btn sm" type="button" data-act="tb" data-w="${wi}" data-mode="replace">Replace network</button><button class="btn sm" type="button" data-act="tb" data-w="${wi}" data-mode="append">Append</button></div>
+  <div class="row"><button class="btn sm" type="button" data-act="autozob" data-w="${wi}">Add Zobel</button><button class="btn sm" type="button" data-act="autotrap" data-w="${wi}">Add resonance trap</button><label class="row tight note">L-pad <input type="number" id="lpad-db" value="3" step="0.5" style="width:56px"> dB</label><button class="btn sm" type="button" data-act="autolpad" data-w="${wi}">Add L-pad</button></div>
+  <p class="note small">Textbook values assume a resistive load. Leave the design load blank to use the driver's impedance at the crossover frequency, then tune by ear and by curve. Zobel and trap values come from the driver's impedance data.</p></div></details></div>`;
+  /* dsp */
+  h += `<div class="sec"><div class="sec-head"><h3>DSP</h3>${active ? fchk("Linear phase (FIR)", k + ".dspLinear") : ""}</div>${active ? dspList(k + ".dsp", w.dsp) + `<p class="note small">Filters are real digital biquads at ${P.system.fs / 1000} kHz, so the curves match what a miniDSP or CamillaDSP will do. Linear phase keeps the magnitude and removes the filter phase, as an FIR would.</p>` : `<p class="note small">Per-way DSP needs Active mode (System tab). For DSP ahead of a passive speaker, use Global DSP in the System tab.</p>`}</div>`;
+  /* target */
+  const t = w.target;
+  h += `<div class="sec"><div class="sec-head"><h3>Target curve</h3><button class="btn sm" type="button" data-act="tlevel" data-w="${wi}">Level from sum</button></div><div class="fgrid">
+  ${fsel("Shape", k + ".target.kind", [["none", "None"], ["lp", "Low-pass"], ["hp", "High-pass"], ["bp", "Band-pass"]])}
+  ${t.kind !== "none" ? fsel("Alignment", k + ".target.shape", SHAPES) + fsel("Slope", k + ".target.order", ordersFor(t.shape).map(o => [o, o * 6 + " dB/oct"]), { numv: 1 }) + fnum(t.kind === "bp" ? "High-pass (Hz)" : "Frequency (Hz)", k + ".target.f", { step: 10 }) + (t.kind === "bp" ? fsel("LP alignment", k + ".target.shape2", SHAPES) + fsel("LP slope", k + ".target.order2", ordersFor(t.shape2 || "LR").map(o => [o, o * 6 + " dB/oct"]), { numv: 1 }) + fnum("Low-pass (Hz)", k + ".target.f2", { step: 10 }) : "") + fnum("Level (dB)", k + ".target.level", { step: 0.5 }) : ""}</div>
+  <p class="note small">Targets are acoustic: tune the parts until the way's curve sits on the dashed line.</p></div>`;
+  return h;
+}
+function refreshDerived() {
+  document.querySelectorAll("[data-derived]").forEach(el => {
+    const wi = +el.dataset.w, w = P.ways[wi]; if (!w) return;
+    const dd = XO.driverData(w.driver);
+    if (el.dataset.derived === "model") { const i = dd.info; el.innerHTML = `<span>Qts ${i.Qts.toFixed(2)}</span><span>Bl ${i.Bl.toFixed(2)} T·m</span><span>Mms ${(i.Mms * 1000).toFixed(2)} g</span><span>Sens ${i.sens.toFixed(1)} dB</span>${i.fc ? `<span>Fc ${i.fc.toFixed(0)} Hz</span>` : ""}`; }
+    else { const i = dd.info, f = i.frd, z = i.zma, ms = w.driver.measured; el.innerHTML = `${f ? `<span>FRD ${fmtFs(f.fmin)}–${fmtFs(f.fmax)} Hz, ${f.hasPhase && ms.usePhase !== false ? "file phase" : "minimum phase"}</span>` : ""}${z ? `<span>ZMA ${fmtFs(z.fmin)}–${fmtFs(z.fmax)} Hz, ${z.hasPhase && ms.zUsePhase !== false ? "file phase" : "minimum phase"}</span>` : ""}${i.offaxis && i.offaxis.length ? `<span>Directivity measured to ${i.offaxis[i.offaxis.length - 1]}°</span>` : ""}`; }
+  });
+}
+
+/* ---------- tools ---------- */
+function toolsPanel() {
+  const n = (id, label, v, step = "any") => `<label class="fld"><span>${label}</span><input type="number" class="ci" id="${id}" value="${v}" step="${step}"></label>`;
+  return `<div class="sec"><h3>Textbook two-way values</h3><div class="calc"><div class="fgrid">${n("c-fc", "Crossover (Hz)", 2500, 10)}${n("c-rl", "Woofer load (Ω)", 8, 0.1)}${n("c-rh", "Tweeter load (Ω)", 6, 0.1)}</div><div class="tblwrap"><table id="c-tb"></table></div><p class="note small">Values run from the amp toward the driver: L1 then C2 for the low-pass, C1 then L2 for the high-pass, and so on. Real drivers are not resistors, so treat these as starting points.</p></div></div>
+  <div class="sec"><h3>L-pad</h3><div class="calc"><div class="fgrid">${n("c-lz", "Driver load (Ω)", 6, 0.1)}${n("c-la", "Attenuation (dB)", 4, 0.5)}</div><output id="c-lo"></output></div></div>
+  <div class="sec"><h3>Zobel and resonance trap</h3><div class="calc"><div class="fgrid">${n("c-zre", "Re (Ω)", 5.9, 0.01)}${n("c-zle", "Le (mH)", 0.78, 0.01)}${n("c-zfs", "Fs (Hz)", 52, 0.1)}${n("c-zqm", "Qms", 2.04, 0.01)}${n("c-zqe", "Qes", 0.47, 0.01)}</div><output id="c-zo"></output></div></div>
+  <div class="sec"><h3>Air-core inductor (Brooks coil)</h3><div class="calc"><div class="fgrid">${n("c-il", "Inductance (mH)", 1.0, 0.01)}<label class="fld"><span>Wire</span><select class="ci" id="c-iw">${[14, 15, 16, 17, 18, 19, 20, 22].map(a => `<option value="${a}" ${a === 18 ? "selected" : ""}>${a} AWG</option>`).join("")}</select></label></div><output id="c-io"></output></div></div>
+  <div class="sec"><h3>Vent length</h3><div class="calc"><div class="fgrid">${n("c-vb", "Box volume (L)", 12, 0.1)}${n("c-vf", "Tuning (Hz)", 45, 0.5)}${n("c-vd", "Vent diameter (mm)", 35, 1)}${n("c-vn", "Vents", 1, 1)}</div><output id="c-vo"></output></div></div>
+  <div class="sec"><h3>Offset, delay and baffle step</h3><div class="calc"><div class="fgrid">${n("c-dm", "Offset (mm)", 20, 1)}${n("c-bw", "Baffle width (mm)", 200, 1)}</div><output id="c-do"></output></div></div>`;
+}
+function calcAll() {
+  const g = id => +($("#" + id) || {}).value;
+  if (!$("#c-fc")) return;
+  const fc = g("c-fc"), rl = g("c-rl"), rh = g("c-rh"), w = 2 * Math.PI * fc;
+  const pol = { BW1: "Normal", BW2: "Inverted", LR2: "Inverted", BES2: "Inverted", BW3: "Either", BES3: "Inverted", BW4: "Normal", LR4: "Normal", BES4: "Normal" };
+  let t = `<thead><tr><th>Alignment</th><th>Low-pass</th><th>High-pass</th><th>Tweeter</th></tr></thead><tbody>`;
+  for (const [key, gs] of Object.entries(XO.LADDER)) {
+    const lp = gs.map((v, i) => i % 2 === 0 ? `L${i + 1} ${(v * rl / w * 1e3).toFixed(3)} mH` : `C${i + 1} ${(v / (rl * w) * 1e6).toFixed(2)} µF`).join("<br>");
+    const hp = gs.map((v, i) => i % 2 === 0 ? `C${i + 1} ${(1 / (v * rh * w) * 1e6).toFixed(2)} µF` : `L${i + 1} ${(rh / (v * w) * 1e3).toFixed(3)} mH`).join("<br>");
+    t += `<tr><td class="pn">${key.replace("BES", "Bessel ").replace("BW", "Butterworth ").replace("LR", "L-R ")}</td><td class="num">${lp}</td><td class="num">${hp}</td><td>${pol[key]}</td></tr>`;
+  }
+  $("#c-tb").innerHTML = t + "</tbody>";
+  const z = g("c-lz"), a = Math.pow(10, -g("c-la") / 20);
+  $("#c-lo").textContent = `Series R  ${(z * (1 - a)).toFixed(2)} Ω\nShunt R   ${a < 1 ? (z * a / (1 - a)).toFixed(2) + " Ω" : "open"}\nInput load stays ${z.toFixed(1)} Ω`;
+  const re = g("c-zre"), le = g("c-zle") / 1000, fs = g("c-zfs"), qm = g("c-zqm"), qe = g("c-zqe"), ws = 2 * Math.PI * fs;
+  $("#c-zo").textContent = `Zobel      R ${(re * 1.0).toFixed(2)} Ω   C ${(le / (re * re) * 1e6).toFixed(2)} µF\nTrap (series R+L+C across the driver)\n           R ${(re + re * qe / qm).toFixed(2)} Ω   L ${(qe * re / ws * 1e3).toFixed(2)} mH   C ${(1 / (ws * qe * re) * 1e6).toFixed(1)} µF\nZobel uses Le as a pure inductor; real voice coils need a slightly larger R and smaller C.`;
+  const L = g("c-il") * 1000, awg = g("c-iw"), dmm = 0.127 * Math.pow(92, (36 - awg) / 39), din = (dmm + 0.06) / 25.4;
+  const N = Math.pow(L / (0.0643 * din), 0.4), c = din * Math.sqrt(N), len = N * 2 * Math.PI * 1.5 * c * 0.0254, dcr = len * 1.72e-8 / (Math.PI * Math.pow(dmm / 2000, 2));
+  $("#c-io").textContent = `Turns        ${Math.round(N)}\nWinding      ${(c * 25.4).toFixed(1)} mm square, bobbin ${(2 * c * 25.4).toFixed(1)} mm diameter\nWire         ${len.toFixed(1)} m of ${awg} AWG\nDCR          ${dcr.toFixed(2)} Ω`;
+  const vb = g("c-vb"), fb = g("c-vf"), dv = g("c-vd") / 10, nv = Math.max(1, g("c-vn"));
+  const lv = 23400 * dv * dv * nv / (fb * fb * vb) - 0.732 * dv;
+  $("#c-vo").textContent = lv > 0 ? `Length ${(lv * 10).toFixed(0)} mm per vent (one flanged end)` : "Vent too small for this tuning; increase box volume or reduce diameter.";
+  const dm = g("c-dm"), bw = g("c-bw");
+  $("#c-do").textContent = `${dm} mm  =  ${(dm / 343).toFixed(4)} ms  =  ${(360 * 3000 * dm / 343000).toFixed(0)}° at 3 kHz\nBaffle-step center ≈ ${Math.round(115 / (bw / 1000))} Hz`;
+}
+
+/* ---------- export ---------- */
+function exportPanel() {
+  const ways = P.ways.map(w => `<button class="btn sm" type="button" data-act="exp" data-x="way:${w.id}">${esc(w.name)} response</button><button class="btn sm" type="button" data-act="exp" data-x="xfer:${w.id}">${esc(w.name)} transfer</button>`).join("");
+  return `<div class="sec"><h3>Data files</h3><div class="row"><button class="btn sm" type="button" data-act="exp" data-x="sum">Summed response (FRD)</button><button class="btn sm" type="button" data-act="exp" data-x="zma">Impedance (ZMA)</button>${ways}<button class="btn sm" type="button" data-act="exp" data-x="bom">Parts list (CSV)</button></div></div>
+  <div class="sec"><h3>DSP coefficients</h3><div class="row"><select id="dspfmt" aria-label="Coefficient format"><option value="minidsp">miniDSP advanced biquad</option><option value="camilla">CamillaDSP YAML</option><option value="plain">Plain table</option></select><button class="btn sm" type="button" data-act="exp" data-x="dsp">Generate</button></div><p class="note small">Uses the System sample rate. miniDSP expects a1 and a2 with flipped sign; that is handled. Linear-phase ways export their IIR version.</p></div>
+  <div class="sec"><h3>Output</h3><div class="note" id="exp-name">${V.exp ? esc(V.exp.name) : "Pick an export above."}</div><textarea id="exp-text" rows="12" readonly aria-label="Export output">${V.exp ? esc(V.exp.text) : ""}</textarea><div class="row"><button class="btn sm" type="button" data-act="copy" ${V.exp ? "" : "disabled"}>Copy</button><button class="btn sm" type="button" data-act="savefile" ${V.exp ? "" : "disabled"}>Save file</button></div></div>`;
+}
+function doExport(x) {
+  const base = (P.name || "crossover").replace(/[^\w\- ]+/g, "").trim() || "crossover";
+  let name, text;
+  if (x === "sum") { name = base + " summed.frd"; text = XO.toFRD(SUM.tot, `${P.name} summed response, ${P.system.listen.h} deg H, ${P.system.listen.v} deg V`); }
+  else if (x === "zma") { if (R.active) { const r = R.ways[0]; name = base + " " + r.way.name + " load.zma"; text = XO.toZMA(r.sw.Zin, P.name + " " + r.way.name + " load"); } else { name = base + " impedance.zma"; text = XO.toZMA(R.Zsys, P.name + " input impedance"); } }
+  else if (x.startsWith("way:")) { const k = R.ways.findIndex(r => r.id === x.slice(4)); name = base + " " + R.ways[k].way.name + ".frd"; text = XO.toFRD(SUM.per[k], P.name + " " + R.ways[k].way.name + " with network"); }
+  else if (x.startsWith("xfer:")) { const k = R.ways.findIndex(r => r.id === x.slice(5)); name = base + " " + R.ways[k].way.name + " transfer.frd"; const A = XO.CA(); for (let i = 0; i < NF; i++) { const g = XO.get(R.ways[k].G, i); A.re[i] = g[0] * XO.PREF; A.im[i] = g[1] * XO.PREF; } text = XO.toFRD(A, P.name + " " + R.ways[k].way.name + " electrical transfer (0 dB = 2.83 V)"); }
+  else if (x === "bom") { name = base + " parts.csv"; const lm = labelMap(); const L = ["Part,Way,Type,Value,Unit,DCR (ohm),Placement"]; P.ways.forEach(w => (w.network || []).forEach(b => XO.blockElems(b).forEach((e, j) => L.push([lm.get(b.id)[j], w.name, e === "R" ? "Resistor" : e === "L" ? "Inductor" : "Capacitor", e === "R" ? b.R : e === "L" ? b.L : b.C, e === "R" ? "ohm" : e === "L" ? "mH" : "uF", e === "L" ? b.Rl || 0 : "", b.kind + (XO.blockElems(b).length > 1 ? (b.arr === "p" ? " (parallel group)" : " (series group)") : "")].map(v => `"${String(v).replace(/"/g, '""')}"`).join(","))))); text = L.join("\n") + "\n"; }
+  else if (x === "dsp") { name = base + " dsp.txt"; text = dspText(($("#dspfmt") || {}).value || "minidsp"); }
+  else if (x === "proj") { name = base + ".json"; text = JSON.stringify(P, null, 1); }
+  V.exp = { name, text };
+  if (V.rail === "export") { $("#exp-name").textContent = name; $("#exp-text").value = text; document.querySelectorAll('[data-act="copy"],[data-act="savefile"]').forEach(b => b.disabled = false); }
+}
+function dspText(fmt) {
+  const fs = +P.system.fs || 96000, out = [];
+  const chains = [["global", P.system.dsp]].concat(P.system.mode === "active" ? P.ways.map(w => [w.name, w.dsp]) : []);
+  const f = v => v.toPrecision(16).replace(/0+$/, "").replace(/\.$/, "");
+  if (fmt === "camilla") out.push("filters:");
+  for (const [nm, items] of chains) {
+    const d = XO.dspDesign(items, fs); const slug = nm.toLowerCase().replace(/\W+/g, "_");
+    if (!d.bq.length && !d.gain && !d.delay && !d.invert) continue;
+    if (fmt === "minidsp") { out.push(`# ${nm} (${fs} Hz)`); d.bq.forEach((q, i) => out.push(`biquad${i + 1},\nb0=${f(q.b0)},\nb1=${f(q.b1)},\nb2=${f(q.b2)},\na1=${f(-q.a1)},\na2=${f(-q.a2)}${i < d.bq.length - 1 ? "," : ""}`)); if (d.gain || d.delay || d.invert) out.push(`# gain ${d.gain.toFixed(2)} dB, delay ${d.delay.toFixed(3)} ms, ${d.invert ? "inverted" : "normal"} polarity: set these in the channel's gain, delay and invert controls`); out.push(""); }
+    else if (fmt === "camilla") { d.bq.forEach((q, i) => out.push(`  ${slug}_bq${i + 1}:   # ${q.label}\n    type: Biquad\n    parameters:\n      type: Free\n      b0: ${f(q.b0)}\n      b1: ${f(q.b1)}\n      b2: ${f(q.b2)}\n      a1: ${f(q.a1)}\n      a2: ${f(q.a2)}`)); if (d.gain || d.invert) out.push(`  ${slug}_gain:\n    type: Gain\n    parameters:\n      gain: ${d.gain.toFixed(2)}\n      inverted: ${d.invert}`); if (d.delay) out.push(`  ${slug}_delay:\n    type: Delay\n    parameters:\n      delay: ${d.delay.toFixed(4)}\n      unit: ms`); }
+    else { out.push(`${nm} at ${fs} Hz`); d.bq.forEach((q, i) => out.push(`  ${i + 1}. ${q.label}\n     b0 ${f(q.b0)}  b1 ${f(q.b1)}  b2 ${f(q.b2)}  a1 ${f(q.a1)}  a2 ${f(q.a2)}`)); out.push(`  gain ${d.gain.toFixed(2)} dB, delay ${d.delay.toFixed(3)} ms, ${d.invert ? "inverted" : "normal"}`); out.push(""); }
+  }
+  if (out.length <= (fmt === "camilla" ? 1 : 0)) return "No DSP filters in this project. Add them in the System tab (global) or in each way's tab in Active mode.";
+  if (fmt === "camilla") out.push("# Add the filter names to each channel's pipeline step in the order listed.");
+  return out.join("\n") + "\n";
+}
+let DL = null;
+(async () => { for (let k = 0; k < 30 && !(window.claude && window.claude.use); k++) await new Promise(r => setTimeout(r, 300)); try { if (window.claude && window.claude.use) DL = await window.claude.use("downloads"); } catch (_) { DL = null; } })();
+async function saveText(name, text) {
+  if (DL) {
+    const safe = /\.(json|csv|txt|md)$/i.test(name) ? name : name + ".txt";
+    try { await DL.save({ filename: safe, data: text }); toast("Saved " + safe); return; }
+    catch (e) { if (e && e.code === "declined") { toast("Save cancelled"); return; } if (e && e.code === "rate_limited") { toast("A save prompt is already open"); return; } }
+  }
+  try { const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([text], { type: "text/plain" })); a.download = name; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1500); toast("Download started. If nothing appears, use Copy in the Export tab."); }
+  catch (_) { toast("Saving files is blocked here. Use Copy in the Export tab."); }
+}
+
+/* ---------- actions ---------- */
+function wayIndexOf(path) { const m = /^ways\.(\d+)/.exec(path); return m ? +m[1] : -1; }
+function wayZ(wi) { return R && R.ways[wi] ? R.ways[wi].sw.Zload : null; }
+function autoZobel(wi) {
+  const Z = wayZ(wi); if (!Z) return { R: 8, C: 4.7 };
+  const zp = XO.zParams(Z), fref = zp.Fs > 400 ? 10000 : 2000, i = Math.round(XO.idxOf(fref));
+  let re = 1e9; for (let j = 0; j < NF; j++) if (F[j] > Math.max(2.5 * zp.Fs, 150) && F[j] < Math.max(6 * zp.Fs, 1500)) re = Math.min(re, XO.abs(XO.get(Z, j)));
+  if (!isFinite(re) || re > 1e8) re = zp.Re;
+  const le = Math.max(1e-6, XO.get(Z, i)[1] / (2 * Math.PI * fref));
+  return { R: +re.toFixed(2), C: +(le / (re * re) * 1e6).toFixed(2) };
+}
+function autoTrap(wi) { const Z = wayZ(wi); if (!Z) return { R: 6, L: 2, C: 100 }; const p = XO.zParams(Z), ws = 2 * Math.PI * p.Fs; return { R: +(p.Re + p.Re * p.Qes / p.Qms).toFixed(2), L: +(p.Qes * p.Re / ws * 1e3).toFixed(3), C: +(1 / (ws * p.Qes * p.Re) * 1e6).toFixed(1) }; }
+function bandZ(wi) {
+  const Z = wayZ(wi); if (!Z) return 8; const s = SUM.ways[wi]; let mx = -1e9; for (let i = 0; i < NF; i++) if (F[i] > 150 && F[i] < 16000) mx = Math.max(mx, s[i]);
+  let a = 0, n = 0; for (let i = 0; i < NF; i++) if (F[i] > 150 && F[i] < 16000 && s[i] > mx - 4) { a += XO.abs(XO.get(Z, i)); n++; } return n ? a / n : 8;
+}
+function lpadBlocks(Z, A) { const a = Math.pow(10, -A / 20); return [B("series", { R: +(Z * (1 - a)).toFixed(2) }), B("shunt", { R: +(Z * a / Math.max(1e-3, 1 - a)).toFixed(2) })]; }
+function addPart(path, kind) {
+  const list = getPath(P, path), wi = wayIndexOf(path); let nb = [];
+  const z = wi >= 0 ? autoZobel(wi) : { R: 8, C: 10 }, tr = wi >= 0 ? autoTrap(wi) : { R: 4, L: 3, C: 50 };
+  switch (kind) {
+    case "seC": nb = [B("series", { C: 10 })]; break; case "seL": nb = [B("series", { L: 0.5 })]; break; case "seR": nb = [B("series", { R: 2 })]; break;
+    case "shC": nb = [B("shunt", { C: 4.7 })]; break; case "shL": nb = [B("shunt", { L: 0.5 })]; break; case "shR": nb = [B("shunt", { R: 10 })]; break;
+    case "zob": nb = [B("shunt", { R: z.R, C: z.C })]; break;
+    case "trap": nb = [B("shunt", { R: tr.R, L: tr.L, C: tr.C, Rl: 0 })]; break;
+    case "notch": nb = [B("series", { arr: "p", R: 6, L: 0.3, C: 10 })]; break;
+    case "crc": nb = [B("series", { arr: "p", R: 4, C: 4.7 })]; break;
+    case "crl": nb = [B("series", { arr: "p", R: 4, L: 0.3 })]; break;
+    case "lpad": nb = lpadBlocks(wi >= 0 ? bandZ(wi) : 8, 3); break;
+  }
+  if (path === "system.inputComp") nb.forEach(b => b.kind = "shunt");
+  list.push(...nb);
+  return nb;
+}
+function act(a, el) {
+  const p = el.dataset.p, wi = el.dataset.w != null ? +el.dataset.w : -1;
+  let rr = true;
+  switch (a) {
+    case "mode": P.system.mode = el.dataset.v; $("#sub-body").dataset.sub = ""; break;
+    case "bkind": { const b = getPath(P, p); b.kind = el.dataset.v; break; }
+    case "belem": { const b = getPath(P, p), e = el.dataset.e, k = "has" + e; if (b[k] && XO.blockElems(b).length === 1) { toast("A part needs at least one element. Delete it instead."); return; } b[k] = !b[k]; if (b[k] && e === "L" && b.Rl == null) b.Rl = XO.estDCR(b.L); break; }
+    case "barr": getPath(P, p).arr = el.dataset.v; break;
+    case "bmove": case "dmove": { const ks = p.split("."), i = +ks.pop(), list = getPath(P, ks.join(".")), j = i + (+el.dataset.d); if (j < 0 || j >= list.length) return; [list[i], list[j]] = [list[j], list[i]]; break; }
+    case "bdel": case "ddel": { const ks = p.split("."), i = +ks.pop(); getPath(P, ks.join(".")).splice(i, 1); break; }
+    case "bdcr": { const b = getPath(P, p); b.Rl = XO.estDCR(+b.L); break; }
+    case "pol": P.ways[wi].polarity = +el.dataset.v; break;
+    case "delway": { const nm = P.ways[wi].name; P.ways.splice(wi, 1); V.rail = "sys"; toast(`Deleted ${nm}. Undo brings it back.`); break; }
+    case "addway": { const used = P.ways.map(w => w.slot); const slot = [0, 1, 2, 3].find(s => !used.includes(s)); const role = P.ways.length === 2 ? "mid" : "woofer"; const w = newWay(role, slot, { name: P.ways.length === 2 ? "Mid" : "Sub" }); if (P.ways.length === 3) { w.driver.model = Object.assign(clone(MODEL_DEF.woofer), { Fs: 28, Vas: 60, Sd: 330, Vb: 40, Le: 1.6 }); w.driver.dia = 210; } w.instances = [{ x: +P.system.listen.refX || 100, y: 100, z: -20 }]; P.ways.push(w); V.rail = w.id; break; }
+    case "src": { const d = P.ways[wi].driver; d.source = el.dataset.v; d.baffleSim = d.source === "model"; break; }
+    case "loadfile": V.pendingLoad = { wi, kind: el.dataset.kind }; $("#datafile").value = ""; $("#datafile").click(); return;
+    case "paste": { const txt = ($("#paste-" + wi) || {}).value || ""; if (!applyData(wi, el.dataset.kind, txt, "pasted")) return; break; }
+    case "clearnet": P.ways[wi].network = []; break;
+    case "clearoff": P.ways[wi].driver.measured.offaxis = []; break;
+    case "tb": {
+      const kind = $("#tb-kind").value, key = $("#tb-key").value, f = +$("#tb-f").value, f2 = +$("#tb-f2").value, Rin = $("#tb-R").value;
+      V.tb = { kind, key, f, f2, R: Rin };
+      const Z = wayZ(wi), zAt = fr => Rin !== "" ? +Rin : Z ? XO.abs(XO.get(Z, Math.round(XO.idxOf(fr)))) : 8;
+      let nb = kind === "bp" ? XO.textbookBlocks("hp", key, f, zAt(f)).concat(XO.textbookBlocks("lp", key, f2, zAt(f2))) : XO.textbookBlocks(kind, key, f, zAt(f));
+      if (el.dataset.mode === "replace") P.ways[wi].network = nb; else P.ways[wi].network.push(...nb);
+      const t = P.ways[wi].target, sh = key.replace(/\d/g, ""), ord = +key.replace(/\D/g, "");
+      if (t.kind === "none") Object.assign(t, { kind, shape: sh, order: ord, f, f2, shape2: sh, order2: ord, level: Math.round(XO.bandMean(SUM.spl, 300, 3000)) });
+      toast(`Generated ${key} ${kind === "bp" ? "band-pass" : kind === "lp" ? "low-pass" : "high-pass"} values`); break;
+    }
+    case "autozob": { const z = autoZobel(wi); P.ways[wi].network.push(B("shunt", { R: z.R, C: z.C })); toast(`Zobel ${z.R} Ω + ${z.C} µF added next to the driver`); break; }
+    case "autotrap": { const t = autoTrap(wi); P.ways[wi].network.push(B("shunt", { R: t.R, L: t.L, C: t.C, Rl: 0 })); toast(`Trap ${t.R} Ω, ${t.L} mH, ${t.C} µF added`); break; }
+    case "autolpad": { const A = +($("#lpad-db") || {}).value || 3; P.ways[wi].network.push(...lpadBlocks(bandZ(wi), A)); toast(`L-pad for ${A} dB added`); break; }
+    case "tlevel": P.ways[wi].target.level = Math.round(XO.bandMean(SUM.spl, 300, 3000) * 2) / 2; break;
+    case "reftw": { let best = null; P.ways.forEach(w => w.instances.forEach(p => { if (!best || +p.y > +best.y) best = p; })); if (best) { P.system.listen.refX = +best.x; P.system.listen.refY = +best.y; } break; }
+    case "exp": doExport(el.dataset.x); return;
+    case "copy": { const ta = $("#exp-text"); const txt = V.exp ? V.exp.text : ""; (navigator.clipboard && navigator.clipboard.writeText ? navigator.clipboard.writeText(txt) : Promise.reject()).then(() => toast("Copied"), () => { ta.focus(); ta.select(); toast("Press Ctrl+C or ⌘C to copy the selected text"); }); return; }
+    case "savefile": if (V.exp) saveText(V.exp.name, V.exp.text); return;
+    default: rr = false;
+  }
+  if (rr) { renderRailTabs(); renderRail(); update(); commit(); }
+}
+function actSel(a, el) {
+  const v = el.value; if (!v) return;
+  if (a === "addpart") { const nb = addPart(el.dataset.p, v); renderRail(); update(); commit(); if (nb[0]) flashBlock(nb[0].id); return; }
+  if (a === "adddsp") { const list = getPath(P, el.dataset.p); const d = { hp: { t: "hp", shape: "LR", order: 4, f: 2000 }, lp: { t: "lp", shape: "LR", order: 4, f: 2000 }, peq: { t: "peq", f: 1000, g: -3, q: 2 }, ls: { t: "ls", f: 150, g: 6, q: 0.7 }, hs: { t: "hs", f: 4000, g: -2, q: 0.7 }, ap1: { t: "ap1", f: 1000 }, ap2: { t: "ap2", f: 1000, q: 0.7 }, lt: { t: "lt", f0: 50, q0: 0.9, fp: 30, qp: 0.6 }, gain: { t: "gain", g: -3 }, delay: { t: "delay", ms: 0.05 }, invert: { t: "invert" } }[v]; list.push(clone(d)); }
+  if (a === "count") { const w = P.ways[+el.dataset.w], n = +v; while (w.instances.length < n) { const l = w.instances[w.instances.length - 1]; w.instances.push({ x: +l.x, y: +l.y - (+w.driver.dia || 100) - 20, z: +l.z }); } w.instances.length = n; if (n < 4 && w.wiring === "sp") w.wiring = "parallel"; }
+  renderRail(); update(); commit();
+}
+function readVal(el) { if (el.type === "checkbox") return el.checked; if (el.dataset.str) return el.value; if (el.dataset.log) return fromPos(el.dataset.log, +el.value); if (el.dataset.num) return +el.value; if (el.value === "") return ""; const n = parseFloat(el.value); return isFinite(n) ? n : 0; }
+function parseAngle(name) {
+  const b = String(name || "").replace(/\.\w+$/, "");
+  let m = /@\s*(-?\d{1,3})(?!\d)/.exec(b) || /(-?\d{1,3})\s*(?:deg|°)/i.exec(b) || /(?:^|[ _-])(?:hor|horizontal|h)[ _]?(-?\d{1,3})$/i.exec(b);
+  return m ? Math.abs(+m[1]) : null;
+}
+function applyData(wi, kind, text, name, quiet) {
+  const rows = XO.parseTable(text);
+  if (rows.length < 3) { toast("No usable data found. Expect lines of frequency, value, and optional phase."); return false; }
+  const w = P.ways[wi], ms = w.driver.measured;
+  if (kind === "auto") { const med = rows.map(r => r[1]).sort((a, b) => a - b)[rows.length >> 1]; kind = med > 35 ? "frd" : "zma"; }
+  let msg;
+  const ang = kind === "frd" ? parseAngle(name) : null;
+  if (kind === "frd" && ang > 0 && ang <= 90) {
+    ms.offaxis = (ms.offaxis || []).filter(o => o.ang !== ang); ms.offaxis.push({ ang, name, rows }); ms.offaxis.sort((a, b) => a.ang - b.ang);
+    msg = `Off-axis ${ang}° response loaded into ${w.name}`;
+  } else if (kind === "frd") {
+    ms.frd = rows; ms.frdName = name; if (!rows.some(r => r[2])) ms.usePhase = false;
+    msg = `FRD loaded into ${w.name}: ${rows.length} points`;
+  } else { ms.zma = rows; ms.zmaName = name; msg = `ZMA loaded into ${w.name}: ${rows.length} points`; }
+  if (w.driver.source !== "measured") { w.driver.source = "measured"; w.driver.baffleSim = false; }
+  if (!w.driver.name) w.driver.name = name.replace(/\.\w+$/, "").replace(/@\s*\d+$/, "");
+  if (!quiet) toast(msg);
+  return true;
+}
+function loadFiles(wi, kind, files) {
+  let left = files.length, ok = 0; if (!left) return;
+  files.forEach(f => { const r = new FileReader(); r.onload = () => { const k = kind !== "auto" && kind !== "frd" ? kind : /\.(zma|zdat|zdt)$/i.test(f.name) ? "zma" : /\.frd$/i.test(f.name) ? "frd" : kind; if (applyData(wi, k, r.result, f.name, files.length > 1)) ok++; if (--left === 0) { if (files.length > 1) toast(`Loaded ${ok} of ${files.length} files into ${P.ways[wi].name}`); renderRail(); update(); commit(); } }; r.readAsText(f); });
+}
+function flashBlock(id) { const el = document.getElementById("blk-" + id); if (!el) return; el.scrollIntoView({ block: "center", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" }); el.classList.add("flash"); setTimeout(() => el.classList.remove("flash"), 1400); const inp = el.querySelector("input[type=number]"); if (inp) setTimeout(() => { try { inp.focus({ preventScroll: true }); } catch (_) {} }, 300); }
+function focusBlock(wayId, bid) { V.rail = wayId === "sys" ? "sys" : wayId; renderRailTabs(); renderRail(); flashBlock(bid); }
+
+/* ---------- update loop ---------- */
+let raf = 0;
+function update() { cancelAnimationFrame(raf); raf = requestAnimationFrame(() => { compute(); tiles(); drawResp(); drawSub(); drawCircuit(); drawBOM(); refreshDerived(); }); }
+function fullRender() {
+  $("#projname").value = P.name || "";
+  $("#ang-h").value = P.system.listen.h || 0; $("#ang-v").value = P.system.listen.v || 0; $("#ang-h-v").textContent = (P.system.listen.h || 0) + "°"; $("#ang-v-v").textContent = (P.system.listen.v || 0) + "°";
+  $("#testw").value = P.system.testW || 20;
+  if (V.nullWay && !P.ways.some(w => w.id === V.nullWay)) V.nullWay = "";
+  $("#nullway").innerHTML = `<option value="">Off</option>` + P.ways.map(w => `<option value="${w.id}" ${V.nullWay === w.id ? "selected" : ""}>Flip ${esc(w.name)}</option>`).join("");
+  $("#sub-body").dataset.sub = "";
+  respLegend(); renderRailTabs(); renderRail(); update();
+}
+
+/* ---------- events ---------- */
+function bind() {
+  const rail = $("#rail-body");
+  rail.addEventListener("input", e => {
+    const el = e.target;
+    if (el.classList.contains("ci")) { calcAll(); return; }
+    const k = el.dataset.k; if (!k) return;
+    const v = readVal(el);
+    if (v === "" && !el.dataset.str && el.type === "number" && !/\.sens$|\.hfF$|\.brF$/.test(k)) return;
+    setPath(P, k, v);
+    if (el.dataset.log) { const n = el.parentElement.querySelector("input[type=number]"); if (n) n.value = v; }
+    else if (el.type === "number" && el.parentElement.classList.contains("el")) { const r = el.parentElement.querySelector("input[type=range]"); const e2 = r && r.dataset.log; if (r) r.value = toPos(e2, +v); }
+    if (k === "notes" || /\.name$/.test(k)) { if (/^ways\.\d+\.name$/.test(k)) { renderRailTabs(); respLegend(); } if (k !== "notes") update(); return; }
+    update();
+  });
+  rail.addEventListener("change", e => {
+    const el = e.target;
+    if (el.dataset.actSel) { actSel(el.dataset.actSel, el); return; }
+    if (el.id === "tb-kind") { V.tb = Object.assign(V.tb || {}, { kind: el.value }); renderRail(); return; }
+    if (!el.dataset.k) return;
+    if (el.dataset.rr) { if (/order$|shape$/.test(el.dataset.k)) { const p = el.dataset.k.replace(/\.(shape|order)2?$/, ""), o = getPath(P, p); if (o && o.shape && !ordersFor(o.shape).includes(+o.order)) o.order = ordersFor(o.shape)[Math.min(1, ordersFor(o.shape).length - 1)]; if (o && o.shape2 && !ordersFor(o.shape2).includes(+o.order2)) o.order2 = ordersFor(o.shape2)[1]; } renderRail(); update(); }
+    if (/^ways\.\d+\.name$/.test(el.dataset.k)) { fullRender(); }
+    commit();
+  });
+  rail.addEventListener("click", e => { const b = e.target.closest("[data-act]"); if (b && !b.disabled && rail.contains(b)) act(b.dataset.act, b); });
+  rail.addEventListener("dragover", e => { const d = e.target.closest("[data-drop]"); if (d) { e.preventDefault(); d.classList.add("over"); } });
+  rail.addEventListener("dragleave", e => { const d = e.target.closest("[data-drop]"); if (d) d.classList.remove("over"); });
+  rail.addEventListener("drop", e => {
+    const d = e.target.closest("[data-drop]"); if (!d) return; e.preventDefault(); d.classList.remove("over");
+    loadFiles(+d.dataset.drop, "auto", [...(e.dataTransfer.files || [])]);
+  });
+  $("#railtabs").addEventListener("click", e => { const t = e.target.closest("[data-rail],[data-act]"); if (!t) return; if (t.dataset.act) { act(t.dataset.act, t); return; } V.rail = t.dataset.rail; renderRailTabs(); renderRail(); });
+  $("#subtabs").addEventListener("click", e => { const t = e.target.closest("[data-sub]"); if (!t) return; V.sub = t.dataset.sub; drawSub(); });
+  $("#datafile").addEventListener("change", e => { const pl = V.pendingLoad; if (!pl) return; loadFiles(pl.wi, pl.kind, [...e.target.files]); });
+  $("#projname").addEventListener("input", e => { P.name = e.target.value; });
+  $("#projname").addEventListener("change", () => commit());
+  $("#example").addEventListener("change", e => { const v = e.target.value; if (!v) return; P = normalize(EXAMPLES[v]()); V.capture = null; V.nullWay = ""; V.rail = "sys"; commit(); fullRender(); toast(`Loaded “${P.name}”. Undo returns to your previous project.`); e.target.value = ""; });
+  $("#undo").addEventListener("click", () => { if (HIST.i > 0) restore(HIST.i - 1); });
+  $("#redo").addEventListener("click", () => { if (HIST.i < HIST.stack.length - 1) restore(HIST.i + 1); });
+  document.addEventListener("keydown", e => { if (!(e.ctrlKey || e.metaKey) || e.key.toLowerCase() !== "z") return; if (e.target.matches("input[type=text],textarea")) return; e.preventDefault(); if (e.shiftKey) $("#redo").click(); else $("#undo").click(); });
+  $("#capture").addEventListener("click", () => {
+    if (V.capture) { V.capture = null; $("#capture").textContent = "Capture"; $("#capture").classList.remove("on"); }
+    else { V.capture = { spl: Float64Array.from(SUM.spl), z: R.active ? null : XO.caAbs(R.Zsys) }; V.show.ghost = true; $("#capture").textContent = "Clear capture"; $("#capture").classList.add("on"); toast("Captured. The gray dashed line holds this sum while you change parts."); }
+    respLegend(); drawResp(); drawSub();
+  });
+  $("#save").addEventListener("click", () => { const base = (P.name || "crossover").replace(/[^\w\- ]+/g, "").trim() || "crossover"; saveText(base + ".json", JSON.stringify(P, null, 1)); });
+  $("#open").addEventListener("click", () => { $("#openfile").value = ""; $("#openfile").click(); });
+  $("#openfile").addEventListener("change", e => { const f = e.target.files[0]; if (!f) return; const r = new FileReader(); r.onload = () => { try { const p = JSON.parse(r.result); if (!p || !Array.isArray(p.ways)) throw 0; P = normalize(p); V.capture = null; V.rail = "sys"; commit(); fullRender(); toast(`Opened “${P.name || f.name}”`); } catch (_) { toast("That file isn't a Crossover Workbench project (.json)."); } }; r.readAsText(f); });
+  const ang = (id, key) => $(id).addEventListener("input", e => { P.system.listen[key] = +e.target.value; $(id + "-v").textContent = e.target.value + "°"; update(); });
+  ang("#ang-h", "h"); ang("#ang-v", "v");
+  $("#ang-h").addEventListener("change", commit); $("#ang-v").addEventListener("change", commit);
+  $("#rng").addEventListener("change", e => { V.rng = +e.target.value; drawResp(); });
+  $("#nullway").addEventListener("change", e => { V.nullWay = e.target.value; V.show.nullc = true; respLegend(); update(); });
+  $("#tol").addEventListener("change", e => { V.tol = +e.target.value; V.show.band = true; respLegend(); update(); });
+  $("#overlay-btn").addEventListener("click", () => { if (V.overlay) { V.overlay = null; $("#overlay-btn").textContent = "Overlay FRD"; respLegend(); drawResp(); return; } $("#overlay-file").value = ""; $("#overlay-file").click(); });
+  $("#overlay-file").addEventListener("change", e => { const f = e.target.files[0]; if (!f) return; const r = new FileReader(); r.onload = () => { const rows = XO.parseTable(r.result); if (rows.length < 3) { toast("No usable FRD data in that file."); return; } const g = XO.tableToGrid(rows, "frd", false); V.overlay = { name: f.name.replace(/\.\w+$/, "").slice(0, 28), db: XO.caSpl(g.A) }; V.show.ovl = true; $("#overlay-btn").textContent = "Remove overlay"; respLegend(); drawResp(); }; r.readAsText(f); });
+  $("#probe").addEventListener("input", e => setProbe(20 * Math.pow(1000, +e.target.value / 1000)));
+  $("#testw").addEventListener("input", e => { const v = +e.target.value; if (v > 0) { P.system.testW = v; drawCircuit(); drawBOM(); } });
+  $("#testw").addEventListener("change", commit);
+  $("#snap").addEventListener("click", () => {
+    let n = 0; const fix = b => { if (b.hasR) { const v = nearestSeries(+b.R, E24); if (v !== +b.R) { b.R = v; n++; } } if (b.hasC) { const v = nearestSeries(+b.C, E12); if (v !== +b.C) { b.C = v; n++; } } if (b.hasL) { const v = nearestL(+b.L); if (v !== +b.L) { b.L = v; n++; } } };
+    P.ways.forEach(w => (w.network || []).forEach(fix)); (P.system.inputComp || []).forEach(fix);
+    renderRail(); update(); commit(); toast(n ? `Rounded ${n} values to stock parts. Undo reverts.` : "Every value is already a stock value.");
+  });
+  let rt = 0; try { new ResizeObserver(() => { clearTimeout(rt); rt = setTimeout(() => { if (R) { drawResp(); drawSub(); } }, 80); }).observe($(".main")); } catch (_) { window.addEventListener("resize", () => { if (R) { drawResp(); drawSub(); } }); }
+}
+
+/* ---------- init ---------- */
+const BUILD = 4;
+function init() {
+  const fi = document.createElement("input"); fi.type = "file"; fi.id = "datafile"; fi.hidden = true; fi.accept = ".frd,.zma,.txt,.csv,.dat,.zdat"; fi.multiple = true; document.body.appendChild(fi);
+  $("#example").innerHTML = `<option value="">Load an example…</option>` + EX_LIST.map(([k, l]) => `<option value="${k}">${l}</option>`).join("");
+  bind();
+  let p = null; try { const s = localStorage.getItem("xwb.project"); if (s) p = JSON.parse(s); } catch (_) { p = null; }
+  let stale = false;
+  try { stale = +(localStorage.getItem("xwb.build") || 0) < BUILD; localStorage.setItem("xwb.build", String(BUILD)); } catch (_) {}
+  if (p && stale) { const ex = EX_LIST.map(([k]) => EXAMPLES[k]()).find(e => e.name === p.name); if (ex) { p = ex; setTimeout(() => toast(`“${ex.name}” was updated to the latest example version.`), 600); } }
+  P = normalize(p && Array.isArray(p.ways) ? p : EXAMPLES.cnote());
+  commit();
+  $("#probe").value = 1000 * Math.log(V.probeF / 20) / Math.log(1000); $("#probe-f").textContent = fmtF(V.probeF);
+  $("#rng").value = String(V.rng);
+  fullRender();
+}
+init();
+})();
+
+</script>
+</body>
+</html>
